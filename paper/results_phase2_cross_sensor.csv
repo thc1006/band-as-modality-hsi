@@ -1,0 +1,4 @@
+sensor,arm,bands,params,hidden,capacity_matched,srf,n_seeds,epochs,macro_classes,mIoU_mean,mIoU_sd,mIoU_min,mIoU_max,AA_mean,OA_mean,kappa_mean,mIoU_present_mean,n_test_classes_min,n_test_classes_max
+full-HSI,unmatched,200,121360,256,0,pyspectral,5,60,14,73.67,1.93,71.23,75.85,83.01,85.50,83.42,73.98,15,16
+Sentinel-2,unmatched,11,72976,256,0,pyspectral,5,60,14,66.87,3.14,62.17,70.83,77.47,79.41,76.34,66.94,15,16
+Landsat-8 OLI,unmatched,6,71696,256,0,pyspectral,5,60,14,62.93,1.98,61.17,65.97,74.60,77.06,73.67,62.80,15,16

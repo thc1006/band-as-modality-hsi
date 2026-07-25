@@ -1,0 +1,343 @@
+{
+  "args": {
+    "degenerate_bands": "keep",
+    "device": null,
+    "dry_run": false,
+    "epochs": 60,
+    "jobs": null,
+    "nondeterministic": false,
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "smoke": false,
+    "srf": "pyspectral",
+    "tag": ""
+  },
+  "command": "experiments/phase5_ab_flagship.py --seeds 0 1 2 3 4",
+  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "extra": {
+    "absorption_cores": "hard-masked in EVERY condition, clean included; Design B's mask asserted identical to the clean path's at runtime",
+    "arms": {
+      "gain_corrected": "same cube divided by the keep-weighted per-band mean transmittance -- an UPPER BOUND on radiometric correction; the residual gap to clean is in-band spectral distortion",
+      "uncorrected": "rho*T then SRF, clean scaler -- uncorrected gas-only radiometry proxy (phase 3's SUPPLEMENTARY arm; NOT 'L1C')"
+    },
+    "band_set": "canonical_contract",
+    "bands_by_sensor": {
+      "landsat_oli": 6,
+      "sentinel2": 11
+    },
+    "bands_measuring_by_sensor": {
+      "landsat_oli": 6,
+      "sentinel2": 11
+    },
+    "bands_used_by_sensor": {
+      "landsat_oli": 6,
+      "sentinel2": 11
+    },
+    "bootstrap": {
+      "method": "percentile",
+      "n_boot": 10000,
+      "seed": 20260719,
+      "undefined_below_n": 3
+    },
+    "claim_limits": "spectral-only bandpass-set comparison on a COMMON spatial grid (no PSF/MTF/resolution/SNR/quantization); gaseous transmittance only (no aerosol/path radiance); seeds are checkerboard offsets of ONE scene, so intervals are split+init variability, not scene-level",
+    "claim_scope": "gaseous_absorption",
+    "cube_sha256": "ec2f8808710919d566f70f0d4aa885aae1ddfd42b734aba71c5e12ca65450939",
+    "cwvs": [
+      0.5,
+      2.0,
+      4.0
+    ],
+    "degenerate_band_policy": "keep",
+    "deterministic": true,
+    "dry_run": false,
+    "gt_sha256": "65c4687a8ab04f6da4789799bc3bc4f6e88bccac3ed6a2e6ae367e5e6b9e429c",
+    "hw": "device=cuda (1x Tesla V100-SXM2-32GB 34GB) | 8 cores, 8 threads/proc | torch 2.6.0+cu124",
+    "lut": "/home/user/cct/band-as-modality-hsi/data/srf_cache/T_6s_grid.npz",
+    "lut_sha256": "323c558604203f7ddcc3d71b72b43aab57c13443e49cc0e11cdec21148b3f0d3",
+    "min_band_throughput": 0.01,
+    "n_hsi_bands": 200,
+    "protocol": "scaler+MLP fit ONCE on clean source; frozen (full state_dict fingerprint checked before AND after every evaluation) and evaluated under each CWV with no re-training and no re-fit",
+    "pyspectral_version": "0.14.3",
+    "seed_split_jaccard_overlap": {
+      "max": 0.6324582338902148,
+      "mean": 0.43987660728785044,
+      "n_pairs": 10
+    },
+    "sensors": [
+      "sentinel2",
+      "landsat_oli"
+    ],
+    "srf": {
+      "landsat_oli": {
+        "band_centers_nm": [
+          481.651,
+          562.134,
+          655.177,
+          863.672,
+          1609.098,
+          2201.2
+        ],
+        "band_names": [
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B6",
+          "B7"
+        ],
+        "canonical_selection": {
+          "dropped": {
+            "B1": 444.07,
+            "B6": 1373.9,
+            "B9": 592.07
+          },
+          "excluded": {
+            "B1": "the AVIRIS-based synthesis axis starts at 437.7 nm; S2/OLI B1 (443 nm) has 16-24% of its response below the first sampled wavelength, and synthesizing a truncated, renormalised B1 would fabricate signal the sensor never measured on this cube"
+          },
+          "matched": {
+            "B2": {
+              "canonical_center_nm": 482.0,
+              "center_nm": 481.65,
+              "delta_nm": 0.35,
+              "source_band": "B2"
+            },
+            "B3": {
+              "canonical_center_nm": 561.0,
+              "center_nm": 562.13,
+              "delta_nm": 1.13,
+              "source_band": "B3"
+            },
+            "B4": {
+              "canonical_center_nm": 655.0,
+              "center_nm": 655.18,
+              "delta_nm": 0.18,
+              "source_band": "B4"
+            },
+            "B5": {
+              "canonical_center_nm": 865.0,
+              "center_nm": 863.67,
+              "delta_nm": 1.33,
+              "source_band": "B5"
+            },
+            "B6": {
+              "canonical_center_nm": 1609.0,
+              "center_nm": 1609.1,
+              "delta_nm": 0.1,
+              "source_band": "B7"
+            },
+            "B7": {
+              "canonical_center_nm": 2201.0,
+              "center_nm": 2201.2,
+              "delta_nm": 0.2,
+              "source_band": "B8"
+            }
+          },
+          "n_canonical_bands": 6,
+          "n_source_bands": 9,
+          "tol_nm": 25.0
+        },
+        "cwv_gain_span": {
+          "argmax_used_band": "B7",
+          "inert_below": 0.01,
+          "max_any_band": 0.03643431884033166,
+          "max_used": 0.03643431884033166,
+          "min_used": 0.0
+        },
+        "detectors": [
+          "det-1",
+          "det-1",
+          "det-1",
+          "det-1",
+          "det-1",
+          "det-1"
+        ],
+        "kept_srf_fraction": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "srf_matrix_sha256": "e69195cb54ddf7fbbc3ed460268ed8a10642abc718c23f3d503b8307ea678258"
+      },
+      "sentinel2": {
+        "band_centers_nm": [
+          494.155,
+          559.92,
+          663.902,
+          705.012,
+          740.121,
+          781.407,
+          832.7,
+          865.512,
+          943.92,
+          1613.783,
+          2202.373
+        ],
+        "band_names": [
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B6",
+          "B7",
+          "B8",
+          "B8A",
+          "B9",
+          "B11",
+          "B12"
+        ],
+        "canonical_selection": {
+          "dropped": {
+            "B01": 444.3,
+            "B10": 1373.01
+          },
+          "excluded": {
+            "B1": "the AVIRIS-based synthesis axis starts at 437.7 nm; S2/OLI B1 (443 nm) has 16-24% of its response below the first sampled wavelength, and synthesizing a truncated, renormalised B1 would fabricate signal the sensor never measured on this cube"
+          },
+          "matched": {
+            "B11": {
+              "canonical_center_nm": 1610.0,
+              "center_nm": 1613.78,
+              "delta_nm": 3.78,
+              "source_band": "B11"
+            },
+            "B12": {
+              "canonical_center_nm": 2190.0,
+              "center_nm": 2202.37,
+              "delta_nm": 12.37,
+              "source_band": "B12"
+            },
+            "B2": {
+              "canonical_center_nm": 490.0,
+              "center_nm": 494.15,
+              "delta_nm": 4.15,
+              "source_band": "B02"
+            },
+            "B3": {
+              "canonical_center_nm": 560.0,
+              "center_nm": 559.92,
+              "delta_nm": 0.08,
+              "source_band": "B03"
+            },
+            "B4": {
+              "canonical_center_nm": 665.0,
+              "center_nm": 663.9,
+              "delta_nm": 1.1,
+              "source_band": "B04"
+            },
+            "B5": {
+              "canonical_center_nm": 705.0,
+              "center_nm": 705.01,
+              "delta_nm": 0.01,
+              "source_band": "B05"
+            },
+            "B6": {
+              "canonical_center_nm": 740.0,
+              "center_nm": 740.12,
+              "delta_nm": 0.12,
+              "source_band": "B06"
+            },
+            "B7": {
+              "canonical_center_nm": 783.0,
+              "center_nm": 781.41,
+              "delta_nm": 1.59,
+              "source_band": "B07"
+            },
+            "B8": {
+              "canonical_center_nm": 842.0,
+              "center_nm": 832.7,
+              "delta_nm": 9.3,
+              "source_band": "B08"
+            },
+            "B8A": {
+              "canonical_center_nm": 865.0,
+              "center_nm": 865.51,
+              "delta_nm": 0.51,
+              "source_band": "B8A"
+            },
+            "B9": {
+              "canonical_center_nm": 945.0,
+              "center_nm": 943.92,
+              "delta_nm": 1.08,
+              "source_band": "B09"
+            }
+          },
+          "n_canonical_bands": 11,
+          "n_source_bands": 13,
+          "tol_nm": 25.0
+        },
+        "cwv_gain_span": {
+          "argmax_used_band": "B9",
+          "inert_below": 0.01,
+          "max_any_band": 0.35965675229499317,
+          "max_used": 0.35965675229499317,
+          "min_used": 0.0
+        },
+        "detectors": [
+          "det-1",
+          "det-1",
+          "det-1",
+          "det-1",
+          "det-1",
+          "det-1",
+          "det-1",
+          "det-1",
+          "det-1",
+          "det-1",
+          "det-1"
+        ],
+        "kept_srf_fraction": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "srf_matrix_sha256": "0f5bb418ec9854f8c634308f4b1ccef81835f7d92d485c9655c09b09a08e6dec"
+      }
+    },
+    "srf_source": "pyspectral",
+    "validation_status": {
+      "A": "measured_srf",
+      "B": "physics_6s_gaseous"
+    },
+    "wavelength_axis_sha256": "6f567d9028cfd463ec8b41033d6787c730ed4b03c6fb8a5b3f23d51ae58710b8"
+  },
+  "generated_utc": "2026-07-20T11:30:33+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "ce1864cadaad004910c1a71447b77d8a4d8f08d6",
+    "dirty": false,
+    "dirty_code_paths": [],
+    "dirty_files": 0,
+    "outputs_dirty": true
+  },
+  "smoke": false,
+  "versions": {
+    "cuda": "12.4",
+    "gpus": [
+      "Tesla V100-SXM2-32GB"
+    ],
+    "h5py": "3.16.0",
+    "matplotlib": "3.11.1",
+    "numpy": "2.1.0",
+    "platform": "Linux-4.18.0-305.131.1.el8_4.x86_64-x86_64-with-glibc2.39",
+    "pyspectral": "0.14.3",
+    "python": "3.12.3",
+    "scipy": "1.18.0",
+    "torch": "2.6.0+cu124"
+  }
+}

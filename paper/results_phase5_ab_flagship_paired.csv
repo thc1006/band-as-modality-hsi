@@ -1,0 +1,7 @@
+arm,cwv,n_seeds,drop_s2_mean,drop_oli_mean,did_abs_mean,did_abs_sd_ddof1,did_abs_ci95_lo,did_abs_ci95_hi,did_abs_direction,did_abs_significant_at_95,did_abs_oli_worse_wins,did_ret_mean,did_ret_sd_ddof1,did_ret_ci95_lo,did_ret_ci95_hi,did_ret_direction,did_ret_significant_at_95,did_ret_oli_worse_wins,ci_units
+uncorrected,0.5,5,59.54,40.52,-19.012,3.563,-21.537,-15.883,s2_worse,True,0/5,-0.244,0.018,-0.257,-0.228,s2_worse,True,0/5,checkerboard offsets of ONE Indian Pines scene (NOT scenes/sensors)
+uncorrected,2.0,5,63.57,44.60,-18.963,3.917,-22.035,-16.002,s2_worse,True,0/5,-0.239,0.028,-0.258,-0.215,s2_worse,True,0/5,checkerboard offsets of ONE Indian Pines scene (NOT scenes/sensors)
+uncorrected,4.0,5,64.12,47.02,-17.104,3.088,-19.447,-14.643,s2_worse,True,0/5,-0.209,0.007,-0.214,-0.204,s2_worse,True,0/5,checkerboard offsets of ONE Indian Pines scene (NOT scenes/sensors)
+gain_corrected,0.5,5,-0.04,-0.39,-0.347,0.446,-0.680,+0.019,inconclusive,False,1/5,-0.005,0.007,-0.011,+0.000,inconclusive,False,1/5,checkerboard offsets of ONE Indian Pines scene (NOT scenes/sensors)
+gain_corrected,2.0,5,0.08,-0.28,-0.364,0.123,-0.464,-0.277,s2_worse,True,0/5,-0.006,0.002,-0.007,-0.004,s2_worse,True,0/5,checkerboard offsets of ONE Indian Pines scene (NOT scenes/sensors)
+gain_corrected,4.0,5,0.18,-0.11,-0.296,0.077,-0.354,-0.229,s2_worse,True,0/5,-0.005,0.001,-0.005,-0.004,s2_worse,True,0/5,checkerboard offsets of ONE Indian Pines scene (NOT scenes/sensors)

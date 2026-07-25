@@ -1,0 +1,49 @@
+# Design A demo config: synthesize ONE target sensor's band set from an HSI cube. run_spec runs a
+# SINGLE sensor per spec (set target_sensor below); to compare, run it once as sentinel2 and once as
+# landsat_oli -- this file does not sweep both. The sensors differ in band set -> physical "missing
+# bands" (OLI lacks S2 red-edge/B9). Band sets are subsets: Sentinel-2 MSI here is 12 bands (no B10);
+# Landsat-8 OLI here is the B1-B7 reflective subset (not the full 9-band OLI).
+#
+# What this config CAN support: the band-SET geometry (which bands exist, hence which are missing
+# cross-sensor). What it CANNOT: any claim about band SHAPE / radiometry -- the SRF here is a
+# synthetic Gaussian of one fixed width, not a measured sensor response.
+schema_version: 1
+claim_scope: band_set_geometry
+seed: 20260630
+
+input:
+  # config_runner.run_spec consumes ONLY `wavelength_axis`. dataset/path/gt_path are PROVENANCE
+  # (which cube the CALLER loads + passes to run_spec); the simulator never reads these paths.
+  dataset: indian_pines
+  path: data/indian_pines/Indian_pines_corrected.mat
+  gt_path: data/indian_pines/Indian_pines_gt.mat
+  wavelength_axis: aviris        # bandsim.io.AVIRIS_WL_NM: 200 bands, 400-2500 nm WITH real water-vapour gaps (NOT uniform)
+
+designs:
+  A:
+    enable: true
+    # NOMINAL band centres for the sensor FAMILY; this does NOT name a satellite unit (S2A/S2B/S2C
+    # differ by a few nm per band, as do OLI/OLI-2). Copernicus publishes measured per-unit S2 SRFs
+    # and USGS publishes per-band OLI widths -- reach those via bandsim.srf.pyspectral_srf.
+    target_sensor: sentinel2     # or: landsat_oli
+    # ONLY 'gaussian' is accepted here. The measured-RSR path (bandsim.srf.pyspectral_srf) is NOT
+    # wired into the YAML front-end; writing 'pyspectral' is rejected rather than quietly downgraded.
+    srf_source: gaussian
+    fwhm_nm: 30.0                # ONE Gaussian width for ALL bands: a first-order bandpass, NOT a
+                                 # measured SRF (real S2 FWHM spans 13-173 nm, OLI 15-186 nm)
+    validation_status: first_order_approximation
+  # NOTE: B/C/D are DISABLED here. The lists below are illustrative of each stage's grid; run_spec
+  # does NOT sweep lists (it runs a single value per key) -- a sweep is driven by the experiment
+  # scripts, not this simulator config. aod550 omitted (inert); snr_curve is schematic (not OLI NEdL).
+  # B is off here. If enabled, note hard_mask_cores is numerically inert under the Gaussian SRF (see
+  # bandsim.atmosphere.hard_mask_absorption_cores) -- it only removes a band under pyspectral RSR.
+  B: {enable: false, cwv_g_cm2: 4.0, hard_mask_cores: true}   # single value; gaseous-T only, no AOD
+  C: {enable: false, tau: 0.3}                                 # schematic cirrus (illustrative_only)
+  D: {enable: false, stripe_eps: 0.02, dead_col_frac: 0.01}   # schematic noise (uncalibrated)
+
+# eval: DECLARATION only -- NOT executed by config_runner.run_spec. The experiment scripts run their
+# own disjoint_block_split(block=10, guard=1, offset=seed). Kept for provenance/intent.
+eval:
+  seeds: 5
+  split: disjoint_block_guarded  # NEVER random per-pixel (leakage) — see docs/guide/01_datasets.md
+  metrics: [miou, oa, aa, kappa, audc]

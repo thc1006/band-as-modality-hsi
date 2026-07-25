@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.DS_Store
+# LaTeX build artifacts (scoped to paper/latex so paper/results_*.log stays tracked)
+paper/latex/*.aux
+paper/latex/*.log
+paper/latex/*.out
+paper/latex/*.fls
+paper/latex/*.fdb_latexmk
+paper/latex/*.synctex.gz
+paper/latex/*.blg
+paper/latex/*.spl
+# large artifacts not shipped
+data/
+paper/scenedump_*/

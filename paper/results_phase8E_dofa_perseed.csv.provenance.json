@@ -1,0 +1,55 @@
+{
+  "args": {
+    "bs": 16,
+    "device": "cuda",
+    "epochs": 20,
+    "head_norm": "batch",
+    "lr": 0.001,
+    "nondeterministic": false,
+    "patches_test": 300,
+    "patches_train": 800,
+    "px_per_patch": 400,
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "smoke": false,
+    "split_seed": 0
+  },
+  "command": "experiments/phase8E_dofa.py --seeds 0 1 2 --patches-train 800 --patches-test 300 --epochs 20 --device cuda",
+  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "extra": {
+    "content": "raw per-seed rows behind every aggregate",
+    "see": "results_phase8E_dofa.csv.provenance.json"
+  },
+  "generated_utc": "2026-07-21T22:08:05+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "ecfaad90b62a3f596da529203ca0658a3a27ff08",
+    "dirty": true,
+    "dirty_code_paths": [
+      "experiments/phase8E_dofa.py",
+      "experiments/phase8R2_landcover_reliability.py",
+      "experiments/phase8_cloudsen12.py",
+      "scripts/emit/emit_regions.py"
+    ],
+    "dirty_files": 4,
+    "outputs_dirty": true
+  },
+  "smoke": false,
+  "versions": {
+    "cuda": "12.4",
+    "gpus": [
+      "Tesla V100-SXM2-32GB"
+    ],
+    "h5py": "3.16.0",
+    "matplotlib": "3.11.1",
+    "numpy": "2.1.0",
+    "platform": "Linux-4.18.0-305.131.1.el8_4.x86_64-x86_64-with-glibc2.39",
+    "pyspectral": "0.14.3",
+    "python": "3.12.3",
+    "scipy": "1.18.0",
+    "torch": "2.6.0+cu124"
+  }
+}

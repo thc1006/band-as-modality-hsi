@@ -1,0 +1,5 @@
+calib_policy,deploy_policy,n_cells,n_feasible,n_seeds_clustered,mean_heldout_joint_loss_pct,se_across_seeds_pct,mean_coverage_pct,mean_acc_pct_all_runs,descriptive_exceedance_rate_pct
+uniform,uniform,20,20,5,7.3702,1.2604,63.5107,76.8113,20.0
+uniform,transmittance_weighted,20,20,5,7.0834,1.079,65.3533,78.0654,15.0
+transmittance_weighted,uniform,20,20,5,7.8139,1.3867,64.5934,76.8113,25.0
+transmittance_weighted,transmittance_weighted,20,20,5,7.4764,1.1893,66.2724,78.0654,20.0

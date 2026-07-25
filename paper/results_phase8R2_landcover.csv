@@ -1,0 +1,5 @@
+method,arm,n_runs,coverage_mean,coverage_se,joint_risk_mean,joint_risk_se,selective_risk_mean,acc_bright_mean,threshold_mean,temperature_mean,n_calib_units_med,feasible_rate
+proposed,naive,30,74.6587,1.0625,11.3762,0.3422,15.2749,75.3096,0.6333,1.2106,91,1.000
+proposed,mondrian,30,41.0084,1.7614,2.4653,0.1744,5.8858,75.3096,0.8350,1.3889,12,1.000
+b2,naive,30,74.1866,1.1396,11.9269,0.3442,16.0939,74.6011,0.6291,1.1251,91,1.000
+b2,mondrian,30,39.2645,1.9929,2.5346,0.2652,6.1444,74.6011,0.8360,1.3891,12,1.000

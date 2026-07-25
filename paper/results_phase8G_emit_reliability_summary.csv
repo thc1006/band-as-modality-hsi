@@ -1,0 +1,3 @@
+arm,n_seeds,acc_pct_mean,auroc_emit_mean_sd_pct_mean,auroc_emit_n_valid,aurc_emit_pct_mean,aurc_null_p_median,spearman_mean,agg_sensitivity_auroc_range_pct
+spatial,3,55.60,51.95,3,43.26,0.1678,-0.0785,6.07
+random,3,58.97,51.05,3,40.68,0.1499,-0.1034,2.76

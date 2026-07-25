@@ -1,0 +1,50 @@
+version = 1
+
+# REUSE (https://reuse.software) machine-readable, per-path licensing map.
+# 三分法：
+#   - 原始碼 / infra ............ MIT
+#   - 作者自有文件/圖 ........... CC-BY-4.0
+#   - 送 IEEE 的手稿 ............ 版權保留 (NOT CC-BY；理由見
+#                                LICENSES/LicenseRef-Author-Preprint.txt)
+#
+# 註：submission/ 的第三方 ICAIMS/IEEE 官方 PDF 及重複的匿名投稿 PDF(=paper/main.pdf)
+#     已於 2026-07-19 結構重構時移除；作者自有 .md(投稿作者資訊/選題調研/解說)移入
+#     docs/submission/(由下方 docs/** 規則涵蓋)。
+
+# --- 原始碼與 repo infrastructure: MIT ---
+[[annotations]]
+path = [
+    "bandsim/**",
+    "experiments/**",
+    "tests/**",
+    "configs/**",
+    "requirements-lock.txt",
+    "pyproject.toml",
+    "reproduce.sh",
+    ".gitignore",
+    "CITATION.cff",
+    "REUSE.toml",
+    "LICENSE",
+]
+SPDX-FileCopyrightText = "© 2026 Chia-Tung Chung, Hsiu-Chi Tsai"
+SPDX-License-Identifier = "MIT"
+
+# --- 作者自有文件（非 IEEE 投稿內容）: CC-BY-4.0 ---
+[[annotations]]
+path = [
+    "docs/**",
+    "README.md",
+    "ENVIRONMENT_SETUP.md",
+]
+SPDX-FileCopyrightText = "© 2026 Chia-Tung Chung, Hsiu-Chi Tsai"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+# --- 手稿（含圖與匿名投稿PDF）送 IEEE: 版權保留 ---
+# 刻意不用 CC-BY：CC-BY-4.0 不可撤回，會與錄取後簽署的 IEEE 版權轉讓衝突。
+[[annotations]]
+path = [
+    "paper/**",
+    "archive/**",
+]
+SPDX-FileCopyrightText = "© 2026 Chia-Tung Chung, Hsiu-Chi Tsai"
+SPDX-License-Identifier = "LicenseRef-Author-Preprint"

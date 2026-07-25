@@ -1,0 +1,113 @@
+{
+  "args": {
+    "device": null,
+    "epochs": 60,
+    "grid": null,
+    "groups": [
+      5,
+      10,
+      20
+    ],
+    "jobs": null,
+    "nondeterministic": false,
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "selfcheck": false,
+    "smoke": false,
+    "trials": 8
+  },
+  "command": "experiments/phase2_group_ablation.py",
+  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "extra": {
+    "common_missing_fraction_max": 0.5,
+    "enumeration_cap": 1024,
+    "groups_swept": [
+      5,
+      10,
+      20
+    ],
+    "integration": "exact piecewise-linear on measured knots (no grid)",
+    "macro_class_set": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      7,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "max_missing_by_group": {
+      "5": 4,
+      "10": 6,
+      "20": 10
+    },
+    "methods": [
+      "b1",
+      "b2",
+      "b3",
+      "b4",
+      "b6",
+      "proposed"
+    ],
+    "n_classes_total": 16,
+    "params_by_group": {
+      "5": {
+        "B4": 73592,
+        "B6": 73592,
+        "MLP": 121360,
+        "Proposed": 73272
+      },
+      "10": {
+        "B4": 71332,
+        "B6": 71332,
+        "MLP": 121360,
+        "Proposed": 70692
+      },
+      "20": {
+        "B4": 70682,
+        "B6": 70682,
+        "MLP": 121360,
+        "Proposed": 69402
+      }
+    },
+    "raw_evidence_csv": "results_phase2_group_ablation_G5-10-20_raw.csv",
+    "seed_sd_ddof": 1,
+    "split_block": 10
+  },
+  "generated_utc": "2026-07-20T21:32:53+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "4b845c90d5670acadf31ff064b8ec90761e0dae9",
+    "dirty": false,
+    "dirty_code_paths": [],
+    "dirty_files": 0,
+    "outputs_dirty": true
+  },
+  "smoke": false,
+  "versions": {
+    "cuda": "12.4",
+    "gpus": [
+      "Tesla V100-SXM2-32GB"
+    ],
+    "h5py": "3.16.0",
+    "matplotlib": "3.11.1",
+    "numpy": "2.1.0",
+    "platform": "Linux-4.18.0-305.131.1.el8_4.x86_64-x86_64-with-glibc2.39",
+    "pyspectral": "0.14.3",
+    "python": "3.12.3",
+    "scipy": "1.18.0",
+    "torch": "2.6.0+cu124"
+  }
+}

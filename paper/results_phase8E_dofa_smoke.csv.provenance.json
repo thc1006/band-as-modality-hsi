@@ -1,0 +1,253 @@
+{
+  "args": {
+    "bs": 16,
+    "device": "cuda",
+    "epochs": 3,
+    "head_norm": "batch",
+    "lr": 0.001,
+    "nondeterministic": false,
+    "patches_test": 16,
+    "patches_train": 24,
+    "px_per_patch": 200,
+    "seeds": [
+      0
+    ],
+    "smoke": true,
+    "split_seed": 0
+  },
+  "command": "experiments/phase8E_dofa.py --smoke --device cuda",
+  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "extra": {
+    "accepted_counts_summed_over_seeds": {
+      "L2A_real": {
+        "mond_acc_err": 0,
+        "mond_acc_n": 0,
+        "naive_acc_err": 0,
+        "naive_acc_n": 0
+      },
+      "clean": {
+        "mond_acc_err": 0,
+        "mond_acc_n": 0,
+        "naive_acc_err": 0,
+        "naive_acc_n": 0
+      },
+      "dropSWIR": {
+        "mond_acc_err": 0,
+        "mond_acc_n": 0,
+        "naive_acc_err": 0,
+        "naive_acc_n": 0
+      }
+    },
+    "calibration_units": {
+      "L2A_real": {
+        "calib_design_effect": 78.784,
+        "calib_icc": 0.39087,
+        "calib_n_effective": 20.3,
+        "calib_n_rois": 8.0,
+        "calib_n_rows": 1600.0
+      },
+      "clean": {
+        "calib_design_effect": 82.082,
+        "calib_icc": 0.40745,
+        "calib_n_effective": 19.5,
+        "calib_n_rois": 8.0,
+        "calib_n_rows": 1600.0
+      },
+      "dropSWIR": {
+        "calib_design_effect": 77.029,
+        "calib_icc": 0.38205,
+        "calib_n_effective": 20.8,
+        "calib_n_rois": 8.0,
+        "calib_n_rows": 1600.0
+      }
+    },
+    "dofa_allowed_missing": [
+      "head.bias",
+      "head.weight"
+    ],
+    "dofa_allowed_unexpected": [
+      "mask_token",
+      "projector.bias",
+      "projector.weight"
+    ],
+    "dofa_ckpt_sha256": "4720985e42b918ac0307009eb06121a3435d9bbce6fd95446f84824a538165b1",
+    "dofa_ckpt_url": "https://huggingface.co/earthflow/DOFA/resolve/7a5219e48d2f8848511b0fabea7920a8836bc480/DOFA_ViT_base_e100.pth",
+    "dofa_ckpt_verified": true,
+    "dofa_feature_endpoint": "patch_embed -> +pos -> CLS -> blocks -> pretrained norm -> drop CLS -> 14x14 grid (spatial; NOT official forward_features, which returns CLS or a pooled vector)",
+    "dofa_global_pool": false,
+    "dofa_hf_revision": "7a5219e48d2f8848511b0fabea7920a8836bc480",
+    "dofa_hub_ref": "zhu-xlab/DOFA:8346385695912606f74e00ef601b5c598a27df78",
+    "dofa_licenses": {
+      "checkpoint": "distributed via HF earthflow/DOFA; repo metadata marks CC-BY-4.0",
+      "source": "MIT (zhu-xlab/DOFA)"
+    },
+    "l1c_l2a_alignment": {
+      "calib": {
+        "median_r_decoy": -0.0887,
+        "median_r_same": 0.9997,
+        "n_compared": 8,
+        "win_rate": 1.0
+      },
+      "eval": {
+        "median_r_decoy": 0.0853,
+        "median_r_same": 0.9985,
+        "n_compared": 8,
+        "win_rate": 1.0
+      }
+    },
+    "n_calib_patches": 8,
+    "n_calib_px": 1600,
+    "n_distinct_eval_px": 1600,
+    "n_eval_patches": 8,
+    "n_eval_px": 1600,
+    "n_seeds": 1,
+    "n_train_patches": 24,
+    "resize": {
+      "class_prevalence_calib": {
+        "class_names": [
+          "clear",
+          "thick",
+          "thin",
+          "shadow"
+        ],
+        "prevalence_224": [
+          0.34049,
+          0.4498,
+          0.10329,
+          0.10643
+        ],
+        "prevalence_509": [
+          0.34057,
+          0.44971,
+          0.10332,
+          0.10641
+        ],
+        "reflectance_band_sd": [
+          0.21323999762535095,
+          0.1819700002670288,
+          0.179189994931221,
+          0.21435999870300293,
+          0.21448999643325806,
+          0.22089000046253204,
+          0.21761000156402588,
+          0.14406999945640564,
+          0.12105000019073486
+        ]
+      },
+      "class_prevalence_eval": {
+        "class_names": [
+          "clear",
+          "thick",
+          "thin",
+          "shadow"
+        ],
+        "prevalence_224": [
+          0.63005,
+          0.25128,
+          0.05333,
+          0.06533
+        ],
+        "prevalence_509": [
+          0.63001,
+          0.25134,
+          0.05333,
+          0.06532
+        ],
+        "reflectance_band_sd": [
+          0.19913999736309052,
+          0.18806999921798706,
+          0.1932699978351593,
+          0.19709999859333038,
+          0.19112999737262726,
+          0.19062000513076782,
+          0.1864199936389923,
+          0.13530999422073364,
+          0.10560999810695648
+        ]
+      },
+      "class_prevalence_train": {
+        "class_names": [
+          "clear",
+          "thick",
+          "thin",
+          "shadow"
+        ],
+        "prevalence_224": [
+          0.54698,
+          0.29309,
+          0.09264,
+          0.06729
+        ],
+        "prevalence_509": [
+          0.54696,
+          0.29311,
+          0.09261,
+          0.06732
+        ],
+        "reflectance_band_sd": [
+          0.23800000548362732,
+          0.22502000629901886,
+          0.23666000366210938,
+          0.23136000335216522,
+          0.21568000316619873,
+          0.2067900002002716,
+          0.19690999388694763,
+          0.14789000153541565,
+          0.12464000284671783
+        ]
+      },
+      "from": 509,
+      "label": "nearest-exact",
+      "reflectance": "bilinear+antialias",
+      "to": 224
+    },
+    "seeds_with_zero_acceptance": {
+      "L2A_real": {
+        "mond": 1,
+        "naive": 1
+      },
+      "clean": {
+        "mond": 1,
+        "naive": 1
+      },
+      "dropSWIR": {
+        "mond": 1,
+        "naive": 1
+      }
+    },
+    "states": [
+      "clean",
+      "dropSWIR",
+      "L2A_real"
+    ],
+    "target_risk": 0.1
+  },
+  "generated_utc": "2026-07-21T22:04:45+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "ecfaad90b62a3f596da529203ca0658a3a27ff08",
+    "dirty": true,
+    "dirty_code_paths": [
+      "experiments/phase8E_dofa.py",
+      "experiments/phase8R2_landcover_reliability.py",
+      "experiments/phase8_cloudsen12.py"
+    ],
+    "dirty_files": 3,
+    "outputs_dirty": true
+  },
+  "smoke": true,
+  "versions": {
+    "cuda": "12.4",
+    "gpus": [
+      "Tesla V100-SXM2-32GB"
+    ],
+    "h5py": "3.16.0",
+    "matplotlib": "3.11.1",
+    "numpy": "2.1.0",
+    "platform": "Linux-4.18.0-305.131.1.el8_4.x86_64-x86_64-with-glibc2.39",
+    "pyspectral": "0.14.3",
+    "python": "3.12.3",
+    "scipy": "1.18.0",
+    "torch": "2.6.0+cu124"
+  }
+}

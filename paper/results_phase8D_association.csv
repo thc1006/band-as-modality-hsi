@@ -1,0 +1,19 @@
+analysis,metric,statistic,value,ci_lo,ci_hi,p_permutation,n_units,unit,note
+overall,confidence,spearman,-0.5234,-0.5723,-0.4701,,195,ROI,CONFOUNDED by class composition; descriptive only. No p: the only available permutation null is anti-conservative here (measured 7.3% rejection at a nominal 5%) — read the ROI-clustered CI instead
+within_roi,confidence,kendall_tau,-0.5362,-0.6009,-0.4729,0.0010,195,ROI,geography/land cover held fixed; cloud amount NOT. Permutation null measured calibrated (6.0% at a nominal 5%)
+partial_class_mix,confidence,partial_spearman,-0.2560,-0.3172,-0.1920,,195,ROI,"controls clear/thick/thin/shadow fractions. CI only, deliberately: a permutation of difficulty would also destroy the difficulty-to-class-mix link this analysis conditions on, so its null is the wrong one"
+stratum_cloud-free,confidence,spearman,0.0404,-0.1458,0.2061,0.5614,195,patch,"one patch per ROI -> independent. UNADJUSTED marginal p, one of 10 such tests — read stratum_pooled instead"
+stratum_almost-clear,confidence,spearman,-0.3497,-0.4699,-0.2062,0.0010,195,patch,"one patch per ROI -> independent. UNADJUSTED marginal p, one of 10 such tests — read stratum_pooled instead"
+stratum_low-cloudy,confidence,spearman,-0.4506,-0.5660,-0.3300,0.0010,195,patch,"one patch per ROI -> independent. UNADJUSTED marginal p, one of 10 such tests — read stratum_pooled instead"
+stratum_mid-cloudy,confidence,spearman,-0.5170,-0.6179,-0.4034,0.0010,195,patch,"one patch per ROI -> independent. UNADJUSTED marginal p, one of 10 such tests — read stratum_pooled instead"
+stratum_cloudy,confidence,spearman,-0.5919,-0.6782,-0.4917,0.0010,195,patch,"one patch per ROI -> independent. UNADJUSTED marginal p, one of 10 such tests — read stratum_pooled instead"
+stratum_pooled,confidence,mean_spearman,-0.3738,-0.4325,-0.3058,0.0010,195,ROI,"mean of the five cloud strata; cloud amount held fixed, ROIs resampled coherently. Permutation null measured calibrated (4.7% at a nominal 5%). THIS is the conditional headline"
+overall,accuracy,spearman,-0.6702,-0.7130,-0.6214,,195,ROI,CONFOUNDED by class composition; descriptive only. No p: the only available permutation null is anti-conservative here (measured 7.3% rejection at a nominal 5%) — read the ROI-clustered CI instead
+within_roi,accuracy,kendall_tau,-0.7010,-0.7546,-0.6459,0.0010,195,ROI,geography/land cover held fixed; cloud amount NOT. Permutation null measured calibrated (6.0% at a nominal 5%)
+partial_class_mix,accuracy,partial_spearman,-0.3223,-0.3985,-0.2527,,195,ROI,"controls clear/thick/thin/shadow fractions. CI only, deliberately: a permutation of difficulty would also destroy the difficulty-to-class-mix link this analysis conditions on, so its null is the wrong one"
+stratum_cloud-free,accuracy,spearman,-0.0345,-0.1763,0.1077,0.6484,195,patch,"one patch per ROI -> independent. UNADJUSTED marginal p, one of 10 such tests — read stratum_pooled instead"
+stratum_almost-clear,accuracy,spearman,-0.3919,-0.5265,-0.2523,0.0010,195,patch,"one patch per ROI -> independent. UNADJUSTED marginal p, one of 10 such tests — read stratum_pooled instead"
+stratum_low-cloudy,accuracy,spearman,-0.5686,-0.6581,-0.4633,0.0010,195,patch,"one patch per ROI -> independent. UNADJUSTED marginal p, one of 10 such tests — read stratum_pooled instead"
+stratum_mid-cloudy,accuracy,spearman,-0.5102,-0.6078,-0.4035,0.0010,195,patch,"one patch per ROI -> independent. UNADJUSTED marginal p, one of 10 such tests — read stratum_pooled instead"
+stratum_cloudy,accuracy,spearman,-0.5562,-0.6552,-0.4493,0.0010,195,patch,"one patch per ROI -> independent. UNADJUSTED marginal p, one of 10 such tests — read stratum_pooled instead"
+stratum_pooled,accuracy,mean_spearman,-0.4123,-0.4650,-0.3543,0.0010,195,ROI,"mean of the five cloud strata; cloud amount held fixed, ROIs resampled coherently. Permutation null measured calibrated (4.7% at a nominal 5%). THIS is the conditional headline"

@@ -1,0 +1,6 @@
+condition,cwv,n_absent_groups,n_missing_bands,proposed_miou_mean,proposed_miou_std_sample,b2_miou_mean,b2_miou_std_sample,proposed_retention,b2_retention,proposed_gasonly_uncorrected_mean,b2_gasonly_uncorrected_mean,proposed_nomask_mean,paired_diff_mean,n_seeds,b1_miou_mean,b1_miou_std_sample,dropout_main_effect_mean,proposed_minus_b1_mean,dropout_share_pct
+benchmark200_full,-,0,0,70.68,1.77,67.05,2.52,-,-,-,-,70.68,3.64,5,73.49,1.68,-6.44,-2.80,229.7
+clean,-,0,10,47.29,8.42,36.22,2.37,1.00,1.00,47.29,36.22,47.29,11.07,5,44.38,2.91,-8.16,2.91,-280.5
+cwv0.5,0.5,0,19,39.30,9.85,35.58,2.40,0.83,0.98,1.47,3.80,39.30,3.72,5,42.55,2.98,-6.97,-3.25,214.4
+cwv2.0,2.0,0,32,34.69,7.24,33.46,2.47,0.73,0.92,1.11,5.16,34.69,1.23,5,42.37,2.19,-8.91,-7.68,116.0
+cwv4.0,4.0,0,40,35.72,8.82,33.05,2.89,0.76,0.91,1.56,9.22,35.72,2.67,5,42.01,2.56,-8.96,-6.29,142.5

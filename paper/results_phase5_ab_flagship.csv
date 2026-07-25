@@ -1,0 +1,15 @@
+sensor,bands_nominal,bands_used,arm,condition,cwv,eval_protocol,miou_mean,miou_sd_ddof1,miou_sem,drop_vs_clean_mean,drop_vs_clean_sd_ddof1,retention_ratio_of_means,retention_paired_mean,retention_paired_sd_ddof1,zshift_median_mean,zshift_max_mean,zshift_max_measuring_mean,n_seeds
+sentinel2,11,11,clean,clean,,in_distribution,66.91,2.50,1.12,0.00,0.00,1.000,1.000,0.000,0.00,0.00,0.00,5
+sentinel2,11,11,uncorrected,cwv0.5,0.5,under_shift_no_refit,7.38,1.52,0.68,59.54,2.01,0.110,0.110,0.021,0.11,3.70,3.70,5
+sentinel2,11,11,uncorrected,cwv2,2.0,under_shift_no_refit,3.35,2.56,1.14,63.57,2.83,0.050,0.050,0.037,0.13,5.56,5.56,5
+sentinel2,11,11,uncorrected,cwv4,4.0,under_shift_no_refit,2.79,1.93,0.86,64.12,2.61,0.042,0.041,0.028,0.19,6.32,6.32,5
+sentinel2,11,11,gain_corrected,cwv0.5,0.5,under_shift_oracle_gain_corrected_no_refit,66.95,2.45,1.10,-0.04,0.18,1.001,1.001,0.003,0.00,0.01,0.01,5
+sentinel2,11,11,gain_corrected,cwv2,2.0,under_shift_oracle_gain_corrected_no_refit,66.83,2.56,1.14,0.08,0.29,0.999,0.999,0.004,0.00,0.02,0.02,5
+sentinel2,11,11,gain_corrected,cwv4,4.0,under_shift_oracle_gain_corrected_no_refit,66.73,2.51,1.12,0.18,0.26,0.997,0.997,0.004,0.00,0.03,0.03,5
+landsat_oli,6,6,clean,clean,,in_distribution,62.74,1.80,0.81,0.00,0.00,1.000,1.000,0.000,0.00,0.00,0.00,5
+landsat_oli,6,6,uncorrected,cwv0.5,0.5,under_shift_no_refit,22.21,1.58,0.71,40.52,1.74,0.354,0.354,0.022,0.12,0.37,0.37,5
+landsat_oli,6,6,uncorrected,cwv2,2.0,under_shift_no_refit,18.14,1.07,0.48,44.60,1.66,0.289,0.289,0.015,0.13,0.57,0.57,5
+landsat_oli,6,6,uncorrected,cwv4,4.0,under_shift_no_refit,15.72,1.89,0.84,47.02,1.34,0.251,0.250,0.025,0.15,0.77,0.77,5
+landsat_oli,6,6,gain_corrected,cwv0.5,0.5,under_shift_oracle_gain_corrected_no_refit,63.13,2.10,0.94,-0.39,0.42,1.006,1.006,0.007,0.00,0.01,0.01,5
+landsat_oli,6,6,gain_corrected,cwv2,2.0,under_shift_oracle_gain_corrected_no_refit,63.02,2.06,0.92,-0.28,0.39,1.005,1.004,0.006,0.00,0.00,0.00,5
+landsat_oli,6,6,gain_corrected,cwv4,4.0,under_shift_oracle_gain_corrected_no_refit,62.85,1.88,0.84,-0.11,0.19,1.002,1.002,0.003,0.00,0.00,0.00,5

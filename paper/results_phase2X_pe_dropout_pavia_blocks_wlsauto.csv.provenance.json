@@ -1,0 +1,117 @@
+{
+  "args": {
+    "dataset": "pavia",
+    "device": null,
+    "epochs": 60,
+    "groups": 10,
+    "max_missing": 6,
+    "no_verify": false,
+    "out_tag": "",
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "split": null,
+    "trials": 12,
+    "verify_tol": 0.0001,
+    "wl_scale": "auto"
+  },
+  "command": "experiments/phase2X_pe_dropout_2x2.py --dataset pavia --wl-scale auto",
+  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "extra": {
+    "arms": {
+      "learnedPE_drop": [
+        "learned",
+        true,
+        null
+      ],
+      "learnedPE_nodrop": [
+        "learned",
+        false,
+        "b6"
+      ],
+      "wavePE_drop": [
+        "sinusoidal",
+        true,
+        "proposed"
+      ],
+      "wavePE_nodrop": [
+        "sinusoidal",
+        false,
+        null
+      ]
+    },
+    "dataset": "pavia",
+    "interaction": {
+      "m=0": {
+        "PE_with_dropout": 0.876,
+        "PE_without_dropout": 0.59,
+        "interaction": 0.286
+      },
+      "m=1": {
+        "PE_with_dropout": 0.774,
+        "PE_without_dropout": -3.704,
+        "interaction": 4.478
+      },
+      "m=2": {
+        "PE_with_dropout": 0.631,
+        "PE_without_dropout": -5.816,
+        "interaction": 6.447
+      },
+      "m=3": {
+        "PE_with_dropout": 0.433,
+        "PE_without_dropout": -6.567,
+        "interaction": 7.0
+      },
+      "m=4": {
+        "PE_with_dropout": 0.074,
+        "PE_without_dropout": -6.502,
+        "interaction": 6.576
+      },
+      "m=5": {
+        "PE_with_dropout": -0.43,
+        "PE_without_dropout": -5.854,
+        "interaction": 5.424
+      },
+      "m=6": {
+        "PE_with_dropout": -0.935,
+        "PE_without_dropout": -4.867,
+        "interaction": 3.933
+      }
+    },
+    "n_raw_rows": 16960,
+    "num_classes": 9,
+    "runtime_s": 1966.6,
+    "split": "blocks",
+    "upstream_verification": "n/a (no upstream cells for this dataset/split)",
+    "wavelength_axis": "nominal_uniform",
+    "wl_scale": "auto"
+  },
+  "generated_utc": "2026-07-20T22:06:03+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "4b845c90d5670acadf31ff064b8ec90761e0dae9",
+    "dirty": false,
+    "dirty_code_paths": [],
+    "dirty_files": 0,
+    "outputs_dirty": true
+  },
+  "smoke": false,
+  "versions": {
+    "cuda": "12.4",
+    "gpus": [
+      "Tesla V100-SXM2-32GB"
+    ],
+    "h5py": "3.16.0",
+    "matplotlib": "3.11.1",
+    "numpy": "2.1.0",
+    "platform": "Linux-4.18.0-305.131.1.el8_4.x86_64-x86_64-with-glibc2.39",
+    "pyspectral": "0.14.3",
+    "python": "3.12.3",
+    "scipy": "1.18.0",
+    "torch": "2.6.0+cu124"
+  }
+}

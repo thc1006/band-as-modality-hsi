@@ -1,0 +1,62 @@
+{
+  "args": {
+    "alpha": 0.1,
+    "device": "cuda",
+    "epochs": 10,
+    "jobs": null,
+    "model_seeds": [
+      0
+    ],
+    "patches_train": 600,
+    "px_test": 300,
+    "px_train": 200,
+    "smoke": true,
+    "split_seeds": [
+      0,
+      1
+    ],
+    "subsample_frac": 0.8
+  },
+  "command": "experiments/phase8R2_landcover_reliability.py --smoke --device cuda",
+  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "extra": {
+    "dataset": "cloudsen12",
+    "methods": [
+      "proposed",
+      "b2"
+    ],
+    "se": "two-way cluster-robust",
+    "shift_axis": "surface_domain_gap",
+    "source": "dark_surfaces_trained",
+    "target": "bright_surfaces_unseen",
+    "target_risk": 0.1,
+    "unit": "scene_component"
+  },
+  "generated_utc": "2026-07-21T22:19:59+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "5e51ee6eb65c3b209e5061e844c54b866d44fcd5",
+    "dirty": true,
+    "dirty_code_paths": [
+      "experiments/phase8R2_landcover_reliability.py",
+      "scripts/emit/emit_regions.py"
+    ],
+    "dirty_files": 2,
+    "outputs_dirty": true
+  },
+  "smoke": true,
+  "versions": {
+    "cuda": "12.4",
+    "gpus": [
+      "Tesla V100-SXM2-32GB"
+    ],
+    "h5py": "3.16.0",
+    "matplotlib": "3.11.1",
+    "numpy": "2.1.0",
+    "platform": "Linux-4.18.0-305.131.1.el8_4.x86_64-x86_64-with-glibc2.39",
+    "pyspectral": "0.14.3",
+    "python": "3.12.3",
+    "scipy": "1.18.0",
+    "torch": "2.6.0+cu124"
+  }
+}

@@ -1,0 +1,58 @@
+# Design A+B: synthesize a sensor's bands from an HSI cube under a 6S GASEOUS-transmittance
+# stress-test: rho' = rho * T_gas(CWV) then SRF integration (docs/guide/03). This is a first-order
+# gas-suppression robustness model, NOT a full radiative-transfer TOA observation model (no aerosol
+# scattering / path radiance / geometry). The paper's real atmosphere evidence is CloudSEN12 L1C->L2A.
+#
+# The transmittance (B) is real 6S output on this cube's own wavelength axis. The SRF (A) is a
+# synthetic Gaussian of ONE width for every band (see designs.A below) -- the band SET is right, the
+# band SHAPE is approximate, so this config supports a gaseous-absorption claim over a realistic
+# band set, NOT a "measured-SRF / sensor-realistic" claim.
+schema_version: 1
+claim_scope: gaseous_absorption
+seed: 20260630
+
+input:
+  # config_runner.run_spec consumes ONLY `wavelength_axis`. dataset/path/gt_path are PROVENANCE
+  # (which cube the CALLER loads + passes to run_spec); the simulator never reads these paths.
+  dataset: indian_pines
+  path: data/indian_pines/Indian_pines_corrected.mat
+  gt_path: data/indian_pines/Indian_pines_gt.mat
+  wavelength_axis: aviris        # bandsim.io.AVIRIS_WL_NM: 200 bands over 400-2500 nm WITH real water-vapour gaps (NOT a uniform linspace)
+
+designs:
+  A:
+    enable: true
+    # NOMINAL Sentinel-2 MSI band centres; does NOT select a satellite unit (S2A/S2B/S2C differ by a
+    # few nm per band). For a per-unit measured response use bandsim.srf.pyspectral_srf from Python.
+    target_sensor: sentinel2     # or: landsat_oli
+    srf_source: gaussian         # ONLY 'gaussian' is accepted from YAML (pyspectral is Python-only)
+    fwhm_nm: 30.0                # ONE width for ALL bands; real S2 FWHM spans 13-173 nm -> approximate
+    validation_status: first_order_approximation
+  B:
+    enable: true
+    cwv_g_cm2: 4.0               # column water vapour (g/cm^2); table grid: {0.5, 2.0, 4.0}. Sole B factor.
+    # NOTE: no aod550 -- 6S gaseous transmittance is aerosol-independent, so AOD is inert here and is
+    # NOT a factor/key (verified aod0.1==aod0.4 exactly). The table is keyed by CWV alone.
+    # Zeroes SOURCE samples inside the strong absorption cores, where 6S output cannot be trusted.
+    # It does NOT remove a band: the SRF still runs and the band survives as an all-zero channel.
+    # On THIS path (Gaussian SRF, 12-band S2 subset) the switch is numerically inert -- the largest
+    # Gaussian weight it can remove is ~1.4e-37, so toggling it changes no output digit. (An earlier
+    # comment here said "no centre within 165 nm of a core"; the true nearest approach is 160 nm,
+    # 1610 nm to the 1450 nm core edge. The inertness conclusion holds; the 165 was simply wrong.)
+    # Under measured pyspectral RSR (phase2/phase5) it instead nulls almost all of the 1375 nm
+    # cirrus band's integrated response -- still not a deletion.
+    hard_mask_cores: true
+    # Resolved relative to THIS FILE's directory (not the process CWD), so the spec means the same
+    # thing from any working directory.
+    table: ../data/srf_cache/T_6s_grid.npz  # precomputed by experiments/precompute_6s_table.py (keys: cwv{c})
+    validation_status: physics_6s_gaseous
+  C: {enable: false, tau: 0.3}
+  D: {enable: false, stripe_eps: 0.02, dead_col_frac: 0.01}
+
+# eval: DECLARATION only -- NOT executed by config_runner.run_spec (which returns the simulated cube).
+# The real experiment (experiments/phaseX.py) runs its own split -- disjoint_block_split(block=10,
+# guard=1, offset=seed), which is stricter than the label below. Kept here for provenance/intent.
+eval:
+  seeds: 5
+  split: disjoint_block_guarded   # honest name of the protocol the experiment scripts actually use
+  metrics: [miou, oa, aa, kappa, audc]

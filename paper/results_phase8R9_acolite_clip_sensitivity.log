@@ -1,0 +1,20 @@
+  eval pixels 236000 / 181 components; paper clip touches 0.70% of ACOLITE eval pixels
+  [none(raw)       ] seed 0 done
+  [none(raw)       ] seed 1 done
+  [none(raw)       ] seed 2 done
+  == none(raw)       : ACOLITE-L2A naive joint 30.95 +/- 0.51 [28.8,33.1]  (clean 9.4, Sen2Cor-L2A 29.9)
+  [paper[-0.1,1.6] ] seed 0 done
+  [paper[-0.1,1.6] ] seed 1 done
+  [paper[-0.1,1.6] ] seed 2 done
+  == paper[-0.1,1.6] : ACOLITE-L2A naive joint 28.59 +/- 2.08 [19.6,37.5]  (clean 9.3, Sen2Cor-L2A 29.1)
+  [tight[0,1.0]    ] seed 0 done
+  [tight[0,1.0]    ] seed 1 done
+  [tight[0,1.0]    ] seed 2 done
+  == tight[0,1.0]    : ACOLITE-L2A naive joint 31.61 +/- 0.61 [29.0,34.3]  (clean 9.4, Sen2Cor-L2A 30.7)
+==============================================================================
+CLIP SENSITIVITY of the ACOLITE-L2A naive joint risk (target 10%):
+  none(raw)         30.95 +/- 0.51
+  paper[-0.1,1.6]   28.59 +/- 2.08
+  tight[0,1.0]      31.61 +/- 0.61
+  -> spread across clip regimes: 3.03 points; STABLE -- 28.6 is not a clipping artefact
+     (paper 10-seed value under the [-0.1,1.6] clip: 28.56)

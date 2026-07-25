@@ -1,0 +1,647 @@
+{
+  "args": {
+    "block": 10,
+    "device": null,
+    "epochs": 60,
+    "jobs": null,
+    "match_capacity": false,
+    "model_seed_offset": 0,
+    "nondeterministic": false,
+    "paired_capacity": false,
+    "red_edge_ablation": false,
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "smoke": false,
+    "srf": "pyspectral"
+  },
+  "command": "experiments/phase2_cross_sensor.py",
+  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "extra": {
+    "arms": [
+      "unmatched"
+    ],
+    "band_contract": {
+      "Landsat-8 OLI": {
+        "W_sha256": "e69195cb54ddf7fbbc3ed460268ed8a10642abc718c23f3d503b8307ea678258",
+        "ablated_out": null,
+        "centers_nm": [
+          481.65,
+          562.13,
+          655.18,
+          863.67,
+          1609.1,
+          2201.2
+        ],
+        "detectors": {
+          "B1": "det-1",
+          "B2": "det-1",
+          "B3": "det-1",
+          "B4": "det-1",
+          "B5": "det-1",
+          "B6": "det-1",
+          "B7": "det-1",
+          "B8": "det-1",
+          "B9": "det-1"
+        },
+        "diagnostics": {
+          "B2": {
+            "center_nm": 481.651368737313,
+            "coverage": 0.9654610168123858,
+            "grid_dlambda_nm": 9.417040358744392,
+            "grid_dlambda_ratio": 0.999999999999996,
+            "n_samples": 8,
+            "out_of_range_fraction": 0.0
+          },
+          "B3": {
+            "center_nm": 562.1343308065068,
+            "coverage": 1.0042242014847764,
+            "grid_dlambda_nm": 9.41704035874439,
+            "grid_dlambda_ratio": 0.9999999999999959,
+            "n_samples": 7,
+            "out_of_range_fraction": 0.0
+          },
+          "B4": {
+            "center_nm": 655.176902119916,
+            "coverage": 1.0030179207259082,
+            "grid_dlambda_nm": 9.417040358744392,
+            "grid_dlambda_ratio": 0.999999999999996,
+            "n_samples": 5,
+            "out_of_range_fraction": 0.0
+          },
+          "B5": {
+            "center_nm": 863.6715078211126,
+            "coverage": 0.9921334246571563,
+            "grid_dlambda_nm": 9.417040358744392,
+            "grid_dlambda_ratio": 0.999999999999996,
+            "n_samples": 4,
+            "out_of_range_fraction": 0.0
+          },
+          "B6": {
+            "center_nm": 1609.098382368721,
+            "coverage": 1.001887861386081,
+            "grid_dlambda_nm": 9.41704035874439,
+            "grid_dlambda_ratio": 0.9999999999999959,
+            "n_samples": 15,
+            "out_of_range_fraction": 0.0
+          },
+          "B7": {
+            "center_nm": 2201.200056794756,
+            "coverage": 1.0002574246672684,
+            "grid_dlambda_nm": 9.41704035874439,
+            "grid_dlambda_ratio": 0.9999999999999959,
+            "n_samples": 27,
+            "out_of_range_fraction": 0.0
+          }
+        },
+        "fwhm_nm": null,
+        "instrument": "oli",
+        "names": [
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B6",
+          "B7"
+        ],
+        "platform": "Landsat-8",
+        "product": "L2 surface reflectance: 7 bands. The 15 m panchromatic B8 and the 1373 nm cirrus band are acquired but are not surface-reflectance bands; pan is also a different ground sample distance, so including it would compare band sets that differ in spatial support as well as spectral content.",
+        "selection": {
+          "dropped": {
+            "B1": 444.07,
+            "B6": 1373.9,
+            "B9": 592.07
+          },
+          "excluded": {
+            "B1": "the AVIRIS-based synthesis axis starts at 437.7 nm; S2/OLI B1 (443 nm) has 16-24% of its response below the first sampled wavelength, and synthesizing a truncated, renormalised B1 would fabricate signal the sensor never measured on this cube"
+          },
+          "matched": {
+            "B2": {
+              "canonical_center_nm": 482.0,
+              "center_nm": 481.65,
+              "delta_nm": 0.35,
+              "source_band": "B2"
+            },
+            "B3": {
+              "canonical_center_nm": 561.0,
+              "center_nm": 562.13,
+              "delta_nm": 1.13,
+              "source_band": "B3"
+            },
+            "B4": {
+              "canonical_center_nm": 655.0,
+              "center_nm": 655.18,
+              "delta_nm": 0.18,
+              "source_band": "B4"
+            },
+            "B5": {
+              "canonical_center_nm": 865.0,
+              "center_nm": 863.67,
+              "delta_nm": 1.33,
+              "source_band": "B5"
+            },
+            "B6": {
+              "canonical_center_nm": 1609.0,
+              "center_nm": 1609.1,
+              "delta_nm": 0.1,
+              "source_band": "B7"
+            },
+            "B7": {
+              "canonical_center_nm": 2201.0,
+              "center_nm": 2201.2,
+              "delta_nm": 0.2,
+              "source_band": "B8"
+            }
+          },
+          "n_canonical_bands": 6,
+          "n_source_bands": 9,
+          "tol_nm": 25.0
+        }
+      },
+      "Sentinel-2": {
+        "W_sha256": "0f5bb418ec9854f8c634308f4b1ccef81835f7d92d485c9655c09b09a08e6dec",
+        "ablated_out": null,
+        "centers_nm": [
+          494.15,
+          559.92,
+          663.9,
+          705.01,
+          740.12,
+          781.41,
+          832.7,
+          865.51,
+          943.92,
+          1613.78,
+          2202.37
+        ],
+        "detectors": {
+          "B01": "det-1",
+          "B02": "det-1",
+          "B03": "det-1",
+          "B04": "det-1",
+          "B05": "det-1",
+          "B06": "det-1",
+          "B07": "det-1",
+          "B08": "det-1",
+          "B09": "det-1",
+          "B10": "det-1",
+          "B11": "det-1",
+          "B12": "det-1",
+          "B8A": "det-1"
+        },
+        "diagnostics": {
+          "B11": {
+            "center_nm": 1613.782999035085,
+            "coverage": 0.9944112241385263,
+            "grid_dlambda_nm": 9.417040358744392,
+            "grid_dlambda_ratio": 0.999999999999996,
+            "n_samples": 12,
+            "out_of_range_fraction": 0.0
+          },
+          "B12": {
+            "center_nm": 2202.3730135155142,
+            "coverage": 0.9998320005625768,
+            "grid_dlambda_nm": 9.417040358744389,
+            "grid_dlambda_ratio": 0.9999999999999957,
+            "n_samples": 24,
+            "out_of_range_fraction": 0.0
+          },
+          "B2": {
+            "center_nm": 494.1546649707423,
+            "coverage": 0.9954762056065315,
+            "grid_dlambda_nm": 9.417040358744396,
+            "grid_dlambda_ratio": 0.9999999999999964,
+            "n_samples": 8,
+            "out_of_range_fraction": 0.0
+          },
+          "B3": {
+            "center_nm": 559.9202227659617,
+            "coverage": 0.9254377704319899,
+            "grid_dlambda_nm": 9.417040358744394,
+            "grid_dlambda_ratio": 0.9999999999999962,
+            "n_samples": 5,
+            "out_of_range_fraction": 0.0
+          },
+          "B4": {
+            "center_nm": 663.9018767518564,
+            "coverage": 0.9288673530441218,
+            "grid_dlambda_nm": 9.41704035874439,
+            "grid_dlambda_ratio": 0.9999999999999959,
+            "n_samples": 4,
+            "out_of_range_fraction": 0.0
+          },
+          "B5": {
+            "center_nm": 705.0124953131725,
+            "coverage": 1.1435677932738633,
+            "grid_dlambda_nm": 9.41704035874436,
+            "grid_dlambda_ratio": 0.9999999999999927,
+            "n_samples": 2,
+            "out_of_range_fraction": 0.0
+          },
+          "B6": {
+            "center_nm": 740.1210710998945,
+            "coverage": 0.7778124375295652,
+            "grid_dlambda_nm": 9.417040358744423,
+            "grid_dlambda_ratio": 0.9999999999999992,
+            "n_samples": 2,
+            "out_of_range_fraction": 0.0
+          },
+          "B7": {
+            "center_nm": 781.4073344226589,
+            "coverage": 1.0036660561171258,
+            "grid_dlambda_nm": 9.417040358744375,
+            "grid_dlambda_ratio": 0.9999999999999941,
+            "n_samples": 3,
+            "out_of_range_fraction": 0.0
+          },
+          "B8": {
+            "center_nm": 832.7002421649727,
+            "coverage": 1.0063076650353744,
+            "grid_dlambda_nm": 9.417040358744392,
+            "grid_dlambda_ratio": 0.999999999999996,
+            "n_samples": 14,
+            "out_of_range_fraction": 0.0
+          },
+          "B8A": {
+            "center_nm": 865.5119785748658,
+            "coverage": 0.9563918674823347,
+            "grid_dlambda_nm": 9.417040358744377,
+            "grid_dlambda_ratio": 0.9999999999999943,
+            "n_samples": 3,
+            "out_of_range_fraction": 0.0
+          },
+          "B9": {
+            "center_nm": 943.9198747146356,
+            "coverage": 1.0488942453063113,
+            "grid_dlambda_nm": 9.417040358744421,
+            "grid_dlambda_ratio": 0.9999999999999991,
+            "n_samples": 3,
+            "out_of_range_fraction": 0.0
+          }
+        },
+        "fwhm_nm": null,
+        "instrument": "msi",
+        "names": [
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B6",
+          "B7",
+          "B8",
+          "B8A",
+          "B9",
+          "B11",
+          "B12"
+        ],
+        "platform": "Sentinel-2A",
+        "product": "L2A surface reflectance: 12 bands. B10 (1375 nm cirrus) is acquired by the instrument but is NOT in the L2A product, and on a 'corrected' AVIRIS axis it lands on the removed water-vapour gap -- excluded on both grounds.",
+        "selection": {
+          "dropped": {
+            "B01": 444.3,
+            "B10": 1373.01
+          },
+          "excluded": {
+            "B1": "the AVIRIS-based synthesis axis starts at 437.7 nm; S2/OLI B1 (443 nm) has 16-24% of its response below the first sampled wavelength, and synthesizing a truncated, renormalised B1 would fabricate signal the sensor never measured on this cube"
+          },
+          "matched": {
+            "B11": {
+              "canonical_center_nm": 1610.0,
+              "center_nm": 1613.78,
+              "delta_nm": 3.78,
+              "source_band": "B11"
+            },
+            "B12": {
+              "canonical_center_nm": 2190.0,
+              "center_nm": 2202.37,
+              "delta_nm": 12.37,
+              "source_band": "B12"
+            },
+            "B2": {
+              "canonical_center_nm": 490.0,
+              "center_nm": 494.15,
+              "delta_nm": 4.15,
+              "source_band": "B02"
+            },
+            "B3": {
+              "canonical_center_nm": 560.0,
+              "center_nm": 559.92,
+              "delta_nm": 0.08,
+              "source_band": "B03"
+            },
+            "B4": {
+              "canonical_center_nm": 665.0,
+              "center_nm": 663.9,
+              "delta_nm": 1.1,
+              "source_band": "B04"
+            },
+            "B5": {
+              "canonical_center_nm": 705.0,
+              "center_nm": 705.01,
+              "delta_nm": 0.01,
+              "source_band": "B05"
+            },
+            "B6": {
+              "canonical_center_nm": 740.0,
+              "center_nm": 740.12,
+              "delta_nm": 0.12,
+              "source_band": "B06"
+            },
+            "B7": {
+              "canonical_center_nm": 783.0,
+              "center_nm": 781.41,
+              "delta_nm": 1.59,
+              "source_band": "B07"
+            },
+            "B8": {
+              "canonical_center_nm": 842.0,
+              "center_nm": 832.7,
+              "delta_nm": 9.3,
+              "source_band": "B08"
+            },
+            "B8A": {
+              "canonical_center_nm": 865.0,
+              "center_nm": 865.51,
+              "delta_nm": 0.51,
+              "source_band": "B8A"
+            },
+            "B9": {
+              "canonical_center_nm": 945.0,
+              "center_nm": 943.92,
+              "delta_nm": 1.08,
+              "source_band": "B09"
+            }
+          },
+          "n_canonical_bands": 11,
+          "n_source_bands": 13,
+          "tol_nm": 25.0
+        }
+      }
+    },
+    "bands_by_sensor": {
+      "Landsat-8 OLI": 6,
+      "Sentinel-2": 11,
+      "full-HSI": 200
+    },
+    "capacity_spread_max_over_min": 1.692702521758536,
+    "conditions": [
+      {
+        "arm": "unmatched",
+        "bands": 200,
+        "hidden": 256,
+        "label": "full-HSI",
+        "params": 121360,
+        "sensor": "full-HSI"
+      },
+      {
+        "arm": "unmatched",
+        "bands": 11,
+        "hidden": 256,
+        "label": "Sentinel-2",
+        "params": 72976,
+        "sensor": "Sentinel-2"
+      },
+      {
+        "arm": "unmatched",
+        "bands": 6,
+        "hidden": 256,
+        "label": "Landsat-8 OLI",
+        "params": 71696,
+        "sensor": "Landsat-8 OLI"
+      }
+    ],
+    "inputs": {
+      "cube": "/home/user/cct/band-as-modality-hsi/data/indian_pines/Indian_pines_corrected.mat",
+      "cube_sha256": "ec2f8808710919d566f70f0d4aa885aae1ddfd42b734aba71c5e12ca65450939",
+      "gt": "/home/user/cct/band-as-modality-hsi/data/indian_pines/Indian_pines_gt.mat",
+      "gt_sha256": "65c4687a8ab04f6da4789799bc3bc4f6e88bccac3ed6a2e6ae367e5e6b9e429c"
+    },
+    "macro_estimand": {
+      "class_set_0based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        7,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "class_set_gt_labels": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        8,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "definition": "bandsim.metrics.common_class_set(gt, block=10, offsets=seeds, guard=1): classes present in the TEST split of EVERY offset. mIoU/AA average over this set; OA/kappa stay over all labelled pixels. mIoU_present/AA_present carry the average-over-present variant.",
+      "excluded_gt_labels": [
+        7,
+        9
+      ],
+      "splits_containing_each_class": {
+        "1": 5,
+        "2": 5,
+        "3": 5,
+        "4": 5,
+        "5": 5,
+        "6": 5,
+        "7": 3,
+        "8": 5,
+        "9": 4,
+        "10": 5,
+        "11": 5,
+        "12": 5,
+        "13": 5,
+        "14": 5,
+        "15": 5,
+        "16": 5
+      }
+    },
+    "matched_budget_params": 71696,
+    "raw_csv": "results_phase2_cross_sensor_raw.csv",
+    "split": "disjoint block-checkerboard, block=10, guard=1, offset=split_seed",
+    "split_independence": "seeds are one-pixel shifts of the SAME checkerboard; mean pairwise test-set IoU 0.448 (adjacent seeds 0.632) vs 0.333 for independent half-splits -- the reported spread understates sampling uncertainty",
+    "splits_by_seed": {
+      "0": {
+        "model_seed": 0,
+        "n_test": 3307,
+        "n_test_classes": 15,
+        "n_train": 5103,
+        "n_train_classes": 16,
+        "split_seed": 0,
+        "test_classes": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ]
+      },
+      "1": {
+        "model_seed": 1,
+        "n_test": 3325,
+        "n_test_classes": 15,
+        "n_train": 5067,
+        "n_train_classes": 16,
+        "split_seed": 1,
+        "test_classes": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ]
+      },
+      "2": {
+        "model_seed": 2,
+        "n_test": 3369,
+        "n_test_classes": 15,
+        "n_train": 5018,
+        "n_train_classes": 16,
+        "split_seed": 2,
+        "test_classes": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ]
+      },
+      "3": {
+        "model_seed": 3,
+        "n_test": 3407,
+        "n_test_classes": 16,
+        "n_train": 4984,
+        "n_train_classes": 16,
+        "split_seed": 3,
+        "test_classes": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ]
+      },
+      "4": {
+        "model_seed": 4,
+        "n_test": 3433,
+        "n_test_classes": 16,
+        "n_train": 4991,
+        "n_train_classes": 16,
+        "split_seed": 4,
+        "test_classes": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ]
+      }
+    },
+    "srf_source": "pyspectral",
+    "unmodelled": [
+      "ground sample distance (S2 10/20/60 m, OLI 30 m; all kept at AVIRIS ~20 m)",
+      "PSF/MTF, mixed pixels, spatial resampling, co-registration",
+      "sensor SNR, quantization, stray light, calibration uncertainty",
+      "BRDF and atmospheric-correction differences",
+      "HLS bandpass adjustment"
+    ],
+    "wavelength_axis_sha256": "6f567d9028cfd463ec8b41033d6787c730ed4b03c6fb8a5b3f23d51ae58710b8"
+  },
+  "generated_utc": "2026-07-20T11:16:03+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "c1fc32bfd7b71d78b145431381c8ab06c2c506f9",
+    "dirty": false,
+    "dirty_code_paths": [],
+    "dirty_files": 0,
+    "outputs_dirty": true
+  },
+  "smoke": false,
+  "versions": {
+    "cuda": "12.4",
+    "gpus": [
+      "Tesla V100-SXM2-32GB"
+    ],
+    "h5py": "3.16.0",
+    "matplotlib": "3.11.1",
+    "numpy": "2.1.0",
+    "platform": "Linux-4.18.0-305.131.1.el8_4.x86_64-x86_64-with-glibc2.39",
+    "pyspectral": "0.14.3",
+    "python": "3.12.3",
+    "scipy": "1.18.0",
+    "torch": "2.6.0+cu124"
+  }
+}

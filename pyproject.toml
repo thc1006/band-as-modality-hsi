@@ -1,0 +1,62 @@
+# pyproject.toml — packaging + tooling for the band-as-modality HSI/MSI testbed.
+#
+# The `bandsim` package (physics-grounded band-loss simulator) is the reusable core; the
+# experiment scripts live in `experiments/`. Abstract deps are declared here; the EXACT
+# reproducible environment is pinned in requirements-lock.txt (torch 2.6.0+cu124 for V100).
+#
+# Reproduce the locked env with uv:
+#   uv venv --python 3.12 .venv
+#   uv pip sync --python .venv/bin/python requirements-lock.txt \
+#       --index-url https://download.pytorch.org/whl/cu124 \
+#       --extra-index-url https://pypi.org/simple
+# (torch MUST come from the cu124 index — V100 needs sm_70 + host driver 535 minor-compat.)
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bandsim"
+version = "0.1.0"
+description = "Physics-grounded band-loss simulation testbed for band-as-modality HSI/MSI segmentation"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [
+    { name = "Chia-Tung Chung" },
+    { name = "Hsiu-Chi Tsai" },
+]
+dependencies = [
+    "numpy>=2.1,<2.2",
+    "scipy>=1.18",
+    "scikit-learn>=1.9",
+    "matplotlib>=3.11",
+    "pandas>=2.2",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+gpu = ["torch==2.6.0"]                                   # from the cu124 index (see [tool.uv])
+srf = ["pyspectral>=0.14"]                               # Design A real measured RSR
+eff = ["fvcore"]                                         # FLOPs profiling (phase7)
+dofa = ["timm==1.0.28", "torchvision==0.21.0"]           # phase8E DOFA baseline: timm builds the ViT (PatchEmbed/Block), so its version is load-bearing and pinned
+io  = ["h5py>=3.16", "scikit-image>=0.24"]
+data = ["huggingface-hub>=1.24", "tacoreader>=2.4", "rasterio>=1.5"]  # dataset download
+dev = ["pytest>=9"]
+
+[tool.setuptools]
+packages = ["bandsim"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+# --- uv: torch must resolve from the CUDA 12.4 wheel index (V100/sm_70 + driver 535) ---
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu124" }
+torchvision = { index = "pytorch-cu124" }

@@ -1,0 +1,55 @@
+{
+  "args": {
+    "dataset": "indian_pines",
+    "device": null,
+    "epochs": 60,
+    "groups": 10,
+    "max_missing": 6,
+    "no_verify": false,
+    "out_tag": "",
+    "sampling_baselines": true,
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "split": "blocks",
+    "trials": 12,
+    "verify_tol": 0.0001,
+    "wl_scale": null
+  },
+  "command": "experiments/phase2X_pe_dropout_2x2.py --sampling-baselines --dataset indian_pines --split blocks --seeds 0 1 2 3 4",
+  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "extra": {
+    "n_raw_rows": 12720
+  },
+  "generated_utc": "2026-07-21T16:31:10+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "ca7533a3e42e9a9f49a460ed4ba56040b5920376",
+    "dirty": true,
+    "dirty_code_paths": [
+      "experiments/phase2_degradation.py",
+      "experiments/phase8_sampling.py"
+    ],
+    "dirty_files": 2,
+    "outputs_dirty": true
+  },
+  "smoke": false,
+  "versions": {
+    "cuda": "12.4",
+    "gpus": [
+      "Tesla V100-SXM2-32GB"
+    ],
+    "h5py": "3.16.0",
+    "matplotlib": "3.11.1",
+    "numpy": "2.1.0",
+    "platform": "Linux-4.18.0-305.131.1.el8_4.x86_64-x86_64-with-glibc2.39",
+    "pyspectral": "0.14.3",
+    "python": "3.12.3",
+    "scipy": "1.18.0",
+    "torch": "2.6.0+cu124"
+  }
+}

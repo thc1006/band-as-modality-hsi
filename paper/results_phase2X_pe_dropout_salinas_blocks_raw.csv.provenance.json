@@ -1,0 +1,51 @@
+{
+  "args": {
+    "dataset": "salinas",
+    "device": null,
+    "epochs": 60,
+    "groups": 10,
+    "max_missing": 6,
+    "no_verify": false,
+    "out_tag": "",
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "split": null,
+    "trials": 12,
+    "verify_tol": 0.0001,
+    "wl_scale": null
+  },
+  "command": "experiments/phase2X_pe_dropout_2x2.py --dataset salinas",
+  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "extra": {
+    "n_raw_rows": 16960
+  },
+  "generated_utc": "2026-07-20T22:14:44+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "4b845c90d5670acadf31ff064b8ec90761e0dae9",
+    "dirty": false,
+    "dirty_code_paths": [],
+    "dirty_files": 0,
+    "outputs_dirty": true
+  },
+  "smoke": false,
+  "versions": {
+    "cuda": "12.4",
+    "gpus": [
+      "Tesla V100-SXM2-32GB"
+    ],
+    "h5py": "3.16.0",
+    "matplotlib": "3.11.1",
+    "numpy": "2.1.0",
+    "platform": "Linux-4.18.0-305.131.1.el8_4.x86_64-x86_64-with-glibc2.39",
+    "pyspectral": "0.14.3",
+    "python": "3.12.3",
+    "scipy": "1.18.0",
+    "torch": "2.6.0+cu124"
+  }
+}

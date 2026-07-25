@@ -1,0 +1,53 @@
+key,value
+dataset,synthetic
+claim,transfer of the Phase-2 ordering under Indian-Pines settings; NOT dataset generalization
+retuned_on_this_dataset,no
+tuning_split,none (train/test only)
+hyperparams_selected_on,indian_pines
+groups,10
+epochs,60
+n_seeds,5
+b1_audc_mean,83.436
+b1_audc_std,0.297
+b2_audc_mean,98.059
+b2_audc_std,0.190
+b3_audc_mean,89.549
+b3_audc_std,0.157
+proposed_audc_mean,98.387
+proposed_audc_std,0.316
+wavelength_axis_status,fabricated
+source_dataset,indian_pines
+is_self_consistency_check,False
+block_px,10
+guard_px,1
+mean_pairwise_test_mask_iou,0.437
+n_classes,9
+miou_at_zero_missing_proposed,100.00
+b1_retention_at_max_missing,0.5536
+b1_audc_normalised_by_clean,0.8344
+b2_retention_at_max_missing,0.8732
+b2_audc_normalised_by_clean,0.9806
+b3_retention_at_max_missing,0.6103
+b3_audc_normalised_by_clean,0.8955
+proposed_retention_at_max_missing,0.8814
+proposed_audc_normalised_by_clean,0.9839
+bands_per_group,10.3
+nm_per_group_mean_span,39.2
+nm_per_group_min_span,37.9
+nm_axis_covered,430
+frac_bands_missing_at_max,0.600
+paired_margin_vs_b1_mean,+14.951
+paired_margin_vs_b1_std,0.491
+paired_wins_vs_b1,5/5
+paired_margin_vs_b2_mean,+0.328
+paired_margin_vs_b2_std,0.370
+paired_wins_vs_b2,3/5
+paired_margin_vs_b3_mean,+8.838
+paired_margin_vs_b3_std,0.357
+paired_wins_vs_b3,5/5
+best_rival,b2
+best_rival_selection,POST-HOC (highest observed mean AUDC) -- carries a winner's-curse bias; see the per-rival rows above
+paired_margin_mean,+0.328
+paired_margin_std,0.370
+paired_wins,3/5
+data_provenance,"FABRICATED — code-generality check only, not a dataset"

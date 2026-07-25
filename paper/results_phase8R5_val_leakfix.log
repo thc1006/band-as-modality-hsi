@@ -1,0 +1,18 @@
+leaked products (val∩train): [np.str_('S2A_MSIL1C_20190111T082311_N0207_R121_T34HCK_20190111T102302'), np.str_('S2B_MSIL1C_20191023T082009_N0208_R121_T34HCK_20191023T134155')]
+leaked pixels 800/214000 (0.37%); ROIs affected ['ROI_7038']
+after drop: 213200 px, 104 scene-components (was 104)
+  seed 0 done
+  seed 1 done
+  seed 2 done
+  seed 3 done
+  seed 4 done
+  seed 5 done
+  seed 6 done
+  seed 7 done
+  seed 8 done
+  seed 9 done
+
+=== E4 fix: second benchmark with train-leaked products removed ===
+  L2A naive    29.14 +/- 0.84  t9 CI[27.2,31.0]  (was 29.44 [27.5,31.4])
+  L2A mondrian  7.10 +/- 0.61  (was 7.87)
+  -> breach intact (excludes 10); replication now calibration-disjoint from train

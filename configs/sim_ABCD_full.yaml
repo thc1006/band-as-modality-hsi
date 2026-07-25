@@ -1,0 +1,56 @@
+# Design A+B+C+D SCHEMATIC ROBUSTNESS STRESS-TEST (not a physically-validated simulation): cross-
+# sensor SRF + 6S gaseous transmittance + cirrus + instrument noise/striping, composed in
+# pipeline.simulate order B->C->A->D. Only stage B (6S gaseous transmittance, computed on this
+# cube's own wavelength axis) is physics-grounded end to end. Stage A applies the correct bandpass
+# OPERATOR but to a synthetic Gaussian SRF of one fixed width, so it is a first-order approximation
+# of the real response, not a measured SRF. Stages C (cirrus) and D (noise) are SCHEMATIC /
+# illustrative and NOT calibrated to any real sensor -- so this config supports ROBUSTNESS ablation
+# only, never a "sensor-realistic / radiometrically grounded" claim. Every stage carries a
+# validation_status below, which pipeline.simulate returns in info so the label travels with the
+# numbers. See bandsim/__init__.py (WORKING vs SCHEMATIC) and each module header.
+schema_version: 1
+claim_scope: robustness_stress_test
+seed: 20260630
+
+input:
+  # config_runner.run_spec consumes ONLY `wavelength_axis`. dataset/path/gt_path are PROVENANCE
+  # (which cube the CALLER loads + passes to run_spec); the simulator never reads these paths.
+  dataset: indian_pines
+  path: data/indian_pines/Indian_pines_corrected.mat
+  gt_path: data/indian_pines/Indian_pines_gt.mat
+  wavelength_axis: aviris        # bandsim.io.AVIRIS_WL_NM: 200 bands, 400-2500 nm WITH real water-vapour gaps (NOT uniform)
+
+designs:
+  A:
+    enable: true
+    # NOMINAL Landsat-8 OLI B1-B7 reflective centres (USGS numbering, B6 = SWIR-1); no pan/cirrus.
+    # Does not select OLI vs OLI-2 (Landsat-9). OLI (7 bands) lacks S2 red-edge/water-vapour.
+    target_sensor: landsat_oli
+    srf_source: gaussian         # ONLY 'gaussian' is accepted from YAML (pyspectral is Python-only)
+    fwhm_nm: 30.0                # ONE width for ALL bands; real OLI FWHM spans 15-186 nm -> approximate
+    validation_status: first_order_approximation
+  B:
+    enable: true
+    cwv_g_cm2: 2.0               # sole B factor; no aod550 (gaseous T is aerosol-independent -> AOD inert)
+    # Numerically INERT on this Gaussian-SRF path (no S2/OLI centre within 165 nm of a core); it only
+    # removes a band under measured pyspectral RSR. See bandsim.atmosphere.hard_mask_absorption_cores.
+    hard_mask_cores: true
+    # Resolved relative to THIS FILE's directory (not the process CWD).
+    table: ../data/srf_cache/T_6s_grid.npz   # keys: cwv{c}
+    validation_status: physics_6s_gaseous
+  C:
+    enable: true
+    tau: 0.3                     # thin-cirrus optical depth
+    validation_status: schematic_illustrative_only   # hand-crafted 1.375um bump + VNIR haze; NOT physically validated
+  D:
+    enable: true
+    stripe_eps: 0.02             # striping strength
+    dead_col_frac: 0.01          # dead-detector column fraction
+    validation_status: schematic_uncalibrated        # Hyperion-like SNR at real band centres; NOT a Landsat-OLI NEdL model
+
+# eval: DECLARATION only -- NOT executed by config_runner.run_spec. The experiment scripts run their
+# own disjoint_block_split(block=10, guard=1, offset=seed). Kept for provenance/intent.
+eval:
+  seeds: 5
+  split: disjoint_block_guarded
+  metrics: [miou, oa, aa, kappa, audc]

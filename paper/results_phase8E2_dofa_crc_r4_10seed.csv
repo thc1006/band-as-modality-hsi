@@ -1,0 +1,7 @@
+state,arm,n_runs,joint_risk_mean,joint_risk_se,joint_risk_lo,joint_risk_hi,coverage_mean,acc_mean,n_calib_units_med,feasible_rate
+clean,naive,100,8.6426,0.2066,8.2378,9.0475,75.1939,79.8298,69,1.000
+clean,mondrian,100,8.6426,0.2066,8.2378,9.0475,75.1939,79.8298,69,1.000
+dropSWIR,naive,100,11.6854,0.3735,10.9533,12.4175,72.1154,74.7944,69,1.000
+dropSWIR,mondrian,100,8.6566,0.3602,7.9505,9.3627,62.4722,74.7944,69,1.000
+L2A_real,naive,100,9.9527,0.2105,9.5401,10.3654,79.7463,80.1486,69,1.000
+L2A_real,mondrian,100,8.7807,0.1947,8.3991,9.1624,76.4139,80.1486,69,1.000

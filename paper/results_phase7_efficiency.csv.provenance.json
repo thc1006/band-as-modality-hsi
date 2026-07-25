@@ -1,0 +1,170 @@
+{
+  "args": {
+    "allow_contended": false,
+    "allow_unvalidated_quant": false,
+    "bench_threads": 6,
+    "bs": 256,
+    "device": null,
+    "epochs": 60,
+    "gpu_util_max": 15.0,
+    "groups": 10,
+    "keep_workdir": false,
+    "load_per_core_max": 0.6,
+    "max_missing": 6,
+    "max_rel_iqr": 0.1,
+    "max_rel_iqr_single": 0.25,
+    "max_run_time": 10.0,
+    "max_throttle_frac": 0.01,
+    "min_replicates": 8,
+    "min_run_time": 0.5,
+    "missing_subsets": null,
+    "repeats": 5,
+    "seed": 0,
+    "single_requests": 200,
+    "smoke": false,
+    "strict": true,
+    "subset_exhaustive_max": 512,
+    "subset_seed": 0,
+    "target_rel_iqr": 0.05,
+    "warmup": 50,
+    "workdir": null,
+    "worker_timeout": 1800.0
+  },
+  "command": "experiments/phase7_efficiency.py",
+  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "extra": {
+    "accel_device": "cuda",
+    "allow_contended": false,
+    "allow_unvalidated_quant": false,
+    "bench_threads": 6,
+    "contention_post": {
+      "cgroup_throttle": [
+        37899717,
+        23073
+      ],
+      "cores": 8,
+      "gpu_mem_used_mb": [
+        497.0,
+        3.0
+      ],
+      "gpu_util_max": 0.0,
+      "gpu_util_pct": [
+        0.0,
+        0.0
+      ],
+      "host_cores": 36,
+      "load_per_core": 3.89654541015625,
+      "load_per_host_core": 0.8658989800347222,
+      "loadavg_1m": 31.17236328125,
+      "n_compute_apps": 1,
+      "nvidia_smi": true,
+      "own_cpuset_busy": 0.06844903064415259
+    },
+    "contention_pre": {
+      "cgroup_throttle": [
+        37897433,
+        23073
+      ],
+      "cores": 8,
+      "gpu_mem_used_mb": [
+        0.0,
+        0.0
+      ],
+      "gpu_util_max": 0.0,
+      "gpu_util_pct": [
+        0.0,
+        0.0
+      ],
+      "host_cores": 36,
+      "load_per_core": 2.7120361328125,
+      "load_per_host_core": 0.6026746961805556,
+      "loadavg_1m": 21.6962890625,
+      "n_compute_apps": 0,
+      "nvidia_smi": true,
+      "own_cpuset_busy": 0.08766807379612257
+    },
+    "contention_unknowns": [],
+    "effective_batch_size": 256,
+    "gpu_state_by_model": {
+      "B4 attn": {
+        "clock_sm_mhz": "1290",
+        "temp_c": "27"
+      },
+      "B6 attn": {
+        "clock_sm_mhz": "1290",
+        "temp_c": "28"
+      },
+      "MLP (B1)": {
+        "clock_sm_mhz": "1290",
+        "temp_c": "27"
+      },
+      "Proposed": {
+        "clock_sm_mhz": "1290",
+        "temp_c": "28"
+      }
+    },
+    "isolation": "one subprocess per model",
+    "macs_complete_by_model": {
+      "B4 attn": false,
+      "B6 attn": false,
+      "MLP (B1)": true,
+      "Proposed": false
+    },
+    "max_rel_iqr": 0.1,
+    "max_rel_iqr_single": 0.25,
+    "max_throttle_frac": 0.01,
+    "min_replicates": 8,
+    "min_run_time_s": 0.5,
+    "missing_subset_coverage": "210/210 exhaustive",
+    "missing_subsets": "0+1+2+3+4+5 | 4+5+6+7+8+9 | 0+2+4+5+7+9 | 0+1+2+3+4+6 | 0+1+2+3+4+7 | 0+1+2+3+4+8 | 0+1+2+3+4+9 | 0+1+2+3+5+6 | 0+1+2+3+5+7 | 0+1+2+3+5+8 | 0+1+2+3+5+9 | 0+1+2+3+6+7 | 0+1+2+3+6+8 | 0+1+2+3+6+9 | 0+1+2+3+7+8 | 0+1+2+3+7+9 | 0+1+2+3+8+9 | 0+1+2+4+5+6 | 0+1+2+4+5+7 | 0+1+2+4+5+8 | 0+1+2+4+5+9 | 0+1+2+4+6+7 | 0+1+2+4+6+8 | 0+1+2+4+6+9 | 0+1+2+4+7+8 | 0+1+2+4+7+9 | 0+1+2+4+8+9 | 0+1+2+5+6+7 | 0+1+2+5+6+8 | 0+1+2+5+6+9 | 0+1+2+5+7+8 | 0+1+2+5+7+9 | 0+1+2+5+8+9 | 0+1+2+6+7+8 | 0+1+2+6+7+9 | 0+1+2+6+8+9 | 0+1+2+7+8+9 | 0+1+3+4+5+6 | 0+1+3+4+5+7 | 0+1+3+4+5+8 | 0+1+3+4+5+9 | 0+1+3+4+6+7 | 0+1+3+4+6+8 | 0+1+3+4+6+9 | 0+1+3+4+7+8 | 0+1+3+4+7+9 | 0+1+3+4+8+9 | 0+1+3+5+6+7 | 0+1+3+5+6+8 | 0+1+3+5+6+9 | 0+1+3+5+7+8 | 0+1+3+5+7+9 | 0+1+3+5+8+9 | 0+1+3+6+7+8 | 0+1+3+6+7+9 | 0+1+3+6+8+9 | 0+1+3+7+8+9 | 0+1+4+5+6+7 | 0+1+4+5+6+8 | 0+1+4+5+6+9 | 0+1+4+5+7+8 | 0+1+4+5+7+9 | 0+1+4+5+8+9 | 0+1+4+6+7+8 | 0+1+4+6+7+9 | 0+1+4+6+8+9 | 0+1+4+7+8+9 | 0+1+5+6+7+8 | 0+1+5+6+7+9 | 0+1+5+6+8+9 | 0+1+5+7+8+9 | 0+1+6+7+8+9 | 0+2+3+4+5+6 | 0+2+3+4+5+7 | 0+2+3+4+5+8 | 0+2+3+4+5+9 | 0+2+3+4+6+7 | 0+2+3+4+6+8 | 0+2+3+4+6+9 | 0+2+3+4+7+8 | 0+2+3+4+7+9 | 0+2+3+4+8+9 | 0+2+3+5+6+7 | 0+2+3+5+6+8 | 0+2+3+5+6+9 | 0+2+3+5+7+8 | 0+2+3+5+7+9 | 0+2+3+5+8+9 | 0+2+3+6+7+8 | 0+2+3+6+7+9 | 0+2+3+6+8+9 | 0+2+3+7+8+9 | 0+2+4+5+6+7 | 0+2+4+5+6+8 | 0+2+4+5+6+9 | 0+2+4+5+7+8 | 0+2+4+5+8+9 | 0+2+4+6+7+8 | 0+2+4+6+7+9 | 0+2+4+6+8+9 | 0+2+4+7+8+9 | 0+2+5+6+7+8 | 0+2+5+6+7+9 | 0+2+5+6+8+9 | 0+2+5+7+8+9 | 0+2+6+7+8+9 | 0+3+4+5+6+7 | 0+3+4+5+6+8 | 0+3+4+5+6+9 | 0+3+4+5+7+8 | 0+3+4+5+7+9 | 0+3+4+5+8+9 | 0+3+4+6+7+8 | 0+3+4+6+7+9 | 0+3+4+6+8+9 | 0+3+4+7+8+9 | 0+3+5+6+7+8 | 0+3+5+6+7+9 | 0+3+5+6+8+9 | 0+3+5+7+8+9 | 0+3+6+7+8+9 | 0+4+5+6+7+8 | 0+4+5+6+7+9 | 0+4+5+6+8+9 | 0+4+5+7+8+9 | 0+4+6+7+8+9 | 0+5+6+7+8+9 | 1+2+3+4+5+6 | 1+2+3+4+5+7 | 1+2+3+4+5+8 | 1+2+3+4+5+9 | 1+2+3+4+6+7 | 1+2+3+4+6+8 | 1+2+3+4+6+9 | 1+2+3+4+7+8 | 1+2+3+4+7+9 | 1+2+3+4+8+9 | 1+2+3+5+6+7 | 1+2+3+5+6+8 | 1+2+3+5+6+9 | 1+2+3+5+7+8 | 1+2+3+5+7+9 | 1+2+3+5+8+9 | 1+2+3+6+7+8 | 1+2+3+6+7+9 | 1+2+3+6+8+9 | 1+2+3+7+8+9 | 1+2+4+5+6+7 | 1+2+4+5+6+8 | 1+2+4+5+6+9 | 1+2+4+5+7+8 | 1+2+4+5+7+9 | 1+2+4+5+8+9 | 1+2+4+6+7+8 | 1+2+4+6+7+9 | 1+2+4+6+8+9 | 1+2+4+7+8+9 | 1+2+5+6+7+8 | 1+2+5+6+7+9 | 1+2+5+6+8+9 | 1+2+5+7+8+9 | 1+2+6+7+8+9 | 1+3+4+5+6+7 | 1+3+4+5+6+8 | 1+3+4+5+6+9 | 1+3+4+5+7+8 | 1+3+4+5+7+9 | 1+3+4+5+8+9 | 1+3+4+6+7+8 | 1+3+4+6+7+9 | 1+3+4+6+8+9 | 1+3+4+7+8+9 | 1+3+5+6+7+8 | 1+3+5+6+7+9 | 1+3+5+6+8+9 | 1+3+5+7+8+9 | 1+3+6+7+8+9 | 1+4+5+6+7+8 | 1+4+5+6+7+9 | 1+4+5+6+8+9 | 1+4+5+7+8+9 | 1+4+6+7+8+9 | 1+5+6+7+8+9 | 2+3+4+5+6+7 | 2+3+4+5+6+8 | 2+3+4+5+6+9 | 2+3+4+5+7+8 | 2+3+4+5+7+9 | 2+3+4+5+8+9 | 2+3+4+6+7+8 | 2+3+4+6+7+9 | 2+3+4+6+8+9 | 2+3+4+7+8+9 | 2+3+5+6+7+8 | 2+3+5+6+7+9 | 2+3+5+6+8+9 | 2+3+5+7+8+9 | 2+3+6+7+8+9 | 2+4+5+6+7+8 | 2+4+5+6+7+9 | 2+4+5+6+8+9 | 2+4+5+7+8+9 | 2+4+6+7+8+9 | 2+5+6+7+8+9 | 3+4+5+6+7+8 | 3+4+5+6+7+9 | 3+4+5+6+8+9 | 3+4+5+7+8+9 | 3+4+6+7+8+9 | 3+5+6+7+8+9",
+    "n_bands": 200,
+    "n_test_px": 3307,
+    "n_train_px": 5103,
+    "quant_api": "torch.ao.quantization.quantize_dynamic (legacy eager-mode dynamic PTQ)",
+    "quant_engine_by_model": {
+      "B4 attn": "x86",
+      "B6 attn": "x86",
+      "MLP (B1)": "x86",
+      "Proposed": "x86"
+    },
+    "quant_scope_by_model": {
+      "B4 attn": "int8-dynamic: embed,classifier,decoder (3 module(s) -> ['Linear']); fp32 nn.Linear left: encoder.layers.0.self_attn.out_proj,encoder.layers.0.linear1,encoder.layers.0.linear2,encoder.layers.1.self_attn.out_proj,encoder.layers.1.linear1,encoder.layers.1.linear2 (6); fp32 MultiheadAttention in_proj (raw Parameter, not nn.Linear): encoder.layers.0.self_attn,encoder.layers.1.self_attn",
+      "B6 attn": "int8-dynamic: embed,classifier,decoder (3 module(s) -> ['Linear']); fp32 nn.Linear left: encoder.layers.0.self_attn.out_proj,encoder.layers.0.linear1,encoder.layers.0.linear2,encoder.layers.1.self_attn.out_proj,encoder.layers.1.linear1,encoder.layers.1.linear2 (6); fp32 MultiheadAttention in_proj (raw Parameter, not nn.Linear): encoder.layers.0.self_attn,encoder.layers.1.self_attn",
+      "MLP (B1)": "int8-dynamic: net.0,net.3,net.5 (3 module(s) -> ['Linear'])",
+      "Proposed": "int8-dynamic: embed,classifier,decoder (3 module(s) -> ['Linear']); fp32 nn.Linear left: encoder.layers.0.self_attn.out_proj,encoder.layers.0.linear1,encoder.layers.0.linear2,encoder.layers.1.self_attn.out_proj,encoder.layers.1.linear1,encoder.layers.1.linear2 (6); fp32 MultiheadAttention in_proj (raw Parameter, not nn.Linear): encoder.layers.0.self_attn,encoder.layers.1.self_attn"
+    },
+    "quant_validated_torch": "2.6.0+cu124",
+    "repeats": 5,
+    "requested_batch_size": 256,
+    "single_requests": 200,
+    "strict": true,
+    "target_rel_iqr": 0.05,
+    "timing_validity": "ok",
+    "warmup": 50
+  },
+  "generated_utc": "2026-07-20T23:01:08+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "3350e800b3bb37e27f7ce3c7a21e8bd6b58aad1e",
+    "dirty": false,
+    "dirty_code_paths": [],
+    "dirty_files": 0,
+    "outputs_dirty": true
+  },
+  "smoke": false,
+  "versions": {
+    "cuda": "12.4",
+    "gpus": [
+      "Tesla V100-SXM2-32GB",
+      "Tesla V100-SXM2-32GB"
+    ],
+    "h5py": "3.16.0",
+    "matplotlib": "3.11.1",
+    "numpy": "2.1.0",
+    "platform": "Linux-4.18.0-305.131.1.el8_4.x86_64-x86_64-with-glibc2.39",
+    "pyspectral": "0.14.3",
+    "python": "3.12.3",
+    "scipy": "1.18.0",
+    "torch": "2.6.0+cu124"
+  }
+}

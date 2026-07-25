@@ -1,0 +1,27 @@
+LicenseRef-Author-Preprint — Authors' Preprint, Rights Reserved
+
+Copyright (c) 2026 Chia-Tung Chung, Hsiu-Chi Tsai. All rights reserved.
+
+This license applies to the manuscript and its figures under paper/ (the
+"Manuscript"), which is the authors' own preprint/accepted version prepared
+for submission to an IEEE conference (ICAIMS 2026).
+
+1. The Manuscript is NOT released under an open license (in particular, NOT
+   under any Creative Commons license). CC-BY-4.0 is deliberately avoided
+   because it is irrevocable and would conflict with the copyright transfer
+   that IEEE requires upon acceptance.
+
+2. No permission is granted to copy, redistribute, modify, or reuse the
+   Manuscript, in whole or in part, without the prior written permission of
+   the copyright holders.
+
+3. Upon acceptance and publication by IEEE, the Manuscript becomes governed by
+   IEEE's copyright policy. Any publicly posted version must then carry the
+   required IEEE copyright notice and the article's DOI/citation, and the
+   final IEEE-typeset PDF may not be posted. If open access under CC-BY is
+   desired for the published article, it must be obtained through IEEE's paid
+   open-access (APC) or repository-license option.
+
+4. This notice covers only the Manuscript. Source code in this repository is
+   licensed under MIT, and author-owned documentation under CC-BY-4.0; see
+   REUSE.toml for the authoritative per-path mapping.
