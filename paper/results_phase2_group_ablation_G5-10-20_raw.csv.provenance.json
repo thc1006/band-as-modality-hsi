@@ -22,7 +22,7 @@
     "trials": 8
   },
   "command": "experiments/phase2_group_ablation.py",
-  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "cwd": "/home/hctsai1006/cct/band-as-modality-hsi",
   "extra": {
     "groups_swept": [
       5,

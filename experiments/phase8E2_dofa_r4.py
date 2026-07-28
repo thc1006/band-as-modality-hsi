@@ -63,7 +63,9 @@ def _two_way_se(a, splits, models):
     def V(lab):
         lab = np.asarray(lab, dtype=object)
         return sum(float(e[lab == g].sum()) ** 2 for g in set(lab.tolist())) / N ** 2
-    return float(np.sqrt(max(V(splits) + V(models) - float((e ** 2).sum()) / N ** 2, 0.0)))
+    viid = float((e ** 2).sum()) / N ** 2
+    core = V(splits) + V(models) - viid
+    return float(np.sqrt(core if core > 0 else viid))       # iid floor: never a misleading 0 on non-constant data
 
 
 def main():

@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-"""Second-benchmark flagship run: does the naive conformal certificate breach on an INDEPENDENT scene set?
+"""Second-benchmark flagship run: does the naive conformal certificate breach on a WITHIN-DATASET HELD-OUT scene set?
+(CloudSEN12 validation is a random draw from the non-test scenes, disjoint from test by construction but sharing
+the dataset -- a within-dataset held-out replication, NOT an external/independent benchmark.)
 
 Train the identical band-as-modality model on the flagship train split (same seed, same normalisation);
 calibrate + evaluate the CRC on the OFFICIAL CloudSEN12 validation split (535 patches / 107 ROIs, high-
@@ -84,9 +86,13 @@ def ce_joint(logits, T, y, mask, comp, thr):
     return float(np.mean([aw[ce == c].mean() for c in np.unique(ce)])) * 100
 
 
-def cover(logits, T, mask, thr):
+def cover(logits, T, mask, thr, comp):
+    """Component-equal coverage, matching ce_joint's weighting so the triple shares ONE denominator and
+    joint = selective x coverage holds (P0-6: coverage was pixel-pooled while joint was component-equal)."""
     p = softmax(logits[mask] / T, axis=1)
-    return float((p.max(1) >= thr).mean()) * 100
+    acc = (p.max(1) >= thr)
+    ce = comp[mask]
+    return float(np.mean([acc[ce == c].mean() for c in np.unique(ce)])) * 100
 
 
 def main():
@@ -117,6 +123,7 @@ def main():
 
     rows = []
     for seed in args.seeds:
+        hw.seed_model(seed)                                          # P0-2: seed before the constructor
         m = GroupedCrossBandAttention(groups, cwl, 4)
         P2.pretrain_sgmae(m, Xtr_n, groups, seed, epochs=max(1, args.epochs // 2), bs=bs)
         P2.finetune_proposed(m, Xtr_n, ytr, groups, seed, epochs=args.epochs, bs=bs)
@@ -129,19 +136,19 @@ def main():
             thr_n = crc_thr(lc, Tc, y, mc, comp)                 # naive: calibrate on clean
             thr_m = crc_thr(ll, Tl, y, mc, comp)                 # Mondrian: calibrate on L2A
             rows.append(dict(seed=seed, split=ss, state="clean", arm="naive",
-                             joint=ce_joint(lc, Tc, y, me, comp, thr_n), cov=cover(lc, Tc, me, thr_n)))
+                             joint=ce_joint(lc, Tc, y, me, comp, thr_n), cov=cover(lc, Tc, me, thr_n, comp)))
             rows.append(dict(seed=seed, split=ss, state="L2A", arm="naive",
-                             joint=ce_joint(ll, Tc, y, me, comp, thr_n), cov=cover(ll, Tc, me, thr_n)))
+                             joint=ce_joint(ll, Tc, y, me, comp, thr_n), cov=cover(ll, Tc, me, thr_n, comp)))
             rows.append(dict(seed=seed, split=ss, state="L2A", arm="mondrian",
-                             joint=ce_joint(ll, Tl, y, me, comp, thr_m), cov=cover(ll, Tl, me, thr_m)))
+                             joint=ce_joint(ll, Tl, y, me, comp, thr_m), cov=cover(ll, Tl, me, thr_m, comp)))
         print(f"  seed {seed}: clean acc {(lc.argmax(1) == y).mean() * 100:.1f}, "
               f"L2A acc {(ll.argmax(1) == y).mean() * 100:.1f}", flush=True)
 
     df = pd.DataFrame(rows)
     df.to_csv("paper/results_phase8R5_secondbench_raw.csv", index=False)
     t = 2.262 if len(args.seeds) >= 10 else (4.303 if len(args.seeds) >= 3 else 12.71)
-    print(f"\n=== Second benchmark: CloudSEN12 validation split, {len(np.unique(comp))} independent "
-          f"scene-components ===")
+    print(f"\n=== Second benchmark: CloudSEN12 validation split, {len(np.unique(comp))} within-dataset "
+          f"held-out scene-components ===")
     for (st, arm), g in df.groupby(["state", "arm"]):
         # bracket access throughout: the column is named 'cov', which collides with DataFrame.cov() under
         # attribute access (g.cov returns the covariance METHOD, not the column) -- the same trap for any

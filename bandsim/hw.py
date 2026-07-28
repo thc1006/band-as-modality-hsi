@@ -187,6 +187,27 @@ def setup(seed=0, deterministic=True, threads=None, prefer=None):
 
 
 # ---------------------------------------------------------------------------------------
+# model-init seeding -- single factory: the same `seed` yields the same model in EVERY script
+# ---------------------------------------------------------------------------------------
+def seed_model(seed: int) -> int:
+    """Seed all RNGs IMMEDIATELY before a model constructor so the model's INITIAL weights are reproducible
+    and independent of execution order. PyTorch layer initialisation draws from the global RNG at
+    construction time, while the training helpers (pretrain/finetune) only reseed AFTER the module exists --
+    so without a reseed here the same `seed` yields DIFFERENT initial weights depending on what was built
+    before (running seed k alone != seed k within a batch). Call this right before EVERY model constructor,
+    in every script, so one `seed` means one model everywhere. The +101 offset keeps model-init RNG distinct
+    from the training-loop seeds (seed+7, seed+11) set downstream. Returns the applied init seed."""
+    import random
+    init = seed + 101
+    random.seed(init)
+    np.random.seed(init)
+    torch.manual_seed(init)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(init)
+    return init
+
+
+# ---------------------------------------------------------------------------------------
 # reporting
 # ---------------------------------------------------------------------------------------
 def gpu_summaries():

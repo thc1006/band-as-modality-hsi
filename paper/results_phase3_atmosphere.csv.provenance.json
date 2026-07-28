@@ -19,7 +19,7 @@
     "tau_sweep": null
   },
   "command": "experiments/phase3_atmosphere.py --seeds 0 1 2 3 4 --jobs 2 --device cuda",
-  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "cwd": "/home/hctsai1006/cct/band-as-modality-hsi",
   "extra": {
     "benchmark_bands_removed_upstream": "20 of the nominal 220 AVIRIS bands (1-based 104-108, 150-163, 220) are already absent from this cube, so benchmark200_full is a 200-band ceiling, not a raw full spectrum. See bandsim.io.AVIRIS_WL_NM.",
     "classes_per_split_count": [
@@ -47,7 +47,7 @@
       "cwv2.0",
       "cwv4.0"
     ],
-    "cube_path": "/home/user/cct/band-as-modality-hsi/data/indian_pines/Indian_pines_corrected.mat",
+    "cube_path": "/home/hctsai1006/cct/band-as-modality-hsi/data/indian_pines/Indian_pines_corrected.mat",
     "cube_physical_quantity": "UNVERIFIED. Benchmark feature cube; integer-valued, range recorded above. That range is consistent with scaled DN/radiance AND with reflectance x 1e4, so it discriminates neither. This repository does NOT establish it as a BOA surface-reflectance product, so the primary arm is a corrected-product PROXY and is not labelled L2A.",
     "cube_physical_quantity_verified": false,
     "cube_sha256": "ec2f8808710919d566f70f0d4aa885aae1ddfd42b734aba71c5e12ca65450939",
@@ -56,10 +56,10 @@
       9604.0
     ],
     "group_absent_frac": 0.5,
-    "gt_path": "/home/user/cct/band-as-modality-hsi/data/indian_pines/Indian_pines_gt.mat",
+    "gt_path": "/home/hctsai1006/cct/band-as-modality-hsi/data/indian_pines/Indian_pines_gt.mat",
     "gt_sha256": "65c4687a8ab04f6da4789799bc3bc4f6e88bccac3ed6a2e6ae367e5e6b9e429c",
     "information_parity_note": "n_absent_groups==0 means the proposed model's group-present mask is all-True, i.e. AT TEST TIME it receives exactly what B2 receives (zero-imputed spectrum, no missingness indicator). Where it is >0 the absent group's surviving bands are replaced by a mask token, so proposed sees strictly LESS band content than B2, not more. This does NOT make the margin non-oracular: the mask is consumed during TRAINING, where proposed is told which groups it dropped and B2 is not. See proposed_nomask for the ablation.",
-    "lut": "/home/user/cct/band-as-modality-hsi/data/srf_cache/T_6s_grid.npz",
+    "lut": "/home/hctsai1006/cct/band-as-modality-hsi/data/srf_cache/T_6s_grid.npz",
     "lut_generation_mode": "direct_6s (required; a resampled table is refused)",
     "lut_keys_used": {
       "0.5": "cwv0.5",

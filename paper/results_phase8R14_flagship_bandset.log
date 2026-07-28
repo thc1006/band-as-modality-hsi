@@ -1,0 +1,11 @@
+flagship band-set ablation: 388400 test px / 184 components; 5 seeds x 10 splits; alpha 0.1
+  13-band(all)   (13b) clean acc 80.1  L2A acc 68.6  ->  naive L2A joint 28.27 +/- 0.39  [27.2,29.4]  BREACH
+  -B9(12-band)   (12b) clean acc 79.5  L2A acc 70.3  ->  naive L2A joint 22.56 +/- 0.73  [20.5,24.6]  BREACH
+  9-band(DOFA)   ( 9b) clean acc 77.6  L2A acc 71.4  ->  naive L2A joint 21.10 +/- 0.76  [19.0,23.2]  BREACH
+
+  reference: flagship 13-band 28.9 (10x10);  DOFA-9 spatial 9.95
+  -> 13-band arm reproducing ~28.9 validates the restricted-group harness; -B9 staying >>10 shows
+     the headline breach is NOT a B9 artefact; 9-band staying >>10 (while spatial DOFA-9 = 9.95)
+     isolates the per-pixel architecture, not the band set, as DOFA's differentiator.
+  NOTE: restricting bands also re-partitions the spectral groups (band-set/group-structure confound);
+        the clean same-architecture band-set isolation is the plain MLP of phase8R9.

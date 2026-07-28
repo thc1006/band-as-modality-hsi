@@ -1,0 +1,10 @@
+===== phase8R6_alpha_sensitivity.py =====
+loaded 10 flagship dumps
+   target        naive joint (t9 CI)  breach?   Mondrian joint
+       5%  23.99 +/- 0.60 [ 22.6, 25.4]      YES    3.53 +/- 0.14
+      10%  28.29 +/- 0.58 [ 27.0, 29.6]      YES    8.56 +/- 0.29
+      15%  31.11 +/- 0.61 [ 29.7, 32.5]      YES   13.75 +/- 0.42
+      20%  32.53 +/- 0.60 [ 31.2, 33.9]      YES   18.93 +/- 0.48
+
+  (naive is calibrated to hold each target on CLEAN, then deployed on L2A; Mondrian recalibrates on L2A)
+

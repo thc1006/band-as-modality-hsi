@@ -1,0 +1,20 @@
+U-Net vs per-pixel MLP (band-matched 9-band, ONE harness): train 800 patches / 160000 px; test 400 patches over 175 scene-components; 80000 eval px; dev cuda
+  model seed 0: per-pixel clean acc 76.4, U-Net clean acc 82.0
+  model seed 1: per-pixel clean acc 77.4, U-Net clean acc 83.2
+  model seed 2: per-pixel clean acc 77.1, U-Net clean acc 81.3
+  model seed 3: per-pixel clean acc 77.6, U-Net clean acc 83.4
+  model seed 4: per-pixel clean acc 77.1, U-Net clean acc 83.4
+
+  per-pixel (from scratch) naive certificate:
+    clean     joint   8.27 +/- 0.36  [7.3, 9.3]  coverage 70%
+    L2A_src   joint  24.20 +/- 0.58  [22.6, 25.8]  coverage 93%
+    L2A_prod  joint   8.72 +/- 0.63  [7.0, 10.5]  coverage 69%
+
+  U-Net (from scratch) naive certificate:
+    clean     joint   8.31 +/- 0.43  [7.1, 9.5]  coverage 81%
+    L2A_src   joint  13.14 +/- 0.66  [11.3, 15.0]  coverage 88%
+    L2A_prod  joint   8.92 +/- 0.50  [7.5, 10.3]  coverage 83%
+
+  -> L2A stale-norm breach (both 9-band, same eval px, ONE harness): per-pixel MLP 24.2, spatial U-Net 13.1; product-aware norm restores per-pixel 8.7, U-Net 8.9
+  -> spatial context attenuates the breach by 11.1 pts within one harness (per-pixel 24.2 -> U-Net 13.1); + pretraining -> DOFA 9.9 (round-5, cross-experiment).
+  => a spatial model ALSO breaches under stale normalization (above the 10% target) yet LESS than the per-pixel MLP on IDENTICAL data, AND product-aware normalization restores BOTH -- the silent failure and its label-free fix GENERALISE beyond per-pixel; SEVERITY is model-dependent (spatial context attenuates it here; pretraining attenuates it further).

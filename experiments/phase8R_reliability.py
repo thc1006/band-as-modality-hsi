@@ -388,9 +388,11 @@ def run_seed(job, Xtr, ytr, Xte, yte, rid_te, groups, cwl, subsample_frac, epoch
     # pixels, this trains on ~900k, and the models are launch-bound at 256 (measured ~25 min/run
     # that this brings to ~2-3). A hyperparameter change, recorded in the sidecar.
     bs = P2.auto_bs(Xs.shape[0])
+    hw.seed_model(model_seed)                                       # P0-2: seed before the B2 constructor
     m_b2 = P2.train_mlp(Xs, ys, groups, model_seed, group_dropout=True, epochs=epochs,
                         num_classes=NUM_CLASSES, bs=bs)
-    m_prop = GroupedCrossBandAttention(groups, cwl, NUM_CLASSES)
+    hw.seed_model(model_seed)                                       # P0-2: and before the proposed model --
+    m_prop = GroupedCrossBandAttention(groups, cwl, NUM_CLASSES)    # init reproducible, not order-dependent
     P2.pretrain_sgmae(m_prop, Xs, groups, model_seed, epochs=max(1, epochs // 2), bs=bs)
     P2.finetune_proposed(m_prop, Xs, ys, groups, model_seed, epochs=epochs, bs=bs)
     models = {"proposed": m_prop, "b2": m_b2}
@@ -565,7 +567,9 @@ def main():
         def V(labels):
             lab = np.asarray(labels, dtype=object)
             return sum(float(e[lab == g].sum()) ** 2 for g in set(lab.tolist())) / N ** 2
-        return float(np.sqrt(max(V(splits) + V(models) - float((e ** 2).sum()) / N ** 2, 0.0)))
+        viid = float((e ** 2).sum()) / N ** 2
+        core = V(splits) + V(models) - viid
+        return float(np.sqrt(core if core > 0 else viid))   # iid floor: never a misleading 0 on non-constant data
 
     def mstat(vals, splits=None, models=None):
         a = np.asarray(vals, float)

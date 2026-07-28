@@ -31,7 +31,7 @@
     "worker_timeout": 1800.0
   },
   "command": "experiments/phase7_efficiency.py",
-  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "cwd": "/home/hctsai1006/cct/band-as-modality-hsi",
   "extra": {
     "accel_device": "cuda",
     "allow_contended": false,

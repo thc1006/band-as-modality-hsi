@@ -1,0 +1,8 @@
+surface 100 runs, geography 100 runs (proposed/naive)
+  surface naive joint    11.35 +/- 0.36  (t9 [10.5, 12.2])
+  geography naive joint  9.79 +/- 0.24  (t9 [9.2, 10.3])
+
+  DIFFERENCE R_surface - R_geography = +1.56 +/- 0.43  (quadrature t9 CI [+0.59, +2.53])
+  model-seed bootstrap 95% CI [+1.11, +2.02]
+
+  -> surface vs geography: genuinely DIFFERENT (difference CI excludes 0); surface point 11.4 (>10, suggestive excess), geography 9.8 (near 10, no clear breach). State the contrast via this difference, not two separate significance verdicts.

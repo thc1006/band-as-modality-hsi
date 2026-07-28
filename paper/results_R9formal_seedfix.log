@@ -1,0 +1,7 @@
+===== phase8R9_formal_weighted_crc.py =====
+loaded 10 flagship dumps; FORMAL weighted conformal (domain-classifier w)
+  naive (clean thr)  L2A joint 29.16 +/- 0.58  [27.8,30.5]  cov  94%  BREACH
+  FORMAL weighted    L2A joint 32.60 +/- 0.58  [31.3,33.9]  cov 100%  BREACH
+  effective sample size after weighting: 58% of calibration
+  -> the FORMAL covariate-shift correction ALSO FAILS -- the shift is not pure covariate shift (P(Y|X) moved), so no source-only reweighting repairs it
+

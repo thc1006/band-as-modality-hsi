@@ -1,0 +1,9 @@
+clean-vs-L2A component-mean domain-classifier AUROC (5-fold CV), 184 scene-components, 12 bands:
+    raw reflectance                          AUROC 1.000
+    source-normalized (stale L1C z-score)    AUROC 1.000
+    product-aware normalized (E4 fix)        AUROC 0.563
+    softmax (as used in phase8R11)           AUROC 0.99  [reference]
+
+  -> raw-input AUROC 1.00: clean and L2A are near-separable in the PHYSICAL input too, so the abstention is NOT a softmax artefact -- the covariate shift is genuinely large.
+  -> product-aware-normalized AUROC 0.56: re-normalization collapses the separability -- the shift is the input-scale mismatch, and the only representation in which the distributions overlap is the re-normalized one (which already fixes the certificate outright).
+  NOTE: this locates WHERE source-only reweighting fails; it does not prove weighted conformal is impossible (Mondrian, with target labels, reaches 8.6% here).

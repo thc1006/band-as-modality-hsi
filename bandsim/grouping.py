@@ -39,6 +39,34 @@ def contiguous_groups(n_bands, n_groups):
     return groups
 
 
+def validate_partition(groups, n_bands, *, require_full_cover=True):
+    """Fail closed on an invalid band grouping (code-review r2 §8.1). Each group must be a NON-EMPTY 1-D
+    INTEGER index array; indices in [0, n_bands); UNIQUE within a group and DISJOINT across groups; with
+    require_full_cover the groups must PARTITION all n_bands. Otherwise numpy silently reads a negative index
+    as the last band, and overlaps / duplicates / gaps corrupt the group centres and membership matrix with
+    no error anywhere."""
+    seen = set()
+    for gi, idx in enumerate(groups):
+        a = np.asarray(idx)
+        if a.ndim != 1 or a.size == 0:
+            raise ValueError(f"group {gi}: expected a non-empty 1-D index array (got shape {a.shape})")
+        if not np.issubdtype(a.dtype, np.integer):
+            raise ValueError(f"group {gi}: band indices must be integers (got dtype {a.dtype})")
+        lo, hi = int(a.min()), int(a.max())
+        if lo < 0 or hi >= n_bands:
+            raise ValueError(f"group {gi}: band index out of [0,{n_bands}) (got [{lo},{hi}]) -- "
+                             f"a negative index is silently read as the last band")
+        s = {int(i) for i in a}
+        if len(s) != a.size:
+            raise ValueError(f"group {gi}: duplicate band indices within the group")
+        if s & seen:
+            raise ValueError(f"group {gi}: overlaps an earlier group on band(s) {sorted(s & seen)}")
+        seen |= s
+    if require_full_cover and seen != set(range(n_bands)):
+        raise ValueError(f"grouping does not partition all {n_bands} bands "
+                         f"(missing {sorted(set(range(n_bands)) - seen)})")
+
+
 def group_center_wavelengths(wavelengths_nm, groups):
     """Mean wavelength (nm) per group — used as the group token's positional identity.
 
@@ -52,8 +80,7 @@ def group_center_wavelengths(wavelengths_nm, groups):
     centre, which propagates into the PE and yields NaN logits with no traceback.
     """
     wl = np.asarray(wavelengths_nm, float)
-    if any(np.asarray(idx).size == 0 for idx in groups):
-        raise ValueError("empty group has no centre wavelength — check the grouping")
+    validate_partition(groups, int(wl.size))          # negative/overlap/duplicate/gap/empty (r2 §8.1)
     if not np.isfinite(wl).all():
         raise ValueError(f"wavelengths_nm must be finite (got {int((~np.isfinite(wl)).sum())} "
                          f"non-finite entries) — a NaN centre silently propagates into the group PE")
@@ -68,6 +95,7 @@ def group_center_wavelengths(wavelengths_nm, groups):
 
 def build_group_matrix(n_bands, groups):
     """Boolean (n_groups, n_bands) membership matrix, for fast group<->band ops."""
+    validate_partition(groups, int(n_bands), require_full_cover=False)   # valid, disjoint indices (r2 §8.1)
     M = np.zeros((len(groups), n_bands), bool)
     for g, idx in enumerate(groups):
         M[g, idx] = True

@@ -16,7 +16,7 @@
     "smoke": false
   },
   "command": "experiments/phase4_ablation.py --seeds 0 1 2 3 4",
-  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "cwd": "/home/hctsai1006/cct/band-as-modality-hsi",
   "extra": {
     "aggregates": "results_phase4_ablation.csv",
     "seeds": [

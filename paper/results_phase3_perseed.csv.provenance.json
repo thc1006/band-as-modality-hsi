@@ -19,7 +19,7 @@
     "tau_sweep": null
   },
   "command": "experiments/phase3_atmosphere.py --seeds 0 1 2 3 4 --jobs 2 --device cuda",
-  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "cwd": "/home/hctsai1006/cct/band-as-modality-hsi",
   "extra": {
     "group_absent_frac": 0.5,
     "lut_sha256": "323c558604203f7ddcc3d71b72b43aab57c13443e49cc0e11cdec21148b3f0d3",

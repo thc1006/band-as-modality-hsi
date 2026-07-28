@@ -1,17 +1,41 @@
+# Python
 __pycache__/
 *.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Virtual environments (uv-managed; recreate from requirements-lock.txt)
 .venv/
-venv/
-.DS_Store
-# LaTeX build artifacts (scoped to paper/latex so paper/results_*.log stays tracked)
-paper/latex/*.aux
-paper/latex/*.log
-paper/latex/*.out
-paper/latex/*.fls
-paper/latex/*.fdb_latexmk
-paper/latex/*.synctex.gz
-paper/latex/*.blg
-paper/latex/*.spl
-# large artifacts not shipped
+.venv*/
+
+# Datasets & large binary caches (see docs/planning/01_datasets.md; ~66 GB CloudSEN12 etc.)
 data/
-paper/scenedump_*/
+*.npz
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Smoke byproducts: integrity_check.py regenerates these on every run. They are evidence that the
+# harness ran, not deliverables, and committing them makes every harness run show up as a diff.
+# Trailing wildcard on purpose: a smoke CSV also has a *.provenance.json sidecar, and a pattern
+# ending in .csv silently misses it, leaving the stamp tracked while its subject is ignored.
+paper/results_*_smoke*
+paper/figs/*_smoke*
+# Same for non-canonical runs: any config that does not match a phase's CANONICAL is
+# redirected to a _nc-<tag> artefact, which is exploratory output and never a deliverable.
+paper/results_*_nc-*
+paper/figs/*_nc-*
+# Run logs are not deliverables.
+paper/logs/
+
+# Per-session git worktrees and local Claude Code state. Several sessions share this checkout and
+# each does its work on a branch in .claude/worktrees/<name>. Untracked, every session sees every
+# other session's worktree as noise in `git status` -- and a `git add -A` would commit one
+# worktree's entire checkout into another. Nothing under .claude/ is tracked, so this orphans
+# nothing.
+.claude/

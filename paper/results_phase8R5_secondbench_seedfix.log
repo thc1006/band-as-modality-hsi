@@ -1,0 +1,16 @@
+val second benchmark: 214000 px, 104 scene-components, class [114158  57568  23243  19031]
+  seed 0: clean acc 79.7, L2A acc 64.6
+  seed 1: clean acc 80.2, L2A acc 64.4
+  seed 2: clean acc 79.7, L2A acc 69.3
+  seed 3: clean acc 80.1, L2A acc 69.3
+  seed 4: clean acc 80.1, L2A acc 69.3
+  seed 5: clean acc 80.1, L2A acc 68.1
+  seed 6: clean acc 80.2, L2A acc 65.0
+  seed 7: clean acc 80.0, L2A acc 69.0
+  seed 8: clean acc 80.4, L2A acc 65.7
+  seed 9: clean acc 79.8, L2A acc 69.4
+
+=== Second benchmark: CloudSEN12 validation split, 104 independent scene-components ===
+  L2A    mondrian  joint= 7.84 +/- 0.54  t-CI[ 6.62, 9.06] cov=  44%  (at/below target)
+  L2A    naive     joint=27.95 +/- 0.74  t-CI[26.27,29.62] cov=  92%  (breach)
+  clean  naive     joint= 8.12 +/- 0.38  t-CI[ 7.25, 8.99] cov=  75%  (at/below target)

@@ -178,8 +178,10 @@ def run_seed(job, Xtr_src, ytr_src, X, y, unit, is_target, groups, cwl, subsampl
     sub = rs.choice(Xtr_src.shape[0], size=k, replace=False)
     Xs, ys = Xtr_src[sub], ytr_src[sub]
     bs = P2.auto_bs(Xs.shape[0])
+    hw.seed_model(model_seed)                                       # P0-2: seed before the B2 constructor
     m_b2 = P2.train_mlp(Xs, ys, groups, model_seed, group_dropout=True, epochs=epochs,
                         num_classes=NUM_CLASSES, bs=bs)
+    hw.seed_model(model_seed)                                       # P0-2: and before the proposed model
     m_prop = GroupedCrossBandAttention(groups, cwl, NUM_CLASSES)
     P2.pretrain_sgmae(m_prop, Xs, groups, model_seed, epochs=max(1, epochs // 2), bs=bs)
     P2.finetune_proposed(m_prop, Xs, ys, groups, model_seed, epochs=epochs, bs=bs)
@@ -199,7 +201,9 @@ def _two_way_se(a, splits, models):
     def V(lab):
         lab = np.asarray(lab, dtype=object)
         return sum(float(e[lab == g].sum()) ** 2 for g in set(lab.tolist())) / N ** 2
-    return float(np.sqrt(max(V(splits) + V(models) - float((e ** 2).sum()) / N ** 2, 0.0)))
+    viid = float((e ** 2).sum()) / N ** 2
+    core = V(splits) + V(models) - viid
+    return float(np.sqrt(core if core > 0 else viid))       # iid floor: never a misleading 0 on non-constant data
 
 
 def main():

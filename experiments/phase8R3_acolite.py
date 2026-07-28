@@ -100,6 +100,7 @@ def main():
 
     rows = []
     for seed in args.seeds:
+        hw.seed_model(seed)                                          # P0-2: seed before the constructor
         m = GroupedCrossBandAttention(groups, cwl, 4)
         P2.pretrain_sgmae(m, Xtr_n, groups, seed, epochs=max(1, args.epochs // 2), bs=bs)
         P2.finetune_proposed(m, Xtr_n, ytr, groups, seed, epochs=args.epochs, bs=bs)

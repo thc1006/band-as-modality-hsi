@@ -1,0 +1,22 @@
+  dumped seed 0: bright(target) acc 74.7, dark(source) acc 80.5, 33 bright units / 152 dark
+  dumped seed 1: bright(target) acc 75.3, dark(source) acc 80.8, 33 bright units / 152 dark
+  dumped seed 2: bright(target) acc 75.7, dark(source) acc 80.5, 33 bright units / 152 dark
+  dumped seed 3: bright(target) acc 74.8, dark(source) acc 80.6, 33 bright units / 152 dark
+  dumped seed 4: bright(target) acc 74.5, dark(source) acc 80.6, 33 bright units / 152 dark
+  dumped seed 5: bright(target) acc 74.9, dark(source) acc 80.9, 33 bright units / 152 dark
+  dumped seed 6: bright(target) acc 74.8, dark(source) acc 80.8, 33 bright units / 152 dark
+  dumped seed 7: bright(target) acc 76.0, dark(source) acc 80.9, 33 bright units / 152 dark
+  dumped seed 8: bright(target) acc 74.6, dark(source) acc 80.4, 33 bright units / 152 dark
+  dumped seed 9: bright(target) acc 74.9, dark(source) acc 80.5, 33 bright units / 152 dark
+wrote 10 surface dumps to /home/hctsai1006/cct/band-as-modality-hsi/paper/scenedump_surface
+  dumped seed 0: bright(target) acc 78.7, dark(source) acc 79.6, 63 bright units / 121 dark
+  dumped seed 1: bright(target) acc 78.5, dark(source) acc 79.5, 63 bright units / 121 dark
+  dumped seed 2: bright(target) acc 78.5, dark(source) acc 79.5, 63 bright units / 121 dark
+  dumped seed 3: bright(target) acc 78.8, dark(source) acc 79.5, 63 bright units / 121 dark
+  dumped seed 4: bright(target) acc 77.8, dark(source) acc 79.2, 63 bright units / 121 dark
+  dumped seed 5: bright(target) acc 78.8, dark(source) acc 79.8, 63 bright units / 121 dark
+  dumped seed 6: bright(target) acc 78.8, dark(source) acc 79.5, 63 bright units / 121 dark
+  dumped seed 7: bright(target) acc 78.8, dark(source) acc 79.8, 63 bright units / 121 dark
+  dumped seed 8: bright(target) acc 78.5, dark(source) acc 79.2, 63 bright units / 121 dark
+  dumped seed 9: bright(target) acc 78.6, dark(source) acc 79.4, 63 bright units / 121 dark
+wrote 10 surface dumps to /home/hctsai1006/cct/band-as-modality-hsi/paper/scenedump_geography

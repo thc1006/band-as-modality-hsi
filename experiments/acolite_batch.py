@@ -18,7 +18,7 @@ import os, sys, json, time, glob, shutil, urllib.request, urllib.error, urllib.p
 import numpy as np
 import multiprocessing as mp
 
-REPO   = os.environ.get("BANDSIM_REPO", ".")
+REPO   = "/home/hctsai1006/cct/band-as-modality-hsi"
 ACOLITE = os.path.join(REPO, "data/acolite_stage/acolite")
 SCRATCH = "/tmp/claude-38627/-home-hctsai1006-cct-band-as-modality-hsi/5292c0a1-68c9-46da-991a-93739c9c8ad4/scratchpad/acolite_batch"
 # WORK holds transient full-tile .SAFE (~346 MB) + full-tile L2R (~5 GB/scene, 11 bands x 10980^2

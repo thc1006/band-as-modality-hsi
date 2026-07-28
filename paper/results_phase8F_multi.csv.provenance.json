@@ -20,7 +20,7 @@
     "tag": ""
   },
   "command": "experiments/phase8F_multi.py --device cuda",
-  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "cwd": "/home/hctsai1006/cct/band-as-modality-hsi",
   "extra": {
     "granules_analysed": [
       "NAmerica_arid",
@@ -56,7 +56,7 @@
       "us_midwest"
     ],
     "granules_skipped": {
-      "sumatra": "ValueError: /home/user/cct/band-as-modality-hsi/data/emit_sumatra: only 0 usable px inside the declared region (0.0% of the scene is in-box) -- below the 2000-px floor, exclude"
+      "sumatra": "ValueError: /home/hctsai1006/cct/band-as-modality-hsi/data/emit_sumatra: only 0 usable px inside the declared region (0.0% of the scene is in-box) -- below the 2000-px floor, exclude"
     },
     "mask_flags": [
       "cloud"

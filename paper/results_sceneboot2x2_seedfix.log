@@ -1,0 +1,11 @@
+===== phase8R_sceneboot_2x2.py =====
+loaded 10 flagship dumps
+
+(3.3) scene-component bootstrap, L2A naive joint: mean 28.3%, 95% CI [25.3, 31.7]  (excludes the 10% target)
+
+(3.6) temperature x threshold 2x2 factorial (L2A joint risk, %):
+                           source threshold   target threshold
+  source temperature                28.3 (A)             8.5 (B)
+  target temperature                29.7 (C)             8.6 (D)
+  -> naive (A) 28.3; fixing only temperature (C) 29.7; fixing only threshold (B) 8.5; both (D) 8.6
+

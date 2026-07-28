@@ -1,0 +1,11 @@
+  dumped seed 0: clean acc 79.8, L2A acc 66.0, 184 components, 388400 px
+  dumped seed 1: clean acc 80.2, L2A acc 65.5, 184 components, 388400 px
+  dumped seed 2: clean acc 80.1, L2A acc 69.7, 184 components, 388400 px
+  dumped seed 3: clean acc 80.0, L2A acc 69.7, 184 components, 388400 px
+  dumped seed 4: clean acc 80.2, L2A acc 69.4, 184 components, 388400 px
+  dumped seed 5: clean acc 79.9, L2A acc 68.7, 184 components, 388400 px
+  dumped seed 6: clean acc 80.3, L2A acc 66.1, 184 components, 388400 px
+  dumped seed 7: clean acc 79.9, L2A acc 69.7, 184 components, 388400 px
+  dumped seed 8: clean acc 80.1, L2A acc 66.3, 184 components, 388400 px
+  dumped seed 9: clean acc 79.7, L2A acc 70.0, 184 components, 388400 px
+wrote 10 seed dumps to /home/hctsai1006/cct/band-as-modality-hsi/paper/scenedump_flagship_seedfix

@@ -1,0 +1,31 @@
+[cw10] seed 0
+[cw10] seed 1
+[cw10] seed 2
+[cw10] seed 3
+[cw10] seed 4
+[cw10] seed 5
+[cw10] seed 6
+[cw10] seed 7
+[cw10] seed 8
+[cw10] seed 9
+[cw10] aggregating...
+aggregating 10 seed CSVs (10 distinct seeds)
+
+[clean] OA 78.6  mIoU 51.8  macroF1 65.8
+                iou     f1  joint  selective  coverage  support
+cls                                                            
+clear         75.63  86.12   2.51       2.89     86.75  74045.0
+cloud shadow  31.93  48.39  35.90      58.49     61.40  13302.0
+thick cloud   68.85  81.55   8.84      11.53     76.70  44528.0
+thin cloud    30.67  46.93  29.20      57.01     51.26  14125.0
+  pixel-weighted sum(w_k R_k) = 10.06   (compare pixel-pooled 100-run ~29; component-equal 27.8)
+
+[L2A] OA 65.9  mIoU 28.8  macroF1 39.8
+                iou     f1  joint  selective  coverage  support
+cls                                                            
+clear         60.20  75.13   1.69       1.75     95.64  74045.0
+cloud shadow   2.56   4.90  90.98      98.34     92.50  13302.0
+thick cloud   51.98  68.33  39.04      44.08     88.60  44528.0
+thin cloud     0.47   1.16  91.71      99.91     91.79  14125.0
+  pixel-weighted sum(w_k R_k) = 29.93   (compare pixel-pooled 100-run ~29; component-equal 27.8)
+[cw10] DONE -> paper/results_phase8R_classwise_10seed.csv

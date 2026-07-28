@@ -25,6 +25,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+from .grouping import validate_partition
+
 
 def sinusoidal_wavelength_pe(center_wl_nm, d_model, wl_scale=2500.0):
     """(G,) group centre wavelengths -> (G, d_model) sinusoidal PE.
@@ -32,6 +34,8 @@ def sinusoidal_wavelength_pe(center_wl_nm, d_model, wl_scale=2500.0):
     Uses normalized wavelength as the 'position' so the encoding is sensitive to spectral
     order and spacing (cf. Panopticon / HyperspectralMAE wavelength encodings).
     """
+    if not (float(wl_scale) > 0):                        # 0/negative -> inf/NaN PE, no error otherwise (r2 §8.2)
+        raise ValueError(f"wl_scale must be > 0 (got {wl_scale}); a non-positive scale gives a non-finite PE")
     wl = torch.as_tensor(np.asarray(center_wl_nm, float) / wl_scale, dtype=torch.float32)
     G = wl.shape[0]
     pe = torch.zeros(G, d_model)
@@ -65,10 +69,23 @@ class GroupedCrossBandAttention(nn.Module):
     def __init__(self, groups, center_wl_nm, num_classes, d_model=64, nhead=4, layers=2,
                  dim_ff=128, dropout=0.0, pe_type="sinusoidal"):
         super().__init__()
+        if pe_type not in ("sinusoidal", "learned"):        # else silently falls through to sinusoidal (r2 §8.2)
+            raise ValueError(f"pe_type must be 'sinusoidal' or 'learned', got {pe_type!r}")
+        if int(num_classes) < 2:
+            raise ValueError(f"num_classes must be >= 2, got {num_classes}")
+        if d_model < 1 or nhead < 1 or d_model % nhead != 0:
+            raise ValueError(f"need d_model>=1, nhead>=1, d_model divisible by nhead (got d_model={d_model}, nhead={nhead})")
+        if layers < 1 or dim_ff < 1 or not (0.0 <= dropout <= 1.0):
+            raise ValueError(f"need layers>=1, dim_ff>=1, dropout in [0,1] (got layers={layers}, dim_ff={dim_ff}, dropout={dropout})")
         # pe_type: "sinusoidal" = wavelength-conditioned PE (our method's ingredient);
         #          "learned"    = a free per-group embedding (ChannelViT/SatMAE-style, no
         #                         physical wavelength) -> used to build the B4/B6 baselines.
         self.pe_type = pe_type
+        _nb = int(max(int(np.asarray(g).max()) for g in groups)) + 1
+        validate_partition(groups, _nb, require_full_cover=False)   # r2 §9.1: reject empty/neg/overlap/dup groups
+        if pe_type != "learned" and len(np.asarray(center_wl_nm)) != len(groups):
+            raise ValueError(f"center_wl_nm has {len(np.asarray(center_wl_nm))} entries but there are "
+                             f"{len(groups)} groups -- the wavelength PE would be mis-indexed")
         idx, valid = pad_groups(groups)
         self.register_buffer("group_idx", torch.as_tensor(idx, dtype=torch.long))
         self.register_buffer("group_valid", torch.as_tensor(valid, dtype=torch.float32))

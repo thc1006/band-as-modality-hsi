@@ -15,7 +15,7 @@
     "world_seed": 20260630
   },
   "command": "experiments/experiment_synthetic_multiseed.py",
-  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "cwd": "/home/hctsai1006/cct/band-as-modality-hsi",
   "extra": {
     "class_names": [
       "Clear",

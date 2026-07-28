@@ -1,0 +1,7 @@
+loaded 10 val dumps
+  mean IoU: clean 54.4 -> L2A 30.0
+  class      IoU clean->L2A  L2A sel-risk  support
+  clear      78.0 ->  62.8           1.4%      53%
+  thick      70.3 ->  52.7          42.1%      27%
+  thin       34.4 ->   1.6          99.8%      11%
+  shadow     35.0 ->   2.9          98.2%       9%

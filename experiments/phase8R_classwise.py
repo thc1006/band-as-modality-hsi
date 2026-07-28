@@ -98,6 +98,7 @@ def main():
 
     # train proposed
     bs = P2.auto_bs(Xtr.shape[0])
+    hw.seed_model(args.seed)                                        # P0-2: seed before the constructor
     m = GroupedCrossBandAttention(groups, cwl, NUM_CLASSES)
     P2.pretrain_sgmae(m, Xtr, groups, args.seed, epochs=max(1, args.epochs // 2), bs=bs)
     P2.finetune_proposed(m, Xtr, ytr, groups, args.seed, epochs=args.epochs, bs=bs)

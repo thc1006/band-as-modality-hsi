@@ -63,7 +63,9 @@ def _two_way_se(a, splits, models):
     def V(lab):
         lab = np.asarray(lab, dtype=object)
         return sum(float(e[lab == g].sum()) ** 2 for g in set(lab.tolist())) / N ** 2
-    return float(np.sqrt(max(V(splits) + V(models) - float((e ** 2).sum()) / N ** 2, 0.0)))
+    viid = float((e ** 2).sum()) / N ** 2
+    core = V(splits) + V(models) - viid
+    return float(np.sqrt(core if core > 0 else viid))       # iid floor: never a misleading 0 on non-constant data
 
 
 def main():
@@ -95,9 +97,11 @@ def main():
     rng = np.random.default_rng(2024)
     train_ids = np.sort(rng.choice(n_train, size=min(args.patches_train, n_train), replace=False))
     comp = P8.scene_component_ids("test")                        # per-patch scene-component (the unit)
-    test_ids = np.arange(n_test)
-    if args.patches_test is not None and args.patches_test < n_test:
-        test_ids = np.sort(np.random.default_rng(70000).choice(n_test, size=args.patches_test, replace=False))
+    _tmeta = pd.read_csv(os.path.join(P8.DATA, "test", "metadata.csv"))                     # r2 §5.2: use the
+    _trainprod = set(pd.read_csv(os.path.join(P8.DATA, "train", "metadata.csv"))["s2_id"].dropna())  # SAME cohort
+    test_ids = np.flatnonzero(~_tmeta["s2_id"].isin(_trainprod).to_numpy())                 # as the flagship
+    if args.patches_test is not None and args.patches_test < len(test_ids):                 # (drop train-shared)
+        test_ids = np.sort(np.random.default_rng(70000).choice(test_ids, size=args.patches_test, replace=False))
     unit_patch = comp[test_ids]
     print(f"DOFA-CRC: train {len(train_ids)} patches | test {len(test_ids)} patches over "
           f"{np.unique(unit_patch).size} scene-components | alpha {args.alpha:.0%} | "
@@ -191,6 +195,9 @@ def main():
     by = {}
     for r in rows:
         by.setdefault((r["state"], r["arm"]), []).append(r)
+    import scipy.stats as _st
+    _df = min(len(args.split_seeds), len(args.model_seeds)) - 1
+    tcrit = float(_st.t.ppf(0.975, _df)) if _df >= 1 else 1.96                   # r2 §3.3: small-cluster t, not fixed 1.96
     agg_out = P(f"results_phase8E2_dofa_crc{sfx}.csv")
     with open(agg_out, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=agg_fields); w.writeheader()
@@ -199,12 +206,13 @@ def main():
                 g = by.get((name, arm))
                 if not g:
                     continue
-                jr = [r["joint_risk"] for r in g]
+                gf = [r for r in g if r["feasible"]] or g          # r2 §5.3: aggregate over FEASIBLE runs only
+                jr = [r["joint_risk"] for r in gf]
                 m = float(np.mean(jr))
-                se = _two_way_se(jr, [r["split_seed"] for r in g], [r["model_seed"] for r in g])
+                se = _two_way_se(jr, [r["split_seed"] for r in gf], [r["model_seed"] for r in gf])
                 w.writerow({"state": name, "arm": arm, "n_runs": len(g),
                             "joint_risk_mean": f"{m:.4f}", "joint_risk_se": f"{se:.4f}",
-                            "joint_risk_lo": f"{m - 1.96 * se:.4f}", "joint_risk_hi": f"{m + 1.96 * se:.4f}",
+                            "joint_risk_lo": f"{m - tcrit * se:.4f}", "joint_risk_hi": f"{m + tcrit * se:.4f}",
                             "coverage_mean": f"{np.mean([r['coverage'] for r in g]):.4f}",
                             "acc_mean": f"{np.mean([r['acc'] for r in g]):.4f}",
                             "n_calib_units_med": int(np.median([r['n_calib_units'] for r in g])),

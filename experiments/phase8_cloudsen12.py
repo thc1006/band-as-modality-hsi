@@ -360,6 +360,9 @@ def scene_component_ids(split):
         if col not in meta.columns:
             raise ValueError(f"{split}/metadata.csv has no '{col}' column (has {list(meta.columns)[:8]}"
                              f"...) — scene grouping needs both roi_id and s2_id")
+        if meta[col].isna().any():                                  # fail closed: a NaN s2_id would union
+            raise ValueError(f"{split}/metadata.csv has {int(meta[col].isna().sum())} NaN {col!r}; a NaN "
+                             f"would collapse all unknown scenes into ONE false component -- resolve provenance")
     parent = {}
 
     def find(x):
