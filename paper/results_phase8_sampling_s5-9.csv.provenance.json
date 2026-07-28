@@ -19,7 +19,7 @@
     "subsample_frac": 0.8
   },
   "command": "experiments/phase8_sampling.py --seeds 5 6 7 8 9 --out-tag _s5-9",
-  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "cwd": "/home/hctsai1006/cct/band-as-modality-hsi",
   "extra": {
     "anchor_tol_miou": 0.5,
     "anchor_worst_abs_delta_vs_phase8_proposed": 0.125916,

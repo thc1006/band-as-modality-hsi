@@ -19,7 +19,7 @@
     "trials": 8
   },
   "command": "experiments/phase9_physics_vs_random.py",
-  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "cwd": "/home/hctsai1006/cct/band-as-modality-hsi",
   "extra": {
     "axis": "nominal reconstructed AVIRIS axis; the corrected cube already has the deepest water bands removed, so the weighting emphasises the shoulders",
     "calib_eval_split": "by block (disjoint)",

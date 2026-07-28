@@ -1,0 +1,8 @@
+loaded 100 paired (seed,split) cells; ACOLITE vs Sen2Cor-L2A naive joint on the same subset
+  means: ACOLITE 28.56, Sen2Cor-L2A 28.64
+
+  paired difference R_ACOLITE - R_Sen2Cor = -0.08 +/- 0.55  (two-way t9 CI [-1.33, +1.16])
+  seed-cluster bootstrap 95% CI [-1.17, +0.82]
+
+  TOST equivalence at margin +/-2.0 pts: t9 PASS, bootstrap PASS
+  -> statistically equivalent within a 2.0-point margin; report the paired difference and CI, not 'indistinguishable'.

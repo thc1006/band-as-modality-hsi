@@ -12,7 +12,7 @@ overlap products dropped by the leak-guard) are written as all-zero and are drop
 import os, glob, csv
 import numpy as np
 
-REPO = os.environ.get("BANDSIM_REPO", ".")
+REPO = "/home/hctsai1006/cct/band-as-modality-hsi"
 CROPS = os.path.join(REPO, "data/acolite_stage/crops")
 OUT = os.path.join(REPO, "data/cloudsen12/test")
 ACO_BANDS = ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"]

@@ -1,0 +1,8 @@
+=== (1) SYNTHETIC covariate-shift control: does the heuristic recover when P(Y|X) is fixed? ===
+  target joint risk (alpha=10%):  naive 6.6  |  weighted(domain-clf) 7.1  |  weighted(true w) 3.0   [ESS 22%]
+  -> naive ok under the covariate shift; the heuristic RECOVERS control -- so on synthetic covariate shift the implementation is QUESTIONABLE
+
+=== (2) DIAGNOSTICS of the weighting on the real flagship (clean vs L2A) ===
+  domain-classifier clean-vs-L2A AUROC 0.801 (0.5=indistinguishable, 1=perfectly separable)
+  weight w=odds:  median 0.93  p5 0.00  p95 2.25  clipped 3.3%  ESS 61% of calibration
+  -> a well-separated (AUROC>0.7), heavy-tailed weight with low ESS: the reweighting is doing real work but cannot fix an output-space P(Y|X) drift -- consistent with the heuristic failing on L2A.

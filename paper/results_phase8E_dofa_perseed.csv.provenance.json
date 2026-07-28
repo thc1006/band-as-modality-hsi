@@ -18,7 +18,7 @@
     "split_seed": 0
   },
   "command": "experiments/phase8E_dofa.py --seeds 0 1 2 --patches-train 800 --patches-test 300 --epochs 20 --device cuda",
-  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "cwd": "/home/hctsai1006/cct/band-as-modality-hsi",
   "extra": {
     "content": "raw per-seed rows behind every aggregate",
     "see": "results_phase8E_dofa.csv.provenance.json"

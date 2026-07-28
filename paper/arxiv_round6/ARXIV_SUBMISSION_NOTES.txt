@@ -1,0 +1,24 @@
+arXiv submission package — round-6 (normalization-contract reframe)
+
+UPLOAD:  arxiv_round6.tar.gz   (main.tex + main.bbl + 2 figures)
+         Bibliography is pre-compiled in main.bbl -> arXiv will NOT run bibtex.
+         Do not add refs.bib to the tarball.
+
+arXiv form fields
+-----------------
+Title    : Aggregate Accuracy Does Not Reveal Reliability: Silent Conformal
+           Certificate Failure under Operational Spectral and Domain Shift in
+           Sentinel-2 Cloud Segmentation
+Authors  : Hsiu-Chi Tsai, Chia-Tung Chung
+Primary  : cs.CV
+Cross    : eess.IV, stat.ML
+Comments : 19 pages, 2 figures, 6 tables
+License  : CC BY 4.0 (recommended) or arXiv default non-exclusive
+Abstract : see abstract_plain.txt
+
+Notes
+-----
+- Journal target: ISPRS J. Photogrammetry & Remote Sensing (under review);
+  Elsevier permits arXiv preprints.
+- The 4-page reproducibility appendix is intentionally kept inline
+  (self-contained preprint); do not split it to ancillary files.

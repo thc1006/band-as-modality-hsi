@@ -17,7 +17,7 @@
     "smoke": false
   },
   "command": "experiments/phase8G_emit_reliability.py --seeds 0 1 2 --device cuda",
-  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "cwd": "/home/hctsai1006/cct/band-as-modality-hsi",
   "extra": {
     "aggregators": [
       "mean_sd",
@@ -38,7 +38,7 @@
       "built",
       "water"
     ],
-    "emit_npz": "/home/user/cct/band-as-modality-hsi/data/emit/emit_sample.npz",
+    "emit_npz": "/home/hctsai1006/cct/band-as-modality-hsi/data/emit/emit_sample.npz",
     "emit_npz_sha256": "5adeec05463383813555f2069ee3e2ea61f3a65b621b6f1f0869c1696fda1b73",
     "guard_deg": 0.002,
     "n_bands": 244,

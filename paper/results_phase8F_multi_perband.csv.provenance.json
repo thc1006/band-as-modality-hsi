@@ -1,6 +1,6 @@
 {
   "args": {
-    "device": "cuda",
+    "device": null,
     "epochs": 40,
     "groups": 20,
     "mask_flags": [
@@ -19,8 +19,8 @@
     "split": "spatial",
     "tag": ""
   },
-  "command": "experiments/phase8F_multi.py --device cuda",
-  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "command": "experiments/phase8F_multi.py",
+  "cwd": "/home/hctsai1006/cct/band-as-modality-hsi",
   "extra": {
     "granules": [
       "India_crop",
@@ -48,16 +48,13 @@
       2492.923828125
     ]
   },
-  "generated_utc": "2026-07-21T23:02:24+00:00",
+  "generated_utc": "2026-07-20T22:47:18+00:00",
   "git": {
     "branch": "main",
-    "commit": "5e51ee6eb65c3b209e5061e844c54b866d44fcd5",
-    "dirty": true,
-    "dirty_code_paths": [
-      "experiments/phase8R2_landcover_reliability.py",
-      "scripts/emit/emit_regions.py"
-    ],
-    "dirty_files": 2,
+    "commit": "1656fa33326cb1de98fef1adfaf007ef7a3b5380",
+    "dirty": false,
+    "dirty_code_paths": [],
+    "dirty_files": 0,
     "outputs_dirty": true
   },
   "smoke": false,

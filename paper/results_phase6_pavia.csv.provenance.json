@@ -18,7 +18,7 @@
     "trials": 8
   },
   "command": "experiments/phase6_second_dataset.py --dataset pavia",
-  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "cwd": "/home/hctsai1006/cct/band-as-modality-hsi",
   "extra": {
     "best_rival_selection": "post-hoc (highest observed mean AUDC)",
     "canonical_config": true,

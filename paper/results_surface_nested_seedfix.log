@@ -1,0 +1,7 @@
+===== phase8R9_surface_nested_boot.py =====
+loaded 10 surface dumps; NESTED bootstrap B=1500
+
+  surface NESTED bootstrap: mean 11.4%, 95% CI [9.0, 14.4]  (INCLUDES the 10% target)
+  (fixed-operating-point bootstrap was [9.3, 13.6])
+  -> surface verdict: point above target but inferentially INCONCLUSIVE under full calibration resampling
+

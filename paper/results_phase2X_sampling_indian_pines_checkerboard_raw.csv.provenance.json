@@ -21,7 +21,7 @@
     "wl_scale": null
   },
   "command": "experiments/phase2X_pe_dropout_2x2.py --sampling-baselines --dataset indian_pines --seeds 0 1 2 3 4",
-  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "cwd": "/home/hctsai1006/cct/band-as-modality-hsi",
   "extra": {
     "n_raw_rows": 12720
   },

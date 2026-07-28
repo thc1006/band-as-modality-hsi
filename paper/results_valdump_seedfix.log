@@ -1,0 +1,12 @@
+val: 214000 px, 104 scene-components
+  dumped seed 0: clean acc 79.7, L2A acc 64.6
+  dumped seed 1: clean acc 80.2, L2A acc 64.4
+  dumped seed 2: clean acc 79.7, L2A acc 69.3
+  dumped seed 3: clean acc 80.1, L2A acc 69.3
+  dumped seed 4: clean acc 80.1, L2A acc 69.3
+  dumped seed 5: clean acc 80.1, L2A acc 68.1
+  dumped seed 6: clean acc 80.2, L2A acc 65.0
+  dumped seed 7: clean acc 80.0, L2A acc 69.0
+  dumped seed 8: clean acc 80.4, L2A acc 65.7
+  dumped seed 9: clean acc 79.8, L2A acc 69.4
+wrote 10 val dumps to /home/hctsai1006/cct/band-as-modality-hsi/paper/scenedump_val

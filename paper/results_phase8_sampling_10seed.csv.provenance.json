@@ -14,7 +14,7 @@
     ]
   },
   "command": "experiments/phase8_sampling_10seed.py --raw results_phase8_sampling_raw.csv --raw results_phase8_sampling_raw_s5-9.csv",
-  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "cwd": "/home/hctsai1006/cct/band-as-modality-hsi",
   "extra": {
     "anchor_seeds": [
       0,

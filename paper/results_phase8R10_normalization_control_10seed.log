@@ -1,0 +1,30 @@
+  clip audit L1C: 0.000% < -0.1, 0.017% > 1.6 (over 12 retained bands)
+  clip audit L2A: 0.000% < -0.1, 0.044% > 1.6 (over 12 retained bands)
+  eval 388400 px / 184 components; L1C-train vs L2A-test per-band mean shift 0.044; 10 seeds x 10 splits
+  seed 0: clean 8.4  L2A_src 29.9  L2A_prod 10.4
+  seed 1: clean 8.5  L2A_src 27.5  L2A_prod 10.4
+  seed 2: clean 8.6  L2A_src 29.5  L2A_prod 11.1
+  seed 3: clean 8.4  L2A_src 27.4  L2A_prod 10.3
+  seed 4: clean 8.3  L2A_src 27.7  L2A_prod 11.0
+  seed 5: clean 8.6  L2A_src 27.5  L2A_prod 10.3
+  seed 6: clean 8.4  L2A_src 28.9  L2A_prod 10.8
+  seed 7: clean 8.5  L2A_src 28.3  L2A_prod 10.7
+  seed 8: clean 8.4  L2A_src 27.1  L2A_prod 10.0
+  seed 9: clean 8.5  L2A_src 30.4  L2A_prod 10.0
+  clean          joint   8.45 +/- 0.23  [  7.9,  9.0]  cov   76%  sel 11.1%  acc(px 79.6 / comp 79.8)
+  clean_selfnorm joint   9.42 +/- 0.27  [  8.8, 10.0]  cov   76%  sel 12.5%  acc(px 78.0 / comp 78.1)
+  L2A_src        joint  28.43 +/- 0.43  [ 27.5, 29.4]  cov   93%  sel 30.5%  acc(px 67.6 / comp 67.6)
+  L2A_pairedL1C  joint  28.39 +/- 0.46  [ 27.4, 29.4]  cov   92%  sel 30.8%  acc(px 67.1 / comp 67.1)
+  L2A_prod       joint  10.51 +/- 0.26  [  9.9, 11.1]  cov   74%  sel 14.2%  acc(px 76.3 / comp 76.4)
+  L2A_prod_disj  joint  10.75 +/- 0.30  [ 10.1, 11.4]  cov   74%  sel 14.5%  acc(px 76.0 / comp 76.1)
+
+  PAIRED differences (mean +/- two-way SE [95% t CI], same seed x split cells):
+    d[L2A_src - L2A_prod_disj] = +17.68 +/- 0.48  [+16.6,+18.8]  (excludes 0)  PRIMARY operational label-free repair (stale - product-aware disjoint)
+    d[L2A_prod - L2A_prod_disj] =  -0.24 +/- 0.18  [ -0.6, +0.2]  (includes 0)  transductive advantage (full-test - disjoint; expect ~0)
+    d[L2A_src - L2A_pairedL1C] =  +0.04 +/- 0.06  [ -0.1, +0.2]  (includes 0)  train->test COMPOSITION share (stale - L1C-test stats)
+    d[L2A_pairedL1C - L2A_prod] = +17.88 +/- 0.45  [+16.9,+18.9]  (excludes 0)  PRODUCT-normalization share (L1C-test - L2A-test stats)
+    d[clean_selfnorm - clean] =  +0.97 +/- 0.12  [ +0.7, +1.2]  (excludes 0)  generic test-batch renorm on the in-domain case (expect ~0)
+    d[L2A_src - L2A_prod] = +17.92 +/- 0.42  [+17.0,+18.9]  (excludes 0)  total fix (stale - product-aware transductive)
+
+  SUMMARY (data, not an auto-verdict): stale L2A joint 28.4; product-aware DISJOINT 10.7 +/- 0.3 at 74% coverage (operational, artefact-free). The label-free repair restores the empirical target joint-risk LEVEL on these scenes; it does NOT re-derive a finite-sample guarantee (stats estimated from deployment data). Interpretation via the paired-difference CIs above + phase8R12 (radiometric provenance).
+  wrote /home/hctsai1006/cct/band-as-modality-hsi/experiments/../paper/results_phase8R10_normalization_control_percell.csv + /home/hctsai1006/cct/band-as-modality-hsi/experiments/../paper/results_phase8R10_normalization_control_summary.json

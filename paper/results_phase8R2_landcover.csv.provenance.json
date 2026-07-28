@@ -28,7 +28,7 @@
     "subsample_frac": 0.8
   },
   "command": "experiments/phase8R2_landcover_reliability.py --split-seeds 0 1 2 3 4 5 6 7 8 9 --model-seeds 0 1 2 --jobs 2 --device cuda",
-  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "cwd": "/home/hctsai1006/cct/band-as-modality-hsi",
   "extra": {
     "dataset": "cloudsen12",
     "methods": [

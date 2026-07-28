@@ -41,7 +41,7 @@ class MLP(nn.Module):
 
 
 def train(X, y, cin, seed, dev, epochs=30, bs=8192):
-    torch.manual_seed(seed)
+    hw.seed_model(seed)                                            # P0-2: full seed (+101) before constructor
     m = MLP(cin).to(dev)
     opt = torch.optim.Adam(m.parameters(), 1e-3)
     lf = nn.CrossEntropyLoss()
@@ -92,7 +92,7 @@ def main():
         mn, sen = two_way_se(rn)
         print(f"  {name:14s} ({len(ix):2d}b) clean acc {ca:4.1f} L2A acc {la:4.1f}  ->  naive L2A joint "
               f"{mn:5.2f} +/- {sen:.2f}  [{mn - TCRIT * sen:.1f},{mn + TCRIT * sen:.1f}]  "
-              f"{'BREACH' if mn - TCRIT * sen > 10 else 'controlled'}", flush=True)
+              f"{'clear-excess' if mn - TCRIT * sen > 10 else ('at/below-target' if mn + TCRIT * sen <= 10 else 'inconclusive')}", flush=True)
     print("\n  reference: proposed 13-band flagship 28.9;  DOFA 9-band 9.95")
     print("  -> breach falls toward 10 as B9/volatile bands go => the BAND SET drives DOFA's robustness")
     print("     (so a fair model-class comparison must control it); breach stays high => it does not.")

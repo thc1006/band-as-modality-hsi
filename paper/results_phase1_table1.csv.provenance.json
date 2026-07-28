@@ -9,7 +9,7 @@
     "split_offsets": null
   },
   "command": "experiments/phase1_indian_pines.py",
-  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "cwd": "/home/hctsai1006/cct/band-as-modality-hsi",
   "extra": {
     "class_present_in_n_splits": {
       "Alfalfa": 10,

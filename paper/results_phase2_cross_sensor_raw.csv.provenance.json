@@ -20,7 +20,7 @@
     "srf": "pyspectral"
   },
   "command": "experiments/phase2_cross_sensor.py",
-  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "cwd": "/home/hctsai1006/cct/band-as-modality-hsi",
   "extra": {
     "arms": [
       "unmatched"
@@ -415,9 +415,9 @@
       }
     ],
     "inputs": {
-      "cube": "/home/user/cct/band-as-modality-hsi/data/indian_pines/Indian_pines_corrected.mat",
+      "cube": "/home/hctsai1006/cct/band-as-modality-hsi/data/indian_pines/Indian_pines_corrected.mat",
       "cube_sha256": "ec2f8808710919d566f70f0d4aa885aae1ddfd42b734aba71c5e12ca65450939",
-      "gt": "/home/user/cct/band-as-modality-hsi/data/indian_pines/Indian_pines_gt.mat",
+      "gt": "/home/hctsai1006/cct/band-as-modality-hsi/data/indian_pines/Indian_pines_gt.mat",
       "gt_sha256": "65c4687a8ab04f6da4789799bc3bc4f6e88bccac3ed6a2e6ae367e5e6b9e429c"
     },
     "macro_estimand": {

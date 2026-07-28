@@ -1,0 +1,81 @@
+CloudSEN12 test radiometric audit: 975 patches, 8 processing baselines
+  baseline distribution: {'N02.06': 16, 'N02.08': 20, 'N02.09': 1, 'N02.10': 1, 'N02.11': 217, 'N02.12': 126, 'N02.13': 311, 'N02.14': 283}
+  (baseline 04.00 -- which introduced the +1000 radiometric add-offset -- is ABSENT; all are < 04.00)
+
+── L1C_B2 raw int16 DN, by baseline (centre 112x112 crop) ──
+    N02.06: min=   808  p1=   852  p50=  1638  p99=  7052  max=  8125   refl(x1e-4) p50=0.164  <-- p1 < 1000
+    N02.08: min=   744  p1=   768  p50=  1356  p99=  9389  max= 12987   refl(x1e-4) p50=0.136  <-- p1 < 1000
+    N02.09: min=   940  p1=   975  p50=  1061  p99=  1193  max=  1259   refl(x1e-4) p50=0.106  <-- p1 < 1000
+    N02.10: min=  1164  p1=  1240  p50=  1572  p99=  1961  max=  2206   refl(x1e-4) p50=0.157
+    N02.11: min=   680  p1=   812  p50=  1835  p99=  4070  max=  5282   refl(x1e-4) p50=0.183  <-- p1 < 1000
+    N02.12: min=   851  p1=   934  p50=  1790  p99= 10214  max= 12221   refl(x1e-4) p50=0.179  <-- p1 < 1000
+    N02.13: min=   706  p1=   868  p50=  2005  p99=  6298  max=  7271   refl(x1e-4) p50=0.201  <-- p1 < 1000
+    N02.14: min=   696  p1=   881  p50=  1745  p99=  6365  max= 10456   refl(x1e-4) p50=0.175  <-- p1 < 1000
+── L2A_B2 raw int16 DN, by baseline (centre 112x112 crop) ──
+    N02.06: min=     1  p1=   132  p50=   942  p99=  9190  max= 11013   refl(x1e-4) p50=0.094
+    N02.08: min=     1  p1=    71  p50=   924  p99= 11752  max= 16232   refl(x1e-4) p50=0.092
+    N02.09: min=    31  p1=    87  p50=   226  p99=   442  max=   561   refl(x1e-4) p50=0.023
+    N02.10: min=   261  p1=   408  p50=  1046  p99=  1850  max=  2234   refl(x1e-4) p50=0.105
+    N02.11: min=     1  p1=     2  p50=  1618  p99=  5328  max=  7328   refl(x1e-4) p50=0.162
+    N02.12: min=     1  p1=   174  p50=  1520  p99= 11536  max= 12928   refl(x1e-4) p50=0.152
+    N02.13: min=    59  p1=   327  p50=  1738  p99=  8904  max= 10560   refl(x1e-4) p50=0.174
+    N02.14: min=    62  p1=   173  p50=  1514  p99= 10184  max= 16624   refl(x1e-4) p50=0.151
+── L1C_B4 raw int16 DN, by baseline (centre 112x112 crop) ──
+    N02.06: min=   237  p1=   251  p50=  1515  p99=  7339  max=  8794   refl(x1e-4) p50=0.151  <-- p1 < 1000
+    N02.08: min=   249  p1=   262  p50=  1363  p99= 10074  max= 13839   refl(x1e-4) p50=0.136  <-- p1 < 1000
+    N02.09: min=   414  p1=   469  p50=   615  p99=   961  max=  1074   refl(x1e-4) p50=0.062  <-- p1 < 1000
+    N02.10: min=   854  p1=   956  p50=  1396  p99=  1787  max=  2038   refl(x1e-4) p50=0.140  <-- p1 < 1000
+    N02.11: min=   234  p1=   494  p50=  2474  p99=  5106  max=  6348   refl(x1e-4) p50=0.247  <-- p1 < 1000
+    N02.12: min=   421  p1=   502  p50=  2063  p99= 10039  max= 12261   refl(x1e-4) p50=0.206  <-- p1 < 1000
+    N02.13: min=   333  p1=   540  p50=  3470  p99=  6844  max=  8054   refl(x1e-4) p50=0.347  <-- p1 < 1000
+    N02.14: min=   361  p1=   485  p50=  1844  p99=  6636  max= 10873   refl(x1e-4) p50=0.184  <-- p1 < 1000
+── L2A_B4 raw int16 DN, by baseline (centre 112x112 crop) ──
+    N02.06: min=     1  p1=     1  p50=  1325  p99=  9115  max= 10984   refl(x1e-4) p50=0.133
+    N02.08: min=    54  p1=    71  p50=  1366  p99= 11560  max= 15856   refl(x1e-4) p50=0.137
+    N02.09: min=    96  p1=   161  p50=   354  p99=   802  max=   946   refl(x1e-4) p50=0.035
+    N02.10: min=   490  p1=   627  p50=  1270  p99=  1936  max=  2174   refl(x1e-4) p50=0.127
+    N02.11: min=     1  p1=   210  p50=  2604  p99=  5936  max=  7704   refl(x1e-4) p50=0.260
+    N02.12: min=   128  p1=   296  p50=  2150  p99= 11776  max= 14240   refl(x1e-4) p50=0.215
+    N02.13: min=    96  p1=   335  p50=  3762  p99=  8416  max=  9696   refl(x1e-4) p50=0.376
+    N02.14: min=   124  p1=   254  p50=  2028  p99=  9664  max= 15800   refl(x1e-4) p50=0.203
+── L1C_B8 raw int16 DN, by baseline (centre 112x112 crop) ──
+    N02.06: min=   111  p1=   130  p50=  2739  p99=  7709  max=  9063   refl(x1e-4) p50=0.274  <-- p1 < 1000
+    N02.08: min=   107  p1=   120  p50=  3138  p99=  8917  max= 11476   refl(x1e-4) p50=0.314  <-- p1 < 1000
+    N02.09: min=   657  p1=  1017  p50=  1511  p99=  2288  max=  2612   refl(x1e-4) p50=0.151
+    N02.10: min=  1039  p1=  1172  p50=  1660  p99=  2112  max=  2402   refl(x1e-4) p50=0.166
+    N02.11: min=   118  p1=   494  p50=  2623  p99=  5827  max=  6919   refl(x1e-4) p50=0.262  <-- p1 < 1000
+    N02.12: min=   445  p1=   716  p50=  2520  p99=  9294  max= 11823   refl(x1e-4) p50=0.252  <-- p1 < 1000
+    N02.13: min=   337  p1=   625  p50=  3808  p99=  6862  max=  8264   refl(x1e-4) p50=0.381  <-- p1 < 1000
+    N02.14: min=   263  p1=   841  p50=  2102  p99=  6618  max=  9031   refl(x1e-4) p50=0.210  <-- p1 < 1000
+── L2A_B8 raw int16 DN, by baseline (centre 112x112 crop) ──
+    N02.06: min=     1  p1=     1  p50=  3027  p99=  8816  max= 10519   refl(x1e-4) p50=0.303
+    N02.08: min=    14  p1=    29  p50=  3544  p99= 10608  max= 15344   refl(x1e-4) p50=0.354
+    N02.09: min=   526  p1=   968  p50=  1568  p99=  2512  max=  2876   refl(x1e-4) p50=0.157
+    N02.10: min=   835  p1=  1010  p50=  1691  p99=  2436  max=  2674   refl(x1e-4) p50=0.169
+    N02.11: min=     1  p1=   355  p50=  2854  p99=  6808  max=  8164   refl(x1e-4) p50=0.285
+    N02.12: min=   295  p1=   642  p50=  2864  p99= 11312  max= 14416   refl(x1e-4) p50=0.286
+    N02.13: min=   106  p1=   484  p50=  4244  p99=  8240  max=  9896   refl(x1e-4) p50=0.424
+    N02.14: min=    65  p1=   858  p50=  2416  p99=  9727  max= 15736   refl(x1e-4) p50=0.242
+── L1C_B11 raw int16 DN, by baseline (centre 112x112 crop) ──
+    N02.06: min=    35  p1=    44  p50=  1336  p99=  5953  max=  6162   refl(x1e-4) p50=0.134  <-- p1 < 1000
+    N02.08: min=     8  p1=    15  p50=  2037  p99=  5626  max=  7889   refl(x1e-4) p50=0.204  <-- p1 < 1000
+    N02.09: min=   535  p1=   662  p50=   974  p99=  1546  max=  1685   refl(x1e-4) p50=0.097  <-- p1 < 1000
+    N02.10: min=   606  p1=   687  p50=  1028  p99=  1404  max=  1712   refl(x1e-4) p50=0.103  <-- p1 < 1000
+    N02.11: min=    51  p1=   507  p50=  3115  p99=  6413  max=  7110   refl(x1e-4) p50=0.311  <-- p1 < 1000
+    N02.12: min=   208  p1=   557  p50=  2419  p99=  7010  max=  7193   refl(x1e-4) p50=0.242  <-- p1 < 1000
+    N02.13: min=    96  p1=   346  p50=  4560  p99=  6403  max=  7073   refl(x1e-4) p50=0.456  <-- p1 < 1000
+    N02.14: min=   120  p1=   342  p50=  2344  p99=  5580  max=  6118   refl(x1e-4) p50=0.234  <-- p1 < 1000
+── L2A_B11 raw int16 DN, by baseline (centre 112x112 crop) ──
+    N02.06: min=    17  p1=    27  p50=  1441  p99=  6655  max=  6902   refl(x1e-4) p50=0.144
+    N02.08: min=     1  p1=     5  p50=  2295  p99=  6836  max=  9535   refl(x1e-4) p50=0.230
+    N02.09: min=   550  p1=   692  p50=  1039  p99=  1675  max=  1853   refl(x1e-4) p50=0.104
+    N02.10: min=   585  p1=   672  p50=  1071  p99=  1548  max=  1841   refl(x1e-4) p50=0.107
+    N02.11: min=    30  p1=   501  p50=  3409  p99=  7114  max=  7916   refl(x1e-4) p50=0.341
+    N02.12: min=   195  p1=   673  p50=  2746  p99=  7552  max=  7780   refl(x1e-4) p50=0.275
+    N02.13: min=    50  p1=   344  p50=  4981  p99=  7086  max=  7853   refl(x1e-4) p50=0.498
+    N02.14: min=   171  p1=   464  p50=  2631  p99=  7139  max= 15131   refl(x1e-4) p50=0.263
+
+VERDICT: the smallest 1st-percentile L1C digital number across all baselines and sampled bands is 15.
+  => it is < 1000, so a +1000 add-offset would force negative TOA reflectance (impossible). The stored data is on the plain 0-10000 no-offset scale; reflectance = DN * 1e-4 is correct, and is consistent across all eight baselines. Product-aware re-normalization (z-scoring by each product's own per-band mean/std) is additionally invariant to any constant per-band offset.
+
+explicit DN -> reflectance examples (x1e-4): DN 1000 -> 0.100, DN 2500 -> 0.250, DN 8000 -> 0.800

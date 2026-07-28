@@ -1,0 +1,31 @@
+% Phase 7 efficiency — Indian Pines, seed 0, batch 256, accel=cuda, 6 pinned CPU threads
+% timing_validity=ok | \propLatGpu/\propLatCpu are STEADY-STATE medians over 5 pooled torch.utils.benchmark repeats (number_per_run=100/10), per-model subprocess-isolated
+% \propLatGpuSingle/\propLatCpuSingle are SINGLE-REQUEST latencies: one forward per timed interval, synchronized both sides. Quote these for a deployment or edge-latency claim, not the steady-state pair.
+% propMacs = PER-SAMPLE MACs (fvcore, one fused multiply-add = 1, i.e. MAC not 2xMAC FLOP), reported only when fvcore's count is COMPLETE.
+% propMiouMiss* are over 210/210 exhaustive missing-group subsets at ONE seed, so \propMiouMissStd is subset variability, NOT seed variability. Do not write it as a seed error bar; the multi-seed accuracy claim belongs to phase 1/4R.
+% propSizeInt / propMiouInt are PARTIAL dynamic-int8. Verified scope: int8-dynamic: embed,classifier,decoder (3 module(s) -> ['Linear']); fp32 nn.Linear left: encoder.layers.0.self_attn.out_proj,encoder.layers.0.linear1,encoder.layers.0.linear2,encoder.layers.1.self_attn.out_proj,encoder.layers.1.linear1,encoder.layers.1.linear2 (6); fp32 MultiheadAttention in_proj (raw Parameter, not nn.Linear): encoder.layers.0.self_attn,encoder.layers.1.self_attn
+% quantisation API: torch.ao.quantization.quantize_dynamic (legacy eager-mode dynamic PTQ), engine x86, validated against torch 2.6.0+cu124, run on torch 2.6.0+cu124
+% peak memory is ALLOCATOR-tracked (40.577536 MB); this process occupies None MB on the card once the CUDA context is counted.
+\newcommand{\propParams}{70.7k}
+\newcommand{\propMacs}{n/a}
+\newcommand{\propLatGpu}{2.298}
+\newcommand{\propLatGpuIqr}{0.021}
+\newcommand{\propLatGpuSingle}{2.617}
+\newcommand{\propLatCpu}{5.257}
+\newcommand{\propLatCpuIqr}{0.167}
+\newcommand{\propLatCpuSingle}{5.283}
+\newcommand{\propSizeFp}{0.30}
+\newcommand{\propSizeInt}{0.29}
+\newcommand{\propPeakMemAlloc}{40.6}
+\newcommand{\propMiouFp}{69.4}
+\newcommand{\propMiouInt}{70.1}
+\newcommand{\propMiouMissMean}{37.4}
+\newcommand{\propMiouMissStd}{10.3}
+\newcommand{\propMiouMissMedian}{37.5}
+\newcommand{\propMiouMissPfive}{19.0}
+\newcommand{\propMissSubsets}{210}
+\newcommand{\propMissCoverage}{210/210 exhaustive}
+\newcommand{\propBenchThreads}{6}
+\newcommand{\propBenchRepeats}{5}
+\newcommand{\propQuantEngine}{x86}
+\newcommand{\propTimingValidity}{ok}

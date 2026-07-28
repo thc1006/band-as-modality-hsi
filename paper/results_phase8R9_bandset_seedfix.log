@@ -1,0 +1,8 @@
+loaded train 900000 / test 390000 px, 184 components; dev cuda
+  13-band(all)   (13b) clean acc 79.6 L2A acc 52.1  ->  naive L2A joint 48.37 +/- 0.22  [47.8,49.0]  clear-excess
+  -B9(12-band)   (12b) clean acc 79.0 L2A acc 69.1  ->  naive L2A joint 29.15 +/- 0.45  [27.9,30.4]  clear-excess
+  9-band(DOFA)   ( 9b) clean acc 77.2 L2A acc 71.1  ->  naive L2A joint 24.06 +/- 0.32  [23.2,24.9]  clear-excess
+
+  reference: proposed 13-band flagship 28.9;  DOFA 9-band 9.95
+  -> breach falls toward 10 as B9/volatile bands go => the BAND SET drives DOFA's robustness
+     (so a fair model-class comparison must control it); breach stays high => it does not.

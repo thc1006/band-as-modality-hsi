@@ -1,0 +1,22 @@
+Using cache found in /home/hctsai1006/.cache/torch/hub/zhu-xlab_DOFA_8346385695912606f74e00ef601b5c598a27df78
+DOFA-CRC: train 800 patches | test 971 patches over 184 scene-components | alpha 10% | 10 splits x 10 seeds
+  [train/L1C] class prevalence 509->224: clear 0.5628->0.5628, thick 0.2582->0.2582, thin 0.0932->0.0932, shadow 0.0858->0.0858
+DOFA hub ref zhu-xlab/DOFA:8346385695912606f74e00ef601b5c598a27df78
+     checkpoint sha256 4720985e42b918ac0307009eb06121a3435d9bbce6fd95446f84824a538165b1 (pinned rev 7a5219e48d2f, hashed BEFORE load)
+     load: missing ['head.bias', 'head.weight'] / unexpected ['mask_token', 'projector.bias', 'projector.weight'] (all allowlisted)
+     norm.weight mean 2.7755 std 0.4248 (pretrained; 1.0000/0.0000 would mean it did not load)
+     runtime: timm 1.0.28 / torchvision 0.21.0+cu124 (timm builds the ViT PatchEmbed/Block; pinned in requirements-lock.txt)
+  [test/L1C] class prevalence 509->224: clear 0.5182->0.5182, thick 0.2943->0.2944, thin 0.0910->0.0910, shadow 0.0965->0.0965
+  [test/L1C] class prevalence 509->224: clear 0.5182->0.5182, thick 0.2943->0.2944, thin 0.0910->0.0910, shadow 0.0965->0.0965
+  [test/L2A] class prevalence 509->224: clear 0.5182->0.5182, thick 0.2943->0.2944, thin 0.0910->0.0910, shadow 0.0965->0.0965
+features cached (all test patches, per state). training heads + CRC ...
+
+  wrote results_phase8E2_dofa_crc.csv (CRC JOINT risk, comparable to phase8R)
+
+  state        arm        jointRisk%    SE            95%CI   cov%
+  clean        naive            8.65  0.21 [  8.24,  9.06]   75.1
+  clean        mondrian         8.65  0.21 [  8.24,  9.06]   75.1
+  dropSWIR     naive           11.77  0.37 [ 11.04, 12.50]   72.1
+  dropSWIR     mondrian         8.63  0.37 [  7.90,  9.36]   62.1
+  L2A_real     naive            9.95  0.22 [  9.51, 10.39]   79.6
+  L2A_real     mondrian         8.79  0.21 [  8.37,  9.20]   76.3

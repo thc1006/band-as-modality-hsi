@@ -57,6 +57,7 @@ def main():
     outdir = P8R.P(args.out)
     os.makedirs(outdir, exist_ok=True)
     for seed in args.seeds:
+        hw.seed_model(seed)                                          # P0-2: seed before the constructor
         m = GroupedCrossBandAttention(groups, cwl, 4)
         P2.pretrain_sgmae(m, Xtr_n, groups, seed, epochs=max(1, args.epochs // 2), bs=bs)
         P2.finetune_proposed(m, Xtr_n, ytr_src, groups, seed, epochs=args.epochs, bs=bs)

@@ -1,0 +1,13 @@
+loaded 10 flagship dumps; FORMAL component-level weighted CRC (test-dependent lambda-hat, test-point term, +inf grid, B=1)
+
+  (1) L1C->L2A shift, component-equal certificate (joint risk % @ coverage %):
+    naive  (uniform CRC) joint  29.07 +/- 0.68 [27.5,30.6]  cov 94%   (sanity: must reproduce flagship ~28.9)
+    FORMAL weighted CRC  joint   1.22 +/- 0.22 [0.7,1.7]  cov 4%
+    domain-classifier AUROC 0.991; calib ESS 10%; clip [1e-3,1e3]
+
+  (2) positive control -- fully-synthetic pure covariate shift, P(Y|X) fixed by construction:
+    naive threshold  E_target joint  11.75 +/- 0.39  cov 43%   (breaches: source-calibrated threshold under the shift)
+    FORMAL weighted  E_target joint   8.28 +/- 0.13  cov 31%   (recovers <= 10 at useful coverage)
+    => positive control PASSES: the formal weighted CRC recovers a genuine covariate-shift breach at useful coverage -- the weighting and test-point term are validated end-to-end.
+
+  -> reading: (i) uniform weights reproduce the flagship breach (sanity: the unweighted CRC machinery is correct); (ii) the synthetic control shows the weighting recovers a genuine covariate-shift breach; (iii) yet on the real L2A shift the formal weighted CRC can only ABSTAIN (coverage collapses to ~4%), because L2A is near-separable from clean (component AUROC ~0.99) -- the shift is too large to reweight around. So neither a source-only heuristic (over-accepts, 32.7%) nor a formal weighted CRC (abstains) yields a useful certificate; the fix that works removes the shift (product-aware re-normalization).

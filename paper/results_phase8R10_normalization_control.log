@@ -1,0 +1,15 @@
+eval 388400 px / 184 components; L1C vs L2A per-band mean shift 0.044 over the 12 L2A bands (norm stats differ)
+  seed 0: clean 8.5  L2A_src 27.1  L2A_prod 10.6
+  seed 1: clean 8.7  L2A_src 29.4  L2A_prod 9.8
+  seed 2: clean 8.6  L2A_src 28.5  L2A_prod 10.4
+  seed 3: clean 8.8  L2A_src 27.4  L2A_prod 10.2
+  seed 4: clean 8.4  L2A_src 30.7  L2A_prod 10.1
+  clean          naive joint   8.59 +/- 0.23  [8.0, 9.2]  coverage 76%  selective 11.3%
+  L2A_src        naive joint  28.63 +/- 0.68  [26.7, 30.5]  coverage 93%  selective 30.9%
+  L2A_prod       naive joint  10.21 +/- 0.25  [9.5, 10.9]  coverage 74%  selective 13.8%
+  L2A_prod_disj  naive joint  10.47 +/- 0.24  [9.8, 11.1]  coverage 74%  selective 14.2%
+
+  product-aware normalization: L2A joint 28.6 -> 10.2 (reduces the breach by 18.4 pts) at coverage 74% (clean 76%, naive-L2A 93%)
+  disjoint-stats (calib-only) variant: 10.5 -- matches, so NOT a transductive artefact
+  reference: flagship Mondrian needs target LABELS and reaches 8.6% but only at 45% coverage (heavy abstention)
+  -> a NO-LABEL GENUINE FIX: product-aware normalization restores ~target joint risk at HIGH coverage (74%), WITHOUT target labels or abstention -- the breach is dominated by a stale-normalization mismatch, not a confidence drift needing target labels. Mechanism + remedy framing must change.

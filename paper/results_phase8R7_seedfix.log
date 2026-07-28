@@ -1,0 +1,10 @@
+===== phase8R7_weighted_conformal.py =====
+loaded 10 flagship dumps
+  naive (clean thr)      L2A joint  29.16 +/- 0.58  [ 27.8, 30.5]  cov   94%  BREACH
+  weighted-conformal     L2A joint  32.24 +/- 0.56  [ 31.0, 33.5]  cov   99%  BREACH
+  Mondrian (L2A thr)     L2A joint  10.15 +/- 0.33  [  9.4, 10.9]  cov   51%  controlled
+
+  sanity: uniform-weight construction reproduces naive (OK)
+  reading: if weighted-conformal still breaches, the L2A shift is not pure covariate shift, so
+  no reweighting of clean labels restores the certificate -- Mondrian's use of L2A labels is required.
+

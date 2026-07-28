@@ -1,0 +1,19 @@
+
+===== class-wise (proposed, seed 0, split 0, alpha 10%) =====
+clean-calibrated CRC threshold = 0.6225
+
+[clean]  OA=78.4  mIoU=51.8  macroF1=65.8
+  class           IoU    F1    PA    UA |  joint  selec    cov  support
+  clear          75.0  85.7  93.2  79.4 |   2.39   2.74   87.4  74045
+  thick cloud    68.6  81.4  76.3  87.2 |   9.96  13.29   74.9  44528
+  thin cloud     30.7  47.0  43.4  51.3 |  28.82  55.46   52.0  14125
+  cloud shadow   32.6  49.2  39.6  65.0 |  35.63  57.32   62.2  13302
+
+[L2A]  OA=62.9  mIoU=27.9  macroF1=37.2
+  class           IoU    F1    PA    UA |  joint  selec    cov  support
+  clear          56.8  72.4  91.6  59.9 |   7.74   7.86   98.5  74045
+  thick cloud    49.8  66.5  51.8  93.1 |  41.61  46.95   88.6  44528
+  thin cloud      0.5   1.1   0.6  23.1 |  92.23  99.93   92.3  14125
+  cloud shadow    4.6   8.9   7.0  12.1 |  89.17  94.19   94.7  13302
+
+wrote /home/hctsai1006/cct/band-as-modality-hsi/paper/results_phase8R_classwise.csv

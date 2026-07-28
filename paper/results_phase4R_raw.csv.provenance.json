@@ -18,7 +18,7 @@
     "trials": 32
   },
   "command": "experiments/phase4R_reliability.py",
-  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "cwd": "/home/hctsai1006/cct/band-as-modality-hsi",
   "extra": {
     "block_arm_calib_eval_share_mask_stream": true,
     "calib_eval_split": "by block (disjoint)",

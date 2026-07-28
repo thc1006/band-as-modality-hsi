@@ -29,7 +29,7 @@
     ]
   },
   "command": "experiments/phase8E2_dofa_crc.py --split-seeds 0 1 2 3 4 5 6 7 8 9 --model-seeds 0 1 2 --device cuda",
-  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "cwd": "/home/hctsai1006/cct/band-as-modality-hsi",
   "extra": {
     "dataset": "cloudsen12",
     "design": "crossed split_seed x model_seed",

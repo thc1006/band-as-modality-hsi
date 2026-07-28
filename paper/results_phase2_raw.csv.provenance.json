@@ -18,7 +18,7 @@
     "trials": 12
   },
   "command": "experiments/phase2_degradation.py --seeds 0 1 2 3 4",
-  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "cwd": "/home/hctsai1006/cct/band-as-modality-hsi",
   "extra": {
     "method_labels": {
       "b1": "B1 MLP + zero-fill (no defense)",

@@ -18,7 +18,7 @@
     "tag": ""
   },
   "command": "experiments/phase5_ab_flagship.py --seeds 0 1 2 3 4",
-  "cwd": "/home/user/cct/band-as-modality-hsi",
+  "cwd": "/home/hctsai1006/cct/band-as-modality-hsi",
   "extra": {
     "absorption_cores": "hard-masked in EVERY condition, clean included; Design B's mask asserted identical to the clean path's at runtime",
     "arms": {
@@ -57,7 +57,7 @@
     "dry_run": false,
     "gt_sha256": "65c4687a8ab04f6da4789799bc3bc4f6e88bccac3ed6a2e6ae367e5e6b9e429c",
     "hw": "device=cuda (1x Tesla V100-SXM2-32GB 34GB) | 8 cores, 8 threads/proc | torch 2.6.0+cu124",
-    "lut": "/home/user/cct/band-as-modality-hsi/data/srf_cache/T_6s_grid.npz",
+    "lut": "/home/hctsai1006/cct/band-as-modality-hsi/data/srf_cache/T_6s_grid.npz",
     "lut_sha256": "323c558604203f7ddcc3d71b72b43aab57c13443e49cc0e11cdec21148b3f0d3",
     "min_band_throughput": 0.01,
     "n_hsi_bands": 200,

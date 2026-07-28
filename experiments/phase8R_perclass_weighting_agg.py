@@ -11,6 +11,7 @@ import glob
 import math
 import os
 import statistics as st
+import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 PAPER = os.path.normpath(os.path.join(_HERE, "..", "paper"))
@@ -20,7 +21,15 @@ TCRIT = 2.262
 def two_way_se(triples):
     """CGM two-way cluster-robust SE of a mean over a crossed (g1 x g2) design.
     triples = list of (g1, g2, value)."""
-    vals = [v for _, _, v in triples if v == v]                     # drop NaN
+    cells = [(a, b) for a, b, _ in triples]
+    if len(set(cells)) != len(cells):                               # r2 §3.1: a duplicated (g1,g2) cell would
+        from collections import Counter                             # be double-counted -- always a bug, fail closed
+        dup = [c for c, n in Counter(cells).items() if n > 1]
+        raise ValueError(f"two_way_se: duplicate crossed-design cell(s) {dup[:5]} -- each (g1,g2) must appear once")
+    n_nan = sum(1 for _, _, v in triples if v != v)
+    if n_nan:                                                       # NaN cells were silently dropped before
+        print(f"  [two_way_se] dropping {n_nan} NaN cell(s) of {len(triples)}", file=sys.stderr, flush=True)
+    vals = [v for _, _, v in triples if v == v]                     # drop NaN (now reported)
     trip = [(a, b, v) for a, b, v in triples if v == v]
     if len(trip) < 3:
         return (st.mean(vals) if vals else float("nan")), float("nan")
@@ -32,7 +41,19 @@ def two_way_se(triples):
     V1 = sum((sm[g] - grand) ** 2 for g in G1) / (n1 - 1) / n1 if n1 > 1 else 0.0
     V2 = sum((dm[g] - grand) ** 2 for g in G2) / (n2 - 1) / n2 if n2 > 1 else 0.0
     Viid = st.variance(vals) / len(vals) if len(vals) > 1 else 0.0
-    return grand, math.sqrt(max(V1 + V2 - Viid, 0.0))
+    core = V1 + V2 - Viid
+    if core > 0:
+        return grand, math.sqrt(core)
+    # Small-cluster CGM estimate went non-positive. Genuinely constant data legitimately has SE 0; but for
+    # NON-constant data a silent 0 understates uncertainty (a degenerate anti-symmetric grid can cancel
+    # V1+V2 against Viid), so fall back to the larger one-way cluster SE (conservative) and warn -- the
+    # estimator must never return a misleading 0 on non-constant data. (The real 10x10 designs have core>0.)
+    if st.pvariance(vals) == 0.0:
+        return grand, 0.0
+    se = math.sqrt(Viid)   # iid floor: >= either one-way SE when CGM is non-positive; >0 for non-constant data
+    print(f"  [two_way_se] CGM two-way variance non-positive (V1+V2-Viid={core:.3g}) on non-constant data; "
+          f"using the iid-floor SE={se:.3g} (never a silent 0)", file=sys.stderr, flush=True)
+    return grand, se
 
 
 def load_rows():
