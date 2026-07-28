@@ -1,4 +1,4 @@
-\begin{thebibliography}{28}
+\begin{thebibliography}{37}
 \expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
 \providecommand{\url}[1]{\texttt{#1}}
 \providecommand{\href}[2]{#2}
@@ -43,17 +43,38 @@
 \bibinfo{author}{Bastani, F.}, \bibinfo{author}{Wolters, P.}, \bibinfo{author}{Gupta, R.}, \bibinfo{author}{Ferdinando, J.}, \bibinfo{author}{Kembhavi, A.}, \bibinfo{year}{2023}.
 \newblock \bibinfo{title}{{SatlasPretrain}: A large-scale dataset for remote sensing image understanding}, in: \bibinfo{booktitle}{IEEE/CVF International Conference on Computer Vision (ICCV)}.
 \newblock \bibinfo{note}{ArXiv:2211.15660}.
+%Type = Inproceedings
+\bibitem[{Benz et~al.(2021)Benz, Zhang, Karjauv and Kweon}]{benz2021}
+\bibinfo{author}{Benz, P.}, \bibinfo{author}{Zhang, C.}, \bibinfo{author}{Karjauv, A.}, \bibinfo{author}{Kweon, I.S.}, \bibinfo{year}{2021}.
+\newblock \bibinfo{title}{Revisiting batch normalization for improving corruption robustness}, in: \bibinfo{booktitle}{IEEE/CVF Winter Conference on Applications of Computer Vision (WACV)}.
+\newblock \bibinfo{note}{ArXiv:2010.03630}.
 %Type = Article
 \bibitem[{Bhattacharjee and Jung(2024)}]{bhattacharjee2024}
 \bibinfo{author}{Bhattacharjee, P.}, \bibinfo{author}{Jung, P.}, \bibinfo{year}{2024}.
 \newblock \bibinfo{title}{Onboard out-of-calibration detection of deep learning models using conformal prediction}.
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2405.02634} .
 %Type = Article
+\bibitem[{Booksh et~al.(2025)}]{booksh2025}
+\bibinfo{author}{Booksh, K.S.}, et~al., \bibinfo{year}{2025}.
+\newblock \bibinfo{title}{Conformal prediction under covariate shift for hyperspectral {Raman} imaging}.
+\newblock \bibinfo{journal}{Journal of Chemometrics} \bibinfo{note}{Doi:10.1002/cem.70017}.
+%Type = Article
 \bibitem[{Cameron et~al.(2011)Cameron, Gelbach and Miller}]{cameron2011}
 \bibinfo{author}{Cameron, A.C.}, \bibinfo{author}{Gelbach, J.B.}, \bibinfo{author}{Miller, D.L.}, \bibinfo{year}{2011}.
 \newblock \bibinfo{title}{Robust inference with multiway clustering}.
 \newblock \bibinfo{journal}{Journal of Business \& Economic Statistics} \bibinfo{volume}{29}, \bibinfo{pages}{238--249}.
 \newblock \DOIprefix\doi{10.1198/jbes.2010.07136}.
+%Type = Article
+\bibitem[{Cauchois et~al.(2024)Cauchois, Gupta, Ali and Duchi}]{cauchois2024}
+\bibinfo{author}{Cauchois, M.}, \bibinfo{author}{Gupta, S.}, \bibinfo{author}{Ali, A.}, \bibinfo{author}{Duchi, J.C.}, \bibinfo{year}{2024}.
+\newblock \bibinfo{title}{Robust validation: Confident predictions even when distributions shift}.
+\newblock \bibinfo{journal}{Journal of the American Statistical Association} \bibinfo{volume}{119}.
+\newblock \bibinfo{note}{ArXiv:2008.04267}.
+%Type = Inproceedings
+\bibitem[{Corley et~al.(2024)Corley, Robinson and Ortiz}]{corley2024}
+\bibinfo{author}{Corley, I.}, \bibinfo{author}{Robinson, C.}, \bibinfo{author}{Ortiz, A.}, \bibinfo{year}{2024}.
+\newblock \bibinfo{title}{Revisiting pre-trained remote sensing model benchmarks: Resizing and normalization matters}, in: \bibinfo{booktitle}{IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops (CVPRW)}.
+\newblock \bibinfo{note}{ArXiv:2305.13456}.
 %Type = Article
 \bibitem[{Francis et~al.(2022)Francis, Mrziglod, Sidiropoulos and Muller}]{francis2021sensei}
 \bibinfo{author}{Francis, A.}, \bibinfo{author}{Mrziglod, J.}, \bibinfo{author}{Sidiropoulos, P.}, \bibinfo{author}{Muller, J.P.}, \bibinfo{year}{2022}.
@@ -85,20 +106,36 @@
 \newblock \bibinfo{title}{{REOBench}: Benchmarking robustness of earth observation foundation models}, in: \bibinfo{booktitle}{Advances in Neural Information Processing Systems (NeurIPS), Datasets and Benchmarks Track}.
 \newblock \bibinfo{note}{ArXiv:2505.16793}.
 %Type = Article
-\bibitem[{Liu et~al.(2024)Liu, Sun, Zeng, Zhang, Pun and Vong}]{liu2024sacp}
-\bibinfo{author}{Liu, K.}, \bibinfo{author}{Sun, T.}, \bibinfo{author}{Zeng, H.}, \bibinfo{author}{Zhang, Y.}, \bibinfo{author}{Pun, C.M.}, \bibinfo{author}{Vong, C.M.}, \bibinfo{year}{2024}.
+\bibitem[{Li et~al.(2018)Li, Wang, Shi, Liu and Hou}]{adabn2016}
+\bibinfo{author}{Li, Y.}, \bibinfo{author}{Wang, N.}, \bibinfo{author}{Shi, J.}, \bibinfo{author}{Liu, J.}, \bibinfo{author}{Hou, X.}, \bibinfo{year}{2018}.
+\newblock \bibinfo{title}{Revisiting batch normalization for practical domain adaptation}.
+\newblock \bibinfo{journal}{Pattern Recognition} \bibinfo{note}{ArXiv:1603.04779}.
+%Type = Article
+\bibitem[{Liu et~al.(2025)Liu, Sun, Zeng, Zhang, Pun and Vong}]{liu2024sacp}
+\bibinfo{author}{Liu, K.}, \bibinfo{author}{Sun, T.}, \bibinfo{author}{Zeng, H.}, \bibinfo{author}{Zhang, Y.}, \bibinfo{author}{Pun, C.M.}, \bibinfo{author}{Vong, C.M.}, \bibinfo{year}{2025}.
 \newblock \bibinfo{title}{Spatial-aware conformal prediction for trustworthy hyperspectral image classification}.
-\newblock \bibinfo{journal}{arXiv preprint arXiv:2409.01236} .
+\newblock \bibinfo{journal}{IEEE Transactions on Circuits and Systems for Video Technology} \bibinfo{volume}{35}, \bibinfo{pages}{8754--8766}.
+\newblock \DOIprefix\doi{10.1109/TCSVT.2025.3558753}.
 %Type = Inproceedings
 \bibitem[{Main-Knorn et~al.(2017)Main-Knorn, Pflug, Louis, Debaecker, M{\"u}ller-Wilm and Gascon}]{mainknorn2017sen2cor}
 \bibinfo{author}{Main-Knorn, M.}, \bibinfo{author}{Pflug, B.}, \bibinfo{author}{Louis, J.}, \bibinfo{author}{Debaecker, V.}, \bibinfo{author}{M{\"u}ller-Wilm, U.}, \bibinfo{author}{Gascon, F.}, \bibinfo{year}{2017}.
 \newblock \bibinfo{title}{{Sen2Cor} for {Sentinel-2}}, in: \bibinfo{booktitle}{Proc. SPIE 10427, Image and Signal Processing for Remote Sensing XXIII}.
 \newblock \DOIprefix\doi{10.1117/12.2278218}.
 %Type = Inproceedings
+\bibitem[{Mirza et~al.(2022)Mirza, Micorek, Possegger and Bischof}]{dua2022}
+\bibinfo{author}{Mirza, M.J.}, \bibinfo{author}{Micorek, J.}, \bibinfo{author}{Possegger, H.}, \bibinfo{author}{Bischof, H.}, \bibinfo{year}{2022}.
+\newblock \bibinfo{title}{The norm must go on: Dynamic unsupervised domain adaptation by normalization}, in: \bibinfo{booktitle}{IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)}.
+\newblock \bibinfo{note}{ArXiv:2112.00463}.
+%Type = Inproceedings
 \bibitem[{Mossina et~al.(2024)Mossina, Dalmau and And{\'e}ol}]{mossina2024}
 \bibinfo{author}{Mossina, L.}, \bibinfo{author}{Dalmau, J.}, \bibinfo{author}{And{\'e}ol, L.}, \bibinfo{year}{2024}.
 \newblock \bibinfo{title}{Conformal semantic image segmentation: Post-hoc quantification of predictive uncertainty}, in: \bibinfo{booktitle}{IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops (CVPRW)}, pp. \bibinfo{pages}{3574--3584}.
 \newblock \DOIprefix\doi{10.1109/CVPRW63382.2024.00361}. \bibinfo{note}{arXiv:2405.05145}.
+%Type = Article
+\bibitem[{Nado et~al.(2020)Nado, Padhy, Sculley, D'Amour, Lakshminarayanan and Snoek}]{nado2020}
+\bibinfo{author}{Nado, Z.}, \bibinfo{author}{Padhy, S.}, \bibinfo{author}{Sculley, D.}, \bibinfo{author}{D'Amour, A.}, \bibinfo{author}{Lakshminarayanan, B.}, \bibinfo{author}{Snoek, J.}, \bibinfo{year}{2020}.
+\newblock \bibinfo{title}{Evaluating prediction-time batch normalization for robustness under covariate shift}.
+\newblock \bibinfo{journal}{arXiv preprint} \bibinfo{note}{ArXiv:2006.10963}.
 %Type = Inproceedings
 \bibitem[{Ovadia et~al.(2019)Ovadia, Fertig, Ren, Nado, Sculley, Nowozin, Dillon, Lakshminarayanan and Snoek}]{ovadia2019}
 \bibinfo{author}{Ovadia, Y.}, \bibinfo{author}{Fertig, E.}, \bibinfo{author}{Ren, J.}, \bibinfo{author}{Nado, Z.}, \bibinfo{author}{Sculley, D.}, \bibinfo{author}{Nowozin, S.}, \bibinfo{author}{Dillon, J.V.}, \bibinfo{author}{Lakshminarayanan, B.}, \bibinfo{author}{Snoek, J.}, \bibinfo{year}{2019}.
@@ -118,7 +155,12 @@
 \bibitem[{Roschewitz et~al.(2025)Roschewitz, Mehta, de~Sousa~Ribeiro and Glocker}]{roschewitz2025}
 \bibinfo{author}{Roschewitz, M.}, \bibinfo{author}{Mehta, R.}, \bibinfo{author}{de~Sousa~Ribeiro, F.}, \bibinfo{author}{Glocker, B.}, \bibinfo{year}{2025}.
 \newblock \bibinfo{title}{Where are we with calibration under dataset shift in image classification?}
-\newblock \bibinfo{journal}{Transactions on Machine Learning Research (TMLR)} \bibinfo{note}{ArXiv:2507.07780}.
+\newblock \bibinfo{journal}{Transactions on Machine Learning Research (TMLR)} \URLprefix \url{https://openreview.net/forum?id=1NYKXlRU2H}. \bibinfo{note}{arXiv:2507.07780}.
+%Type = Inproceedings
+\bibitem[{Schneider et~al.(2020)Schneider, Rusak, Eck, Bringmann, Brendel and Bethge}]{schneider2020}
+\bibinfo{author}{Schneider, S.}, \bibinfo{author}{Rusak, E.}, \bibinfo{author}{Eck, L.}, \bibinfo{author}{Bringmann, O.}, \bibinfo{author}{Brendel, W.}, \bibinfo{author}{Bethge, M.}, \bibinfo{year}{2020}.
+\newblock \bibinfo{title}{Improving robustness against common corruptions by covariate shift adaptation}, in: \bibinfo{booktitle}{Advances in Neural Information Processing Systems (NeurIPS)}.
+\newblock \bibinfo{note}{ArXiv:2006.16971}.
 %Type = Article
 \bibitem[{Tamazyan et~al.(2025)Tamazyan, Vanyan, Barseghyan, Khosrovyan, Shelhamer and Khachatrian}]{tamazyan2025geocrossbench}
 \bibinfo{author}{Tamazyan, H.}, \bibinfo{author}{Vanyan, A.}, \bibinfo{author}{Barseghyan, A.}, \bibinfo{author}{Khosrovyan, A.}, \bibinfo{author}{Shelhamer, E.}, \bibinfo{author}{Khachatrian, H.}, \bibinfo{year}{2025}.
@@ -144,8 +186,13 @@
 %Type = Inproceedings
 \bibitem[{Waldmann et~al.(2025)Waldmann, Shah, Wang, Lehmann, Stewart, Xiong, Zhu, Bauer and Chuang}]{waldmann2025panopticon}
 \bibinfo{author}{Waldmann, L.}, \bibinfo{author}{Shah, A.}, \bibinfo{author}{Wang, Y.}, \bibinfo{author}{Lehmann, N.}, \bibinfo{author}{Stewart, A.J.}, \bibinfo{author}{Xiong, Z.}, \bibinfo{author}{Zhu, X.X.}, \bibinfo{author}{Bauer, S.}, \bibinfo{author}{Chuang, J.}, \bibinfo{year}{2025}.
-\newblock \bibinfo{title}{Panopticon: Advancing any-sensor foundation models for earth observation}, in: \bibinfo{booktitle}{IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)}.
-\newblock \bibinfo{note}{ArXiv:2503.10845}.
+\newblock \bibinfo{title}{Panopticon: Advancing any-sensor foundation models for earth observation}, in: \bibinfo{booktitle}{IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops (CVPRW)}, pp. \bibinfo{pages}{2195--2205}.
+\newblock \DOIprefix\doi{10.1109/CVPRW67362.2025.00207}. \bibinfo{note}{arXiv:2503.10845}.
+%Type = Inproceedings
+\bibitem[{Wang et~al.(2021)Wang, Shelhamer, Liu, Olshausen and Darrell}]{tent2021}
+\bibinfo{author}{Wang, D.}, \bibinfo{author}{Shelhamer, E.}, \bibinfo{author}{Liu, S.}, \bibinfo{author}{Olshausen, B.}, \bibinfo{author}{Darrell, T.}, \bibinfo{year}{2021}.
+\newblock \bibinfo{title}{Tent: Fully test-time adaptation by entropy minimization}, in: \bibinfo{booktitle}{International Conference on Learning Representations (ICLR)}.
+\newblock \bibinfo{note}{ArXiv:2006.10726}.
 %Type = Article
 \bibitem[{Xiong et~al.(2024)Xiong, Wang, Zhang, Stewart, Hanna, Borth, Papoutsis, Le~Saux, Camps-Valls and Zhu}]{xiong2024dofa}
 \bibinfo{author}{Xiong, Z.}, \bibinfo{author}{Wang, Y.}, \bibinfo{author}{Zhang, F.}, \bibinfo{author}{Stewart, A.J.}, \bibinfo{author}{Hanna, J.}, \bibinfo{author}{Borth, D.}, \bibinfo{author}{Papoutsis, I.}, \bibinfo{author}{Le~Saux, B.}, \bibinfo{author}{Camps-Valls, G.}, \bibinfo{author}{Zhu, X.X.}, \bibinfo{year}{2024}.

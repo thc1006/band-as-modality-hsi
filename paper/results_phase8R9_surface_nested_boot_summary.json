@@ -1,0 +1,37 @@
+{
+  "git_commit": "5720a0db69f414c595d4f8ef4fbd36ff2bc8932f",
+  "base_seed": 20260724,
+  "B": 600,
+  "splits_per_rep": 1,
+  "model_seed_ids": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "n_dark": 151,
+  "n_bright": 32,
+  "n_mixed_excluded": 1,
+  "theta_hat": 11.471302083333333,
+  "bootstrap_mean": 11.693738237847223,
+  "bias": 0.22243615451388976,
+  "mean_coverage": 75.45775993923611,
+  "feasible_rate": 1.0,
+  "percentile_ci": [
+    9.466841796874998,
+    14.157703125
+  ],
+  "basic_ci": [
+    8.784901041666666,
+    13.475762369791667
+  ],
+  "target": 10.0,
+  "relation": "includes",
+  "n_feasible_replicates": 600
+}

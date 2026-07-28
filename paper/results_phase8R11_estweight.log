@@ -1,0 +1,20 @@
+loaded 10 flagship dumps; FORMAL component-level weighted CRC (test-dependent lambda-hat, test-point term, +inf grid, B=1)
+
+  (1) L1C->L2A shift, component-equal certificate (joint risk % @ coverage %):
+    naive  (uniform CRC) joint  28.29 +/- 0.58 [27.0,29.6]  cov 92%   (sanity: uniform weights == standard CRC, same order as the post-seedfix flagship ~27.8)
+    FORMAL weighted CRC  joint   1.87 +/- 0.33 [1.1,2.6]  cov 7%
+    domain-classifier AUROC 0.985; calib ESS 12%; clip [1e-3,1e3]
+
+  (2) positive control -- fully-synthetic pure covariate shift, P(Y|X) fixed by construction:
+    naive threshold  E_target joint  11.75 +/- 0.39  cov 43%   (breaches: source-calibrated threshold under the shift)
+    FORMAL weighted  E_target joint   8.28 +/- 0.13  cov 31%   (recovers <= 10 at useful coverage)
+    => positive control PASSES: the formal weighted CRC recovers a genuine covariate-shift breach at useful coverage -- the threshold algebra and test-point term are validated on KNOWN weights (estimated-weight ratio estimation is exercised separately in (3) below).
+
+  (3) ESTIMATED-weight positive control -- domain classifier must LEARN w(x) from an observed covariate (cross-fitted); pure covariate shift, P(Y|X) fixed. naive / true-w / EST-w target joint %:
+    [moderate-overlap] naive  16.7 (cov 63%) | true-w   6.2 (cov 26%) | EST-w   7.1 +/- 0.2 (cov 29%)
+        diag: cross-fit AUROC 0.884, Brier 0.138; w_hat median 0.22 / p95 3.9 / max 39; clip-rate 0.0%; calib ESS 11% -> plug-in RECOVERS control, TRACKING the true weight (EST 7.1 vs TRUE 6.2, gap 0.9)
+    [near-separable ] naive  33.7 (cov 100%) | true-w   0.0 (cov  0%) | EST-w   0.0 +/- 0.0 (cov  0%)
+        diag: cross-fit AUROC 1.000, Brier 0.003; w_hat median 0.01 / p95 0.1 / max 1; clip-rate 3.9%; calib ESS 11% -> NO method recovers -- TRUE weight itself collapses to abstention (zero overlap; not an estimation problem)
+    => the ESTIMATED-weight (plug-in) CRC TRACKS the true weight and recovers control WHEN THE SHIFT IS LEARNABLE WITH OVERLAP (moderate regime: cross-fit AUROC 0.88, EST 7.1% vs TRUE 6.2%); as the domains approach separability BOTH the true and the estimated weight collapse to abstention (near-separable: AUROC->1, ESS->0) -- so the failure is a LACK-OF-OVERLAP property of the representation, NOT weight MIS-estimation and NOT a coding artefact. The real L1C->L2A shift (AUROC 0.985, ESS 12%) sits in that no-overlap regime, and its true weight is unknowable, so this is a consistency argument (by analogy to the synthetic no-overlap regime), not a direct measurement.
+
+  -> reading: (i) uniform weights reproduce the flagship breach (sanity: the unweighted CRC machinery is correct); (ii) the synthetic control shows the weighting recovers a breach WHEN THE WEIGHTS ARE KNOWN; (iii) on the real L2A shift the estimated-weight CRC finds no useful operating point in the source-normalized representation (see its coverage and AUROC printed above) -- near-separability leaves source-only reweighting with no overlap to exploit. This does NOT prove weighted conformal impossible in a better-aligned representation; the fix that works (product-aware re-normalization) removes the shift rather than reweighting around it.

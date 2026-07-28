@@ -1,0 +1,174 @@
+{
+  "alpha": 0.1,
+  "df": 4,
+  "tcrit": 2.7764451051977934,
+  "meta": {
+    "k1": {
+      "kernel": 1,
+      "width": 32,
+      "receptive_field": 1,
+      "params": 3876
+    },
+    "k3": {
+      "kernel": 3,
+      "width": 32,
+      "receptive_field": 9,
+      "params": 30756
+    },
+    "k5": {
+      "kernel": 5,
+      "width": 32,
+      "receptive_field": 17,
+      "params": 84516
+    },
+    "k7": {
+      "kernel": 7,
+      "width": 32,
+      "receptive_field": 25,
+      "params": 165156
+    },
+    "k1_w3": {
+      "kernel": 1,
+      "width": 96,
+      "receptive_field": 1,
+      "params": 30052
+    },
+    "k1_w5": {
+      "kernel": 1,
+      "width": 164,
+      "receptive_field": 1,
+      "params": 84792
+    },
+    "k1_w7": {
+      "kernel": 1,
+      "width": 230,
+      "receptive_field": 1,
+      "params": 164454
+    }
+  },
+  "train_patches": 800,
+  "epochs": 25,
+  "batch": 12,
+  "steps_per_arm": 1675,
+  "arms": {
+    "k1": {
+      "clean": {
+        "joint_mean": 8.166164102564101,
+        "joint_se": 0.3699378552264538,
+        "coverage": 65.33344358974358
+      },
+      "L2A_src": {
+        "joint_mean": 20.398485897435897,
+        "joint_se": 0.7604176433355686,
+        "coverage": 86.2424987179487
+      },
+      "L2A_prod": {
+        "joint_mean": 9.123630769230768,
+        "joint_se": 0.4463279286982967,
+        "coverage": 68.43131666666666
+      }
+    },
+    "k3": {
+      "clean": {
+        "joint_mean": 8.375610256410255,
+        "joint_se": 0.374557784429394,
+        "coverage": 65.05760128205128
+      },
+      "L2A_src": {
+        "joint_mean": 19.817476923076924,
+        "joint_se": 0.860414693202657,
+        "coverage": 86.84560256410258
+      },
+      "L2A_prod": {
+        "joint_mean": 9.566264102564102,
+        "joint_se": 0.5280544068793385,
+        "coverage": 68.7218923076923
+      }
+    },
+    "k5": {
+      "clean": {
+        "joint_mean": 8.310041025641025,
+        "joint_se": 0.35376277239997633,
+        "coverage": 64.97537179487179
+      },
+      "L2A_src": {
+        "joint_mean": 17.85268717948718,
+        "joint_se": 0.8773213241525674,
+        "coverage": 83.89364999999998
+      },
+      "L2A_prod": {
+        "joint_mean": 9.105134615384614,
+        "joint_se": 0.5598398451713278,
+        "coverage": 68.53631538461539
+      }
+    },
+    "k7": {
+      "clean": {
+        "joint_mean": 8.858424358974359,
+        "joint_se": 0.3027091256921336,
+        "coverage": 66.8357576923077
+      },
+      "L2A_src": {
+        "joint_mean": 17.3835,
+        "joint_se": 0.8126575625634007,
+        "coverage": 84.72096410256408
+      },
+      "L2A_prod": {
+        "joint_mean": 9.938146153846153,
+        "joint_se": 0.3682207659662024,
+        "coverage": 71.22931923076922
+      }
+    },
+    "k1_w3": {
+      "clean": {
+        "joint_mean": 7.987498717948717,
+        "joint_se": 0.32582431421837493,
+        "coverage": 66.76036923076923
+      },
+      "L2A_src": {
+        "joint_mean": 20.55622564102564,
+        "joint_se": 0.9137314475682986,
+        "coverage": 86.6158358974359
+      },
+      "L2A_prod": {
+        "joint_mean": 10.897748717948716,
+        "joint_se": 0.8495048364999003,
+        "coverage": 72.69536025641027
+      }
+    },
+    "k1_w5": {
+      "clean": {
+        "joint_mean": 8.05945641025641,
+        "joint_se": 0.33950836339137225,
+        "coverage": 67.44658461538462
+      },
+      "L2A_src": {
+        "joint_mean": 19.95822435897436,
+        "joint_se": 0.9028950046976614,
+        "coverage": 85.83474615384617
+      },
+      "L2A_prod": {
+        "joint_mean": 10.071905128205128,
+        "joint_se": 0.5972470872151986,
+        "coverage": 71.60461025641025
+      }
+    },
+    "k1_w7": {
+      "clean": {
+        "joint_mean": 7.898378205128203,
+        "joint_se": 0.3308017966920294,
+        "coverage": 67.30109615384616
+      },
+      "L2A_src": {
+        "joint_mean": 20.805284615384615,
+        "joint_se": 0.7691049626353397,
+        "coverage": 87.3958935897436
+      },
+      "L2A_prod": {
+        "joint_mean": 10.192280769230768,
+        "joint_se": 0.7074552417964826,
+        "coverage": 71.76204743589744
+      }
+    }
+  }
+}

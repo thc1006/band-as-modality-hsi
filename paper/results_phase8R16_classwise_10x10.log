@@ -1,0 +1,29 @@
+class-wise 10x10: 388400 test px / 184 scene-components; 10 model seeds x 10 split seeds; alpha 10%
+  seed 0 done (10 splits)
+  seed 1 done (10 splits)
+  seed 2 done (10 splits)
+  seed 3 done (10 splits)
+  seed 4 done (10 splits)
+  seed 5 done (10 splits)
+  seed 6 done (10 splits)
+  seed 7 done (10 splits)
+  seed 8 done (10 splits)
+  seed 9 done (10 splits)
+
+===== class-wise 10x10 (proposed; two-way SE, t df=9) =====
+
+[clean]  support-weighted sum_c w_c*joint_c = 8.43 +/- 0.22 [7.9,8.9]   (compare headline: L2A ~27.8, clean ~8.6)
+  class                 IoU         joint    selective(min..max)     coverage  support
+  clear          76.4+/- 0.2   2.23+/- 0.15    2.6+/- 0.2(1..4)   84.6+/- 0.4  74623
+  thick cloud    71.0+/- 0.3   7.04+/- 0.31    9.2+/- 0.4(7..13)   76.3+/- 0.6  43191
+  thin cloud     30.5+/- 0.8  26.06+/- 1.00   57.8+/- 1.8(45..73)   45.2+/- 1.5  13992
+  cloud shadow   37.4+/- 0.8  27.99+/- 0.98   48.7+/- 1.4(37..61)   57.4+/- 0.6  13989
+
+[L2A]  support-weighted sum_c w_c*joint_c = 28.25 +/- 0.58 [26.9,29.6]   (compare headline: L2A ~27.8, clean ~8.6)
+  class                 IoU         joint    selective(min..max)     coverage  support
+  clear          61.6+/- 0.6   1.04+/- 0.46    1.1+/- 0.5(0..8)   95.9+/- 0.9  74623
+  thick cloud    55.3+/- 1.2  35.15+/- 1.40   40.3+/- 1.7(31..53)   87.2+/- 0.6  43191
+  thin cloud      0.4+/- 0.2  90.36+/- 0.73   99.9+/- 0.0(99..100)   90.4+/- 0.7  13992
+  cloud shadow    2.5+/- 0.7  89.64+/- 1.59   98.8+/- 0.6(92..100)   90.7+/- 1.4  13989
+
+wrote /home/hctsai1006/cct/band-as-modality-hsi/experiments/../paper/results_phase8R16_classwise_10x10_percell.csv + /home/hctsai1006/cct/band-as-modality-hsi/experiments/../paper/results_phase8R16_classwise_10x10_summary.json

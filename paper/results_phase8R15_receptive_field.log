@@ -1,0 +1,39 @@
+  [train/L1C] class prevalence 509->224: clear 0.5243->0.5243, thick 0.2781->0.2782, thin 0.1001->0.1001, shadow 0.0974->0.0974
+  [test/L1C] class prevalence 509->224: clear 0.5156->0.5156, thick 0.3016->0.3017, thin 0.0860->0.0860, shadow 0.0967->0.0967
+  [test/L2A] class prevalence 509->224: clear 0.5156->0.5156, thick 0.3016->0.3017, thin 0.0860->0.0860, shadow 0.0967->0.0967
+receptive-field isolation (ONE matched conv family): train 800 full patches, bs 12, 25 epochs = 1675 optimiser steps/arm (IDENTICAL across arms); test 400 patches / 175 scene-components / 80000 eval px; dev cuda
+    arm k1      : kernel 1x1, width 32, receptive field 1x1px, params 3,876
+    arm k3      : kernel 3x3, width 32, receptive field 9x9px, params 30,756
+    arm k5      : kernel 5x5, width 32, receptive field 17x17px, params 84,516
+    arm k7      : kernel 7x7, width 32, receptive field 25x25px, params 165,156
+    arm k1_w3   : kernel 1x1, width 96, receptive field 1x1px, params 30,052
+    arm k1_w5   : kernel 1x1, width 164, receptive field 1x1px, params 84,792
+    arm k1_w7   : kernel 1x1, width 230, receptive field 1x1px, params 164,454
+    -> capacity-matched RF=1 controls: k1_w3 30,052 vs k3 30,756 (0.98x); k1_w5 84,792 vs k5 84,516 (1.00x); k1_w7 164,454 vs k7 165,156 (1.00x); k1 3,876 (no-context baseline). Training samples/steps/batch identical across ALL arms.
+/home/hctsai1006/cct/band-as-modality-hsi/.venv/lib/python3.12/site-packages/torch/nn/functional.py:3494: UserWarning: nll_loss2d_forward_out_cuda_template does not have a deterministic implementation, but you set 'torch.use_deterministic_algorithms(True, warn_only=True)'. You can file an issue at https://github.com/pytorch/pytorch/issues to help us prioritize adding deterministic support for this operation. (Triggered internally at /pytorch/aten/src/ATen/Context.cpp:92.)
+  return torch._C._nn.cross_entropy_loss(
+  model seed 0: k1 clean 75.2  k3 clean 75.9  k5 clean 75.3  k7 clean 76.7  k1_w3 clean 75.8  k1_w5 clean 75.2  k1_w7 clean 76.3
+  model seed 1: k1 clean 75.8  k3 clean 70.4  k5 clean 75.1  k7 clean 74.6  k1_w3 clean 77.7  k1_w5 clean 76.4  k1_w7 clean 76.7
+  model seed 2: k1 clean 75.6  k3 clean 73.9  k5 clean 75.8  k7 clean 74.9  k1_w3 clean 75.3  k1_w5 clean 76.9  k1_w7 clean 75.4
+  model seed 3: k1 clean 76.0  k3 clean 75.9  k5 clean 75.7  k7 clean 76.3  k1_w3 clean 74.4  k1_w5 clean 77.0  k1_w7 clean 74.8
+  model seed 4: k1 clean 75.9  k3 clean 75.8  k5 clean 77.1  k7 clean 76.5  k1_w3 clean 76.1  k1_w5 clean 75.4  k1_w7 clean 77.1
+
+  joint risk by receptive field (naive stale-norm certificate), two-way SE, t df=4:
+    k1       rf  1px  clean   8.2  L2A_src  20.4 +/- 0.76 [18.3,22.5]  L2A_prod   9.1  cov 86%
+    k3       rf  9px  clean   8.4  L2A_src  19.8 +/- 0.86 [17.4,22.2]  L2A_prod   9.6  cov 87%
+    k5       rf 17px  clean   8.3  L2A_src  17.9 +/- 0.88 [15.4,20.3]  L2A_prod   9.1  cov 84%
+    k7       rf 25px  clean   8.9  L2A_src  17.4 +/- 0.81 [15.1,19.6]  L2A_prod   9.9  cov 85%
+    k1_w3    rf  1px  clean   8.0  L2A_src  20.6 +/- 0.91 [18.0,23.1]  L2A_prod  10.9  cov 87%
+    k1_w5    rf  1px  clean   8.1  L2A_src  20.0 +/- 0.90 [17.5,22.5]  L2A_prod  10.1  cov 86%
+    k1_w7    rf  1px  clean   7.9  L2A_src  20.8 +/- 0.77 [18.7,22.9]  L2A_prod  10.2  cov 87%
+
+  PAIRED contrasts on the L2A stale-norm breach (mean +/- two-way SE [95% t CI]):
+    d[k1_w3  - k3   ] breach =  +0.74 +/- 0.89 [ -1.75, +3.22] (includes 0)  CAPACITY-MATCHED (~30k): receptive field 1->9px
+    d[k1_w5  - k5   ] breach =  +2.11 +/- 0.11 [ +1.79, +2.42] (excludes 0)  CAPACITY-MATCHED (~85k): receptive field 1->17px
+    d[k1_w7  - k7   ] breach =  +3.42 +/- 0.75 [ +1.34, +5.50] (excludes 0)  CAPACITY-MATCHED (~165k): receptive field 1->25px
+    d[k1     - k1_w3] breach =  -0.16 +/- 0.91 [ -2.67, +2.36] (includes 0)  CAPACITY-ONLY (RF fixed 1): 4k->30k params
+    d[k1     - k1_w7] breach =  -0.41 +/- 0.70 [ -2.35, +1.54] (includes 0)  CAPACITY-ONLY (RF fixed 1): 4k->165k params
+    d[k1     - k7   ] breach =  +3.01 +/- 1.08 [ +0.03, +6.00] (excludes 0)  RF 1->25px WITH capacity co-growing (NOT matched)
+
+  SUMMARY (data, not an auto-verdict): L2A stale-norm breach by receptive field k1 20.4 -> k3 19.8 -> k5 17.9 -> k7 17.4; the CAPACITY-MATCHED RF=1 controls are k1_w3 20.6 (~30k), k1_w5 20.0 (~85k), k1_w7 20.8 (~165k). The receptive-field effect is CAUSALLY identified only where a CAPACITY-MATCHED contrast (k1_wK minus kK, same params, only the kernel differs) excludes zero; the CAPACITY-ONLY contrasts (k1 minus k1_wK) test whether parameters alone attenuate. Attribute attenuation to spatial context ONLY for the capacity-matched fields whose CI excludes zero -- not from the raw k1->k7 sweep (whose capacity co-grows) -- and claim no fixed point count across architectures.
+  wrote /home/hctsai1006/cct/band-as-modality-hsi/experiments/../paper/results_phase8R15_receptive_field_percell.csv + /home/hctsai1006/cct/band-as-modality-hsi/experiments/../paper/results_phase8R15_receptive_field_summary.json

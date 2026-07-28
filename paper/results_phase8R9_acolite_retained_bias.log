@@ -1,39 +1,42 @@
-test patches 975 | ACOLITE-present 590 | leaked 4 | paper-retained (present & unleaked) 590 | ACOLITE-failed 385
-============================================================================================
-BIAS CHECK: ACOLITE-present (retained) vs ACOLITE-failed (excluded) on the full test set
-============================================================================================
-  cloud_coverage (ordinal 0=clear..4=cloudy): retained mean 1.97   excluded mean 2.04   Mann-Whitney p=0.459
-  cloud_coverage (fraction within group):
-    almost-clear           retained  19.7%   excluded  20.5%   Δ  -0.9
-    cloud-free             retained  21.2%   excluded  18.2%   Δ  +3.0
-    cloudy                 retained  20.7%   excluded  19.0%   Δ  +1.7
-    low-cloudy             retained  20.5%   excluded  19.2%   Δ  +1.3
-    mid-cloudy             retained  18.0%   excluded  23.1%   Δ  -5.2
-  latitude: retained mean 19.7 (med 24.0)   excluded mean 21.4 (med 35.3)   Mann-Whitney p=0.362
+test patches 975 | eligible (unleaked) 971 | ACOLITE-retained 590 (181 components) | ACOLITE-failed 381 (164 components)
+  scene-components (eligible): fully-retained 19, partially-retained 162, fully-failed 3 (so patch-level effect sizes below are DESCRIPTIVE; the effective sample size is the component count)
+================================================================================================
+SELECTION AUDIT: paper-eligible ACOLITE-retained vs ACOLITE-failed (observed covariates)
+================================================================================================
+  cloud_coverage (ordinal 0=clear..4=cloudy): retained mean 1.97 med 2   excluded mean 2.06 med 2   MW p=0.377   Cliff's d=-0.033 [negligible]
+  cloud_coverage (fraction within group; Cramer's V = 0.035 [negligible]):
+    almost-clear           retained  19.7%   excluded  20.5%   d  -0.8
+    cloud-free             retained  21.2%   excluded  17.8%   d  +3.3
+    cloudy                 retained  20.7%   excluded  19.2%   d  +1.5
+    low-cloudy             retained  20.5%   excluded  19.2%   d  +1.3
+    mid-cloudy             retained  18.0%   excluded  23.4%   d  -5.4
+  latitude: retained mean 19.7 (med 24.0)   excluded mean 21.3 (med 35.3)   MW p=0.382   Cliff's d=-0.033 [negligible]
     hemisphere N-fraction: retained 65%   excluded 67%
-  land_cover (fraction within group):
-    10                     retained  30.2%   excluded  22.6%   Δ  +7.6
-    100                    retained   0.8%   excluded   1.3%   Δ  -0.5
-    20                     retained   7.3%   excluded   8.3%   Δ  -1.0
-    30                     retained  17.3%   excluded  20.3%   Δ  -3.0
-    40                     retained   8.8%   excluded  16.4%   Δ  -7.6
-    50                     retained   6.3%   excluded   3.4%   Δ  +2.9
-    60                     retained  11.2%   excluded  10.1%   Δ  +1.1
-    70                     retained   3.1%   excluded   1.8%   Δ  +1.2
-    80                     retained  11.9%   excluded  10.4%   Δ  +1.5
-    90                     retained   3.2%   excluded   5.5%   Δ  -2.2
-  difficulty (fraction within group):
-    1.0                    retained  21.9%   excluded  18.4%   Δ  +3.4
-    2.0                    retained  42.4%   excluded  50.1%   Δ  -7.8
-    3.0                    retained  21.5%   excluded  19.5%   Δ  +2.0
-    4.0                    retained  13.1%   excluded  10.6%   Δ  +2.4
-    5.0                    retained   1.2%   excluded   1.3%   Δ  -0.1
-  label_type (fraction within group):
-    high                   retained 100.0%   excluded 100.0%   Δ  +0.0
-============================================================================================
-REPRESENTATIVENESS: does the retained subset reproduce the full-test phenomenon?
-  Sen2Cor-L2A naive joint risk ON the retained subset = 28.64% (results_phase8R3_acolite10.csv)
-  Full-test flagship Sen2Cor-L2A naive joint risk       = 28.9%  (Table 1)
-  -> the retained subset breaks the Sen2Cor certificate to the same degree as the full test set,
-     so it is representative of the breach regardless of any mild composition difference above;
-     ACOLITE (28.56%) is then measured on that same representative subset.
+  land_cover (fraction within group; Cramer's V = 0.140 [small]):
+    10                     retained  30.2%   excluded  22.0%   d  +8.1
+    100                    retained   0.8%   excluded   1.3%   d  -0.5
+    20                     retained   7.3%   excluded   8.4%   d  -1.1
+    30                     retained  17.3%   excluded  20.5%   d  -3.2
+    40                     retained   8.8%   excluded  16.5%   d  -7.7
+    50                     retained   6.3%   excluded   3.4%   d  +2.9
+    60                     retained  11.2%   excluded  10.2%   d  +1.0
+    70                     retained   3.1%   excluded   1.8%   d  +1.2
+    80                     retained  11.9%   excluded  10.2%   d  +1.6
+    90                     retained   3.2%   excluded   5.5%   d  -2.3
+  difficulty (fraction within group; Cramer's V = 0.046 [negligible]):
+    1.0                    retained  21.9%   excluded  18.1%   d  +3.8
+    2.0                    retained  42.4%   excluded  50.1%   d  -7.8
+    3.0                    retained  21.5%   excluded  19.7%   d  +1.8
+    4.0                    retained  13.1%   excluded  10.8%   d  +2.3
+    5.0                    retained   1.2%   excluded   1.3%   d  -0.1
+  label_type (fraction within group; Cramer's V = nan [n/a]):
+    high                   retained 100.0%   excluded 100.0%   d  +0.0
+================================================================================================
+Sen2Cor proxy on the retained cohort (does the retained subset still break the certificate?)
+  Sen2Cor-L2A naive joint risk ON the ACOLITE-retained cohort = 29.34% (10x10, results_phase8R3_acolite10.csv)
+  ACOLITE naive joint risk on that same cohort               = 29.60%
+  -> reading (honest scope): the ACOLITE-retained cohort spans most scene-components, is not strongly
+     imbalanced on the observed covariates above, and STILL breaks the Sen2Cor certificate. Because
+     ACOLITE outputs do not exist for the failed scenes, the ACOLITE-specific risk there is a
+     counterfactual this audit cannot identify; the ACOLITE result is reported CONDITIONAL on
+     successful processing, not as proof that the breach generalises to failed scenes.

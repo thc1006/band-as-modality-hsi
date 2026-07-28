@@ -120,7 +120,7 @@ def main():
     vals = [summary[c]["ACOLITE"][0] for c in CLIPS]
     print(f"  -> spread across clip regimes: {max(vals) - min(vals):.2f} points; "
           f"{'STABLE -- 28.6 is not a clipping artefact' if max(vals) - min(vals) < 4 else 'CLIP-SENSITIVE -- investigate'}")
-    print("     (paper 10-seed value under the [-0.1,1.6] clip: 28.56)")
+    print("     (paper 10-seed headline under the [-0.1,1.6] clip: 29.60, from results_phase8R3_acolite10.csv)")
 
 
 if __name__ == "__main__":

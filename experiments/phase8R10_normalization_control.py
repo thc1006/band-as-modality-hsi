@@ -86,6 +86,51 @@ def band_stats(name, x, keep_idx, floor=1e-6):
     return mu, np.maximum(sd, floor)
 
 
+def robust_transport(Xeval, Xcal_l2a, Xsrc, mu_tr, sd_tr, keep_idx, floor=1e-6):
+    """Robust 2-moment transport (label-free, evaluation-disjoint). Align each L2A eval band's robust
+    location/scale (median, 1.4826*MAD, estimated on the DISJOINT calibration L2A) onto the L1C-train
+    band's robust location/scale, THEN apply the model's own train z-score. This down-weights the heavy,
+    over-corrected bright-pixel tails that inflate plain mean/std, while keeping the final scale EXACTLY
+    the training normalisation -- so there is no statistic-family mismatch with training (which used
+    mean/std). It sits between the plain mean/std disjoint arm (2 moments, non-robust) and the full
+    quantile transport (all moments). Dropped bands (B10, zeroed in L2A and masked in the forward pass)
+    fall back to the plain train z-score so the tensor stays finite."""
+    out = ((Xeval - mu_tr) / sd_tr).astype(np.float32)
+    keep = {int(i) for i in keep_idx}
+    for b in range(Xeval.shape[1]):
+        if b not in keep:
+            continue
+        med_c = np.median(Xcal_l2a[:, b]); mad_c = float(np.median(np.abs(Xcal_l2a[:, b] - med_c)) * 1.4826)
+        med_s = np.median(Xsrc[:, b]);     mad_s = float(np.median(np.abs(Xsrc[:, b] - med_s)) * 1.4826)
+        if mad_c < floor or mad_s < floor:
+            raise ValueError(f"robust_transport band {b}: near-constant (mad_cal={mad_c:.2e}, mad_src={mad_s:.2e})")
+        xm = (Xeval[:, b] - med_c) / mad_c * mad_s + med_s   # L2A robust moments -> L1C-train robust moments
+        out[:, b] = (xm - mu_tr[b]) / sd_tr[b]               # exact training normalisation on the transported band
+    return out
+
+
+def quantile_match(Xeval, Xcal_l2a, Xsrc, mu_tr, sd_tr, keep_idx):
+    """Per-band monotone quantile mapping (label-free, evaluation-disjoint): transform each eval L2A band so
+    its marginal matches the SOURCE (L1C-train) marginal, using the disjoint CALIBRATION L2A as the reference
+    for the L2A CDF -- no eval transduction. This aligns the FULL per-band distribution (all moments), not
+    only mean/std, to the scale the certificate was calibrated on; the result is then z-scored with the
+    model's own training statistics, exactly as at training. Formally v' = Q_src(F_{L2A-cal}(x)), band by
+    band, with plotting-position CDFs and linear interpolation (a proper monotone transport map). Dropped
+    bands (B10, zeroed in L2A and masked in the forward pass) fall back to the plain train z-score."""
+    out = ((Xeval - mu_tr) / sd_tr).astype(np.float32)       # safe finite default for every band
+    keep = {int(i) for i in keep_idx}
+    for b in range(Xeval.shape[1]):
+        if b not in keep:
+            continue
+        cal = np.sort(Xcal_l2a[:, b]); src = np.sort(Xsrc[:, b])
+        cdf_cal = (np.arange(len(cal)) + 0.5) / len(cal)     # plotting-position empirical CDF of calib L2A
+        cdf_src = (np.arange(len(src)) + 0.5) / len(src)
+        u = np.interp(Xeval[:, b], cal, cdf_cal)             # F_{L2A-cal}(x) in (0,1), monotone
+        v = np.interp(u, cdf_src, src)                       # Q_src(u): source quantile at that level
+        out[:, b] = (v - mu_tr[b]) / sd_tr[b]                # z-score on the model's own training scale
+    return out
+
+
 def comp_equal_acc(corr, comp):
     """Component-equal (not pixel-pooled) accuracy, to match the certified triple's weighting."""
     order = np.argsort(comp, kind="stable")
@@ -165,7 +210,7 @@ def main():
             "L2A_src":        (X_l2a, mu_tr, sd_tr, DROP_L2A),
             "L2A_pairedL1C":  (X_l2a, mu_1t, sd_1t, DROP_L2A),
             "L2A_prod":       (X_l2a, mu_2t, sd_2t, DROP_L2A)}
-    trk = list(ARMS) + ["L2A_prod_disj"]
+    trk = list(ARMS) + ["L2A_prod_disj", "L2A_prod_disj_robust", "L2A_prod_disj_quantile"]
     print(f"  eval {len(y_te)} px / {len(np.unique(comp_all))} components; L1C-train vs L2A-test per-band mean "
           f"shift {np.abs(mu_tr - mu_2t)[keep_b].mean():.3f}; {len(seeds)} seeds x {len(splits)} splits", flush=True)
 
@@ -197,6 +242,20 @@ def main():
             rows[arm].append((seed, ss, j)); covs[arm].append(cov); sels[arm].append(sel)
             pacc[arm].append(float(corr_e.mean()) * 100); cacc[arm].append(comp_equal_acc(corr_e, comp_all[me]))
 
+        def record_normalized(arm, Xnorm, drop, me, Tc, thr):
+            """As record(), but Xnorm is ALREADY on the model's training z-score scale (a transport map
+            produced it), so we bypass arm_logits' (x-mu)/sd. Same (Tc, thr) from the clean source
+            calibration as every other arm -- only the deployment input's standardisation differs."""
+            require_finite(f"input[{arm}]", Xnorm)
+            lg = P8R.logits_at("proposed", m, Xnorm.astype(np.float32), groups, drop)
+            require_finite(f"logits[{arm}]", lg)
+            p = softmax(lg / Tc, axis=1)
+            require_finite(f"prob[{arm}]", p)
+            corr_e = p.argmax(1) == y_te[me]
+            j, sel, cov = overall_metrics(corr_e, p.max(1), comp_all[me], thr)
+            rows[arm].append((seed, ss, j)); covs[arm].append(cov); sels[arm].append(sel)
+            pacc[arm].append(float(corr_e.mean()) * 100); cacc[arm].append(comp_equal_acc(corr_e, comp_all[me]))
+
         for ss in splits:
             mt, mc, me = P8R.split_test_rois(comp_all, ss)
             Tc = fit_temperature(arm_logits(ARMS["clean"], mt), y_te[mt])
@@ -212,6 +271,12 @@ def main():
             # disjoint product-aware: L2A stats from the CALIBRATION components, applied to EVAL components
             mu_d, sd_d = band_stats("L2A-calib", Xl2a_c[mc], keep_b)
             record("L2A_prod_disj", (X_l2a, mu_d, sd_d, DROP_L2A), me, Tc, thr)
+            # richer LABEL-FREE, EVAL-DISJOINT normalisation: can a stronger transport (beyond mean/std)
+            # push the disjoint arm to <=alpha? calibration L2A is the reference; L1C-train is the target.
+            Xrob = robust_transport(Xl2a_c[me], Xl2a_c[mc], Xtr_c, mu_tr, sd_tr, keep_b)
+            record_normalized("L2A_prod_disj_robust", Xrob, DROP_L2A, me, Tc, thr)
+            Xqm = quantile_match(Xl2a_c[me], Xl2a_c[mc], Xtr_c, mu_tr, sd_tr, keep_b)
+            record_normalized("L2A_prod_disj_quantile", Xqm, DROP_L2A, me, Tc, thr)
         cur = {s: np.mean([r[2] for r in rows[s] if r[0] == seed]) for s in ("clean", "L2A_src", "L2A_prod")}
         print(f"  seed {seed}: clean {cur['clean']:.1f}  L2A_src {cur['L2A_src']:.1f}  "
               f"L2A_prod {cur['L2A_prod']:.1f}", flush=True)
@@ -239,7 +304,9 @@ def main():
         ("L2A_src", "L2A_pairedL1C", "train->test COMPOSITION share (stale - L1C-test stats)"),
         ("L2A_pairedL1C", "L2A_prod", "PRODUCT-normalization share (L1C-test - L2A-test stats)"),
         ("clean_selfnorm", "clean", "generic test-batch renorm on the in-domain case (expect ~0)"),
-        ("L2A_src", "L2A_prod", "total fix (stale - product-aware transductive)")]:
+        ("L2A_src", "L2A_prod", "total fix (stale - product-aware transductive)"),
+        ("L2A_prod_disj", "L2A_prod_disj_robust", "richer: robust 2-moment transport vs mean/std disjoint"),
+        ("L2A_prod_disj", "L2A_prod_disj_quantile", "richer: full quantile transport vs mean/std disjoint")]:
         md, se, lo, hi = paired_delta(rows[a], rows[b], seeds, splits)
         z0 = "excludes 0" if (lo > 0 or hi < 0) else "includes 0"
         print(f"    d[{a} - {b}] = {md:+6.2f} +/- {se:.2f}  [{lo:+5.1f},{hi:+5.1f}]  ({z0})  {label}", flush=True)
@@ -260,11 +327,22 @@ def main():
         json.dump(summary, f, indent=2)
 
     dj = agg["L2A_prod_disj"]
+    # does ANY label-free, eval-disjoint transport bring the UPPER CI at/below the alpha target?
+    tgt = ALPHA * 100
+    disj_arms = [(st, agg[st][0], agg[st][1], agg[st][0] + tcrit * agg[st][1])
+                 for st in ("L2A_prod_disj", "L2A_prod_disj_robust", "L2A_prod_disj_quantile")]
+    best = min(disj_arms, key=lambda t: t[1])
+    controlled = [st for st, m, se, hi in disj_arms if hi <= tgt]
     print(f"\n  SUMMARY (data, not an auto-verdict): stale L2A joint {agg['L2A_src'][0]:.1f}; product-aware "
-          f"DISJOINT {dj[0]:.1f} +/- {dj[1]:.1f} at {np.mean(covs['L2A_prod_disj']):.0f}% coverage (operational, "
-          "evaluation-disjoint from the normalization reference). The label-free repair restores the empirical target joint-risk LEVEL on these "
-          "scenes; it does NOT re-derive a finite-sample guarantee (stats estimated from deployment data). "
-          "Interpretation via the paired-difference CIs above + phase8R12 (radiometric provenance).")
+          f"DISJOINT (mean/std) {dj[0]:.1f} +/- {dj[1]:.1f} at {np.mean(covs['L2A_prod_disj']):.0f}% coverage. "
+          f"Richer label-free eval-disjoint transports -> "
+          + ", ".join(f"{st.split('disj_')[-1] if 'disj_' in st else 'meanstd'} {m:.2f}(hi {hi:.1f})"
+                      for st, m, se, hi in disj_arms) + f". Target {tgt:.0f}%. "
+          + (f"CONTROL ACHIEVED (upper CI <= target) by: {controlled} -> 'restores control' is defensible."
+             if controlled else
+             f"NO arm's upper CI reaches <= target (best = {best[0]} at {best[1]:.2f}, hi {best[3]:.1f}); "
+             "the honest claim is 'reduces to near-target, residual above alpha'.") +
+          " Label-free repair restores the empirical LEVEL but does NOT re-derive a finite-sample guarantee.")
     print(f"  wrote {args.out}_percell.csv + {args.out}_summary.json")
 
 

@@ -50,6 +50,22 @@
       "selective": 14.481339943020382,
       "pixel_acc": 75.98484291891693,
       "component_acc": 76.08409359903384
+    },
+    "L2A_prod_disj_robust": {
+      "joint_mean": 10.209969806763285,
+      "joint_se": 0.3860638551633449,
+      "coverage": 70.09619323671498,
+      "selective": 14.548256642002876,
+      "pixel_acc": 74.60502917675257,
+      "component_acc": 74.71467451690823
+    },
+    "L2A_prod_disj_quantile": {
+      "joint_mean": 9.546084541062802,
+      "joint_se": 0.23802677141814355,
+      "coverage": 69.50591787439613,
+      "selective": 13.732649466080876,
+      "pixel_acc": 75.1143444178893,
+      "component_acc": 75.21884299516907
     }
   }
 }
