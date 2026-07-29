@@ -40,7 +40,7 @@ def fig2_flagship():
             ("mondrian", "Degradation-aware (Mondrian)", MOND)]
     by = {(r["state"], r["arm"]): r for r in rows}
     x = np.arange(len(states)); w = 0.26
-    fig, (ax, axc) = plt.subplots(1, 2, figsize=(7.2, 3.2))
+    fig, (ax, axc) = plt.subplots(1, 2, figsize=(7.4, 3.8))
     for i, (arm, lab, col) in enumerate(arms):
         risk = [float(by[(s, arm)]["mean_heldout_joint_loss_pct"]) for s in states]
         se = [float(by[(s, arm)]["se_heldout_joint_loss_pct"]) for s in states]
@@ -56,15 +56,21 @@ def fig2_flagship():
     ax.axhline(10, ls=":", color="k", lw=1, label="target $\\alpha=10\\%$")
     ax.plot([], [], ls="--", color="0.35", marker="o", ms=3.5, mfc="white",
             label="CRC calibration statistic")
-    ax.set_ylabel("empirical joint risk  $P(\\mathrm{acc}\\wedge\\mathrm{wrong})$  %")
-    ax.set_title("(a) joint risk at the source-certified operating point")
-    axc.set_ylabel("coverage  %"); axc.set_title("(b) coverage (the abstention cost)")
+    ax.set_ylabel("empirical joint risk\n$P(\\mathrm{acc}\\wedge\\mathrm{wrong})$  %", fontsize=8)
+    axc.set_ylabel("coverage  %", fontsize=8)
+    ax.set_title("(a) joint risk (source threshold)", fontsize=9, pad=6)
+    axc.set_title("(b) coverage (abstention cost)", fontsize=9, pad=6)
     for a in (ax, axc):
         a.set_xticks(x); a.set_xticklabels(labels, fontsize=7)
-    ax.legend(fontsize=5.5, loc="upper left", framealpha=0.9)
+        a.margins(y=0.14)                                   # headroom: bars/markers never touch the frame top
+    # legend OUTSIDE the axes, below both panels, so it can NEVER overlap the plotted data (fixes the
+    # in-plot legend that crowded panel (a)); short labels keep it to two tidy rows.
+    handles, lbls = ax.get_legend_handles_labels()
+    fig.legend(handles, lbls, loc="lower center", ncol=3, fontsize=6.5, frameon=False,
+               bbox_to_anchor=(0.5, -0.02), columnspacing=1.3, handlelength=1.8)
     fig.suptitle("Naive conformal exceeds its nominal 10% target under the L1C$\\to$L2A shift while "
                  "Mondrian restores control (proposed, 100 runs, error bars $t_9$ 95% CI)", fontsize=7.5)
-    fig.tight_layout(rect=[0, 0, 1, 0.93])
+    fig.tight_layout(rect=[0, 0.10, 1, 0.92])
     for ext in ("pdf", "png"):
         fig.savefig(os.path.join(FIGS, f"fig2_flagship_reliability.{ext}"), bbox_inches="tight")
     plt.close(fig)
@@ -85,7 +91,7 @@ def fig3_domain_gaps():
     arms = [("naive", "Naive (source-calibrated)", NAIVE),
             ("mondrian", "Mondrian (target-calibrated)", MOND)]
     x = np.arange(len(axes_data)); w = 0.35
-    fig, (ax, axc) = plt.subplots(1, 2, figsize=(7.0, 3.0))
+    fig, (ax, axc) = plt.subplots(1, 2, figsize=(7.0, 3.4))
     for j, (arm, lab, col) in enumerate(arms):
         v = [float(d[arm]["joint_risk_mean"]) for _, d in axes_data]
         se = [float(d[arm]["joint_risk_se"]) for _, d in axes_data]
@@ -96,11 +102,13 @@ def fig3_domain_gaps():
     for a, ttl, yl in ((ax, "(a) joint risk on the unseen domain", "joint risk  %"),
                        (axc, "(b) coverage (the abstention cost)", "coverage  %")):
         a.set_xticks(x); a.set_xticklabels([t for t, _ in axes_data], fontsize=7)
-        a.set_ylabel(yl); a.set_title(ttl, fontsize=8)
-    ax.legend(fontsize=6)
+        a.set_ylabel(yl); a.set_title(ttl, fontsize=8); a.margins(y=0.14)
+    handles, lbls = ax.get_legend_handles_labels()      # legend OUTSIDE the axes (below), never over data
+    fig.legend(handles, lbls, loc="lower center", ncol=3, fontsize=6.5, frameon=False,
+               bbox_to_anchor=(0.5, -0.02))
     fig.suptitle("Two operational deployment shifts on a fixed input "
                  "(proposed, 100 runs, error bars $t_9$ 95% CI)", fontsize=8)
-    fig.tight_layout(rect=[0, 0, 1, 0.93])
+    fig.tight_layout(rect=[0, 0.09, 1, 0.92])
     for ext in ("pdf", "png"):
         fig.savefig(os.path.join(FIGS, f"fig3_domain_gaps.{ext}"), bbox_inches="tight")
     plt.close(fig)

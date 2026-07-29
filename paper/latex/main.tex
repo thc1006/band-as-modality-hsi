@@ -9,6 +9,11 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{textcomp}
 \setlength{\emergencystretch}{2em}   % absorb the few minor overfull lines gracefully
+% Guarantee clear vertical separation between floats (tables/figures) and body text, so a table never
+% renders visually glued to the paragraph above or below it (adversarial review: table/text spacing).
+\setlength{\textfloatsep}{20pt plus 3pt minus 3pt}
+\setlength{\intextsep}{16pt plus 3pt minus 2pt}
+\setlength{\floatsep}{16pt plus 2pt minus 2pt}
 
 \journal{ISPRS Journal of Photogrammetry and Remote Sensing}
 
