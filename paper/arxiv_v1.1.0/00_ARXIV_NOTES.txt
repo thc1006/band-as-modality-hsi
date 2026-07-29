@@ -1,0 +1,33 @@
+arXiv submission package -- seed-reproducible release (v1.1.0)
+
+Compile: pdflatex main ; pdflatex main
+  - NO bibtex: the bibliography is pre-built into main.bbl.
+  - \pdfoutput=1 is set on line 1 of main.tex to force pdflatex (the figures are PDF;
+    without it arXiv defaults to DVI latex and fails on PDF graphics).
+
+Files in this package:
+  main.tex                        (\pdfoutput=1 + the paper source; elsarticle class)
+  main.bbl                        (pre-built bibliography -- no bibtex run needed)
+  refs.bib                        (bibliography source, for reference only)
+  fig2_flagship_reliability.pdf   (Figure 2)
+  fig3_domain_gaps.pdf            (Figure 3)
+  abstract_plain.txt              (the full abstract, plain text -- paste into the arXiv form)
+  abstract_form.txt              (a condensed abstract, if a shorter form field is wanted)
+
+Class: elsarticle (standard on arXiv TeXLive).
+Suggested categories: cs.CV (primary), eess.IV, stat.ML.
+
+Round-7 headline numbers (seed-fixed 10x10 crossed calibration-split x model-seed campaign,
+two-way cluster-robust SE):
+  flagship naive L2A joint risk        27.8 +/- 0.8 %  (vs 10% target; clean 8.5%)
+  label-free product-aware re-norm     10.8 %  (evaluation-disjoint, at 74% coverage)
+  fuller per-band quantile transport    9.6 %  ([9.0, 10.1])
+  ACOLITE (2nd processor)              29.6 %  (paired diff +0.26, TOST +/-2% passes)
+  held-out validation scenes           28.0 %
+  DOFA foundation model                 9.9 %
+  matched conv family: a larger receptive field attenuates the breach (causal at RF >= 17px,
+    parameter-matched two-way SE)
+
+Source and full result manifest: github.com/thc1006/band-as-modality-hsi
+  release v1.1.0 (commit f5a9742); paper/RESULT_MANIFEST.md maps every number to its
+  script, log, CSV and seed; verify_round7.py is an 18-check regression suite (all green).
