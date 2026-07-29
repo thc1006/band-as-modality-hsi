@@ -1,0 +1,26 @@
+  eval 388400 px / 184 components; brightness median 0.223; bright 92 / dark 92 comps; 10 seeds x 10 splits
+  seed 0: full-calib quantile mean 9.53
+  seed 1: full-calib quantile mean 8.77
+  seed 2: full-calib quantile mean 9.47
+  seed 3: full-calib quantile mean 9.13
+  seed 4: full-calib quantile mean 9.93
+  seed 5: full-calib quantile mean 10.21
+  seed 6: full-calib quantile mean 9.63
+  seed 7: full-calib quantile mean 9.35
+  seed 8: full-calib quantile mean 9.32
+  seed 9: full-calib quantile mean 10.12
+
+  two-way SE, t df=9 (tcrit 2.262); ALPHA target 10%
+  full           joint   9.55 +/- 0.24  [  9.0, 10.1]  cov   70%  (n=100)
+  n08            joint  12.95 +/- 0.27  [ 12.3, 13.6]  cov   69%  (n=100)
+  n16            joint  11.15 +/- 0.30  [ 10.5, 11.8]  cov   69%  (n=100)
+  n24            joint  10.35 +/- 0.26  [  9.8, 10.9]  cov   69%  (n=100)
+  n40            joint   9.83 +/- 0.20  [  9.4, 10.3]  cov   69%  (n=100)
+  halfA          joint  10.06 +/- 0.29  [  9.4, 10.7]  cov   69%  (n=100)
+  halfB          joint   9.91 +/- 0.22  [  9.4, 10.4]  cov   69%  (n=100)
+  calib_bright   joint  12.51 +/- 0.28  [ 11.9, 13.2]  cov   71%  (n=100)
+  calib_dark     joint  14.42 +/- 0.59  [ 13.1, 15.7]  cov   67%  (n=100)
+
+  SUMMARY (data, not a verdict): full-calibration quantile transport 9.55% (anchor vs the phase8R10 10-seed headline 9.6%). Sample-size arms show whether the near-target level is reached with fewer estimation components; halfA/halfB and calib_bright/calib_dark show whether the estimated mapping depends on WHICH (or which surface regime of) calibration components produced it. Read transfer as robust only where a reduced/paired arm's interval overlaps the full arm. Cross-SEASON, cross-DATE and cross-PROCESSOR-baseline transfer are NOT tested here.
+
+  wrote /home/hctsai1006/cct/band-as-modality-hsi/experiments/../paper/results_phase8R17_quantile_generalization_summary.json + _percell.csv

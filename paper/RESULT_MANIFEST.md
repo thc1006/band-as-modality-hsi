@@ -1,7 +1,13 @@
 # Result manifest — maps each paper number to its script / log / CSV / seed
 
-Release v1.0.0 (commit c59100a). All experiments seed the model **before** the constructor
+Release **v1.1.0** (git tag `v1.1.0`). All experiments seed the model **before** the constructor
 (`hw.seed_model(seed)`, seed+101); crossed 10 calibration-split x 10 model-seed design unless noted.
+
+Reproduction scope: the committed CSV/JSON files below **are** the end-to-end numeric outputs of the
+listed scripts (re-run a script to regenerate its file). `experiments/verify_round7.py` is a
+**function/regression** suite (18 checks over the round-7 code paths and their guards) — it validates the
+building blocks, not a full re-execution of every 10x10 campaign; the campaign numbers are reproduced by
+running the scripts themselves.
 
 | Paper item | Value | Script | Output |
 |---|---|---|---|
@@ -16,6 +22,7 @@ Release v1.0.0 (commit c59100a). All experiments seed the model **before** the c
 | Radiometric audit | L1C p1<1000 | `phase8R12_radiometric_audit.py` | (stdout) |
 | Normalization control (disjoint / pooled) | 10.8±0.3 / 10.5±0.3 (from 28.4) | `phase8R10_normalization_control.py` | `paper/results_phase8R10_normalization_control_{summary.json,percell.csv,10seed.log}` |
 | Normalization decomposition | product +17.9 / composition +0.0 / TTA +1.0 | same | same |
+| Quantile-transport generalization (3.2) | full-calib 9.55 (anchor≈headline 9.6); sample-size n8/16/24/40 = 13.0/11.2/10.4/9.8; random halves 10.1/9.9 (agree); bright/dark calib 12.5/14.4 (surface-dependent); cov ~70% all arms (df=9) | `phase8R17_quantile_generalization.py` (10 model × 10 split seed) | `paper/results_phase8R17_quantile_generalization_{summary.json,percell.csv,log}` |
 | ACOLITE paired diff | 29.6 vs 29.34, +0.26 [−1.2,+1.7] TOST pass | `phase8R3_acolite.py`+`phase8R10_acolite_paired_diff.py` | `paper/results_phase8R3_acolite10.csv` |
 | Validation replication | 28.0±0.7 | `phase8R5_secondbench.py` | `paper/results_phase8R5_secondbench_seedfix.log` |
 | Validation per-class | IoU 54.4→30.0 | `phase8R5_valdump.py`+`phase8R5_val_classwise.py` | `paper/results_val_classwise_seedfix.log` |
