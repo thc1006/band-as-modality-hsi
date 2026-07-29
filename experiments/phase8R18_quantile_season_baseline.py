@@ -1,19 +1,34 @@
 #!/usr/bin/env python
-"""Phase 8R18 -- cross-season and cross-Sen2Cor-baseline transfer of the label-free quantile transport.
+"""Phase 8R18 -- cross-acquisition-month and cross-Sen2Cor-product-version transfer of the label-free
+quantile transport.
 
 Companion to phase8R17 (which probed sample size, random subsets and surface brightness). Here we test the
-two remaining metadata-derivable transfer axes the reviewer asked for: does a quantile map estimated on one
-SEASON, or on one Sen2Cor PROCESSING-BASELINE group, still reach near target on the (season/baseline-mixed)
-evaluation set? Everything reuses phase8R10's transport and phase8R17's evaluation-disjoint protocol; only
-which calibration components ESTIMATE the mapping changes. Season and baseline are read straight from the
-CloudSEN12 test metadata (s2_date -> season; s2_sen2cor_version), so no external labels are introduced.
+two remaining metadata-derivable transfer axes: does a quantile map estimated on one ACQUISITION-MONTH HALF,
+or on one Sen2Cor PRODUCT-VERSION group, still reach near target on the (mixed) evaluation set? Everything
+reuses phase8R10's transport and phase8R17's evaluation-disjoint protocol; only which calibration components
+ESTIMATE the mapping changes. Both axes are read straight from the CloudSEN12 test metadata (s2_date ->
+calendar-month half; s2_sen2cor_version), so no external labels are introduced.
+
+HONEST LABELS (adversarial review): the month split below is Mar--Aug vs Sep--Feb under a Northern-Hemisphere
+NAMING convention; because CloudSEN12 spans both hemispheres it is NOT hemisphere-aware season, so we report it
+as a calendar-month bin, not "season". Likewise s2_sen2cor_version is the Sen2Cor PRODUCT-VERSION field (values
+N02.06--N02.14); we do NOT equate it with the ESA product Processing Baseline (a distinct product-level field).
+The float parse below (`>=2.13`) partitions the observed N02.06--N02.14 values correctly (2.10->2.1 < 2.13), but
+is not a general semantic-version comparator.
+
+MIXING CAVEAT (measured, adversarial review): the scene-connected component is NOT month/version-homogeneous --
+158/184 components span BOTH month-halves and 183/184 span >1 Sen2Cor version -- so labelling a component by its
+first-patch month or majority version is only a LOOSE stratification, not a clean cross-season/cross-version
+hold-out. These arms therefore mainly RECONFIRM phase8R17's random-subset robustness; surface brightness
+(phase8R17) is the one axis that cleanly separates components. The numbers are valid as loose-split subset
+results, read that way, not as clean season/version transfer.
 
 Arms (identical clean-calibrated threshold + temperature, no target labels, deployment always disjoint):
   full          : all calibration components (== phase8R17 anchor)
-  calib_warm    : estimate on warm-season (MAM+JJA) calibration components
-  calib_cold    : estimate on cold-season (SON+DJF) calibration components
-  calib_newSC   : estimate on newer Sen2Cor baselines (>= N02.13) calibration components
-  calib_oldSC   : estimate on older Sen2Cor baselines (<= N02.12) calibration components
+  calib_warm    : estimate on Mar--Aug-acquired calibration components  (label kept for output stability)
+  calib_cold    : estimate on Sep--Feb-acquired calibration components
+  calib_newSC   : estimate on newer Sen2Cor product versions (>= N02.13) calibration components
+  calib_oldSC   : estimate on older Sen2Cor product versions (<= N02.12) calibration components
 Read transfer as robust only where an arm's interval overlaps the full arm AND is near the 10% target.
 Cross-DATE (future acquisitions) and cross-PROCESSOR (a different corrector) remain untested.
 """
@@ -37,8 +52,10 @@ from bandsim.model import GroupedCrossBandAttention
 from bandsim.reliability import fit_temperature, conformal_risk_control
 
 band_stats, quantile_match, seed_all, ALPHA = R10.band_stats, R10.quantile_match, R10.seed_all, R10.ALPHA
+# Calendar-month half, NOT hemisphere-aware season (CloudSEN12 spans both hemispheres): "warm"=Mar--Aug,
+# "cold"=Sep--Feb under a Northern-Hemisphere naming convention only. Kept as internal keys for output stability.
 _SEASON = {12: "cold", 1: "cold", 2: "cold", 9: "cold", 10: "cold", 11: "cold",
-           3: "warm", 4: "warm", 5: "warm", 6: "warm", 7: "warm", 8: "warm"}   # MAM+JJA warm / SON+DJF cold
+           3: "warm", 4: "warm", 5: "warm", 6: "warm", 7: "warm", 8: "warm"}   # Mar--Aug / Sep--Feb
 
 
 def main():
@@ -104,8 +121,14 @@ def main():
     cold = np.array([c for c in uniq if comp_season[str(c)] == "cold"])
     newsc = np.array([c for c in uniq if comp_scnew[str(c)]])
     oldsc = np.array([c for c in uniq if not comp_scnew[str(c)]])
-    print(f"  eval {len(y_te)} px / {len(uniq)} components; warm {len(warm)} / cold {len(cold)}; "
+    # measure the mixing that makes month/version only a LOOSE stratification of the component unit
+    mix_m = sum(len(set(season_px[comp_all == c].tolist())) > 1 for c in uniq)
+    mix_v = sum(len(set(scnew_px[comp_all == c].tolist())) > 1 for c in uniq)
+    print(f"  eval {len(y_te)} px / {len(uniq)} components; warm(Mar-Aug) {len(warm)} / cold(Sep-Feb) {len(cold)}; "
           f"newSC(>=N02.13) {len(newsc)} / oldSC {len(oldsc)}; {len(seeds)} seeds x {len(splits)} splits", flush=True)
+    print(f"  MIXING CAVEAT: {mix_m}/{len(uniq)} components span BOTH month-halves, {mix_v}/{len(uniq)} span >1 "
+          f"newSC/oldSC group -> month/version arms are a LOOSE split (reconfirm random-subset robustness, "
+          f"not clean transfer); surface (phase8R17) is the cleanly-separable axis.", flush=True)
 
     bs = P2.auto_bs(Xtr_n.shape[0])
     rows, covs = {}, {}

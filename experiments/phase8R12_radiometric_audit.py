@@ -3,11 +3,17 @@
 that the model input uses the correct reflectance conversion and that the Processing-Baseline-04.00
 radiometric add-offset (BOA_ADD_OFFSET / RADIO_ADD_OFFSET, introduced Jan 2022) is NOT silently unhandled.
 
-Method. Sentinel-2 top-of-atmosphere (L1C) reflectance is physically non-negative. If a +1000 add-offset
-were present in the stored digital numbers but not subtracted, then reflectance = DN * 1e-4 would map any
-DN < 1000 to a NEGATIVE TOA reflectance -- impossible. So a 1st-percentile L1C DN well below 1000, on EVERY
-processing baseline, is a direct empirical proof that the stored data is on the plain 0-10000 (no-offset)
-scale and DN * 1e-4 is the correct conversion. We report the per-baseline raw-DN distribution for L1C and
+Method (adversarial-review note). Sentinel-2 top-of-atmosphere (L1C) reflectance CAN be slightly negative on
+dark targets from sensor / dark-current noise -- that is exactly why Processing-Baseline-04.00 later added the
+-1000 offset, to store those near-zero values instead of clipping them. So this is a test of MAGNITUDE, not of
+sign: if a +1000 add-offset were present in the stored digital numbers but not subtracted, then reflectance =
+DN * 1e-4 would over-read by 0.1, and a stored DN of ~15 would correspond to a TRUE TOA reflectance near -0.10
+-- far more negative than dark-target noise (~-0.001) can explain. A 1st-percentile L1C DN of only tens, on
+every product version, is therefore consistent ONLY with the plain 0-10000 (no-offset) scale, so DN * 1e-4 is
+the correct conversion. This is a self-consistency check on the stored L1C scale by magnitude, not an absolute
+calibration against the raw source products. Independently, all products predate the Jan-2022 baseline-04.00
+change, and product-aware re-normalization is invariant to any constant offset anyway (see the verdict), so
+the paper's headline does not rest on this audit. We report the per-version raw-DN distribution for L1C and
 L2A, the verdict, and a few explicit DN->reflectance conversions.
 
 Run: python phase8R12_radiometric_audit.py
@@ -41,9 +47,10 @@ def main():
     m = pd.read_csv(os.path.join(data, "metadata.csv"))
     ver = m["s2_sen2cor_version"].values
     versions = sorted(set(ver))
-    print(f"CloudSEN12 test radiometric audit: {len(m)} patches, {len(versions)} processing baselines")
-    print("  baseline distribution:", {v: int((ver == v).sum()) for v in versions})
-    print("  (baseline 04.00 -- which introduced the +1000 radiometric add-offset -- is ABSENT; all are < 04.00)\n")
+    print(f"CloudSEN12 test radiometric audit: {len(m)} patches, {len(versions)} Sen2Cor product versions")
+    print("  s2_sen2cor_version distribution:", {v: int((ver == v).sum()) for v in versions})
+    print("  (none is >= N04.00 -- the Jan-2022 processing baseline that introduced the +1000 radiometric "
+          "add-offset -- so all predate it; s2_sen2cor_version is the product-version field, not the ESA PB)\n")
 
     l1c_p1_min = np.inf
     for band in BANDS:
@@ -69,10 +76,12 @@ def main():
     print(f"\nVERDICT: the smallest 1st-percentile L1C digital number across all baselines and sampled bands "
           f"is {l1c_p1_min:.0f}.")
     if l1c_p1_min < 1000:
-        print("  => it is < 1000, so a +1000 add-offset would force negative TOA reflectance (impossible). "
-              "The stored data is on the plain 0-10000 no-offset scale; reflectance = DN * 1e-4 is correct, "
-              "and is consistent across all eight baselines. Product-aware re-normalization (z-scoring by each "
-              "product's own per-band mean/std) is additionally invariant to any constant per-band offset.")
+        print(f"  => it is {l1c_p1_min:.0f} (<< 1000), so under a +1000 add-offset the TRUE TOA reflectance "
+              f"there would be ~{(l1c_p1_min - 1000) * SCALE:.2f} -- far more negative than dark-target noise "
+              "(~-0.001) can explain. The stored data is therefore on the plain 0-10000 no-offset scale; "
+              "reflectance = DN * 1e-4 is correct, consistent across all product versions. And product-aware "
+              "re-normalization (z-scoring by each product's own per-band mean/std) is invariant to any constant "
+              "per-band offset, so the headline is unaffected even were an offset present.")
     else:
         print("  => it is >= 1000 -- an add-offset may be present; investigate before trusting DN * 1e-4.")
     print("\nexplicit DN -> reflectance examples (x1e-4): "

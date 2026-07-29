@@ -179,8 +179,11 @@ def run_seed(seed, cube, gt, n_groups, max_missing, trials, epochs, tau, cwv_key
     # and calling it again WITHOUT threads= resets the intra-op count to the machine default. That
     # measured as 32 torch threads on an 8-core box while the flagship was running: the smoke burned
     # 4620 s of CPU in 22 minutes on work that takes about a minute at one thread. Per-seed
-    # randomness does not need it either -- pretrain_sgmae and finetune_proposed reseed torch
-    # themselves (seed+7 / seed+11).
+    # randomness for TRAINING does not need it -- pretrain_sgmae and finetune_proposed reseed torch
+    # themselves (seed+7 / seed+11) -- but the model's WEIGHT INITIALIZATION at construction does: without
+    # seeding first it is drawn from the ambient RNG state, which depends on worker count and execution order.
+    # We therefore call hw.seed_model(seed) immediately before the constructor below (adversarial review P0-A).
+    # hw.seed_model only reseeds RNGs (NOT the thread budget), so it is safe in a worker unlike hw.setup().
     Xtr, ytr, Xte, yte = P2.prep(cube, gt, block=10, offset=seed)
     groups = contiguous_groups(Xtr.shape[1], n_groups)
     t_group = group_transmittance(groups, cwv_key)
@@ -189,6 +192,7 @@ def run_seed(seed, cube, gt, n_groups, max_missing, trials, epochs, tau, cwv_key
     wl = np.asarray(AVIRIS_WL_NM, float)
     cwl = group_center_wavelengths(wl, groups)
 
+    hw.seed_model(seed)   # seed BEFORE the constructor: deterministic weight init per seed, order-independent
     model = GroupedCrossBandAttention(groups, cwl, P2.NUM_CLASSES)
     P2.pretrain_sgmae(model, Xtr, groups, seed, epochs=max(1, epochs // 2))
     P2.finetune_proposed(model, Xtr, ytr, groups, seed, epochs=epochs)

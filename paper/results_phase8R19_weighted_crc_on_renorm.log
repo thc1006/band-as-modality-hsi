@@ -1,22 +1,28 @@
-  eval 388400 px / 184 components; 10 seeds x 10 splits
-  seed 0: src wtd 0.0@0%  ren wtd 0.0@0%  (AUROC src 0.96 ren 0.57)
-  seed 1: src wtd 0.0@0%  ren wtd 0.0@0%  (AUROC src 1.00 ren 0.57)
-  seed 2: src wtd 0.0@0%  ren wtd 0.0@0%  (AUROC src 1.00 ren 0.61)
-  seed 3: src wtd 0.0@0%  ren wtd 0.0@0%  (AUROC src 0.98 ren 0.61)
-  seed 4: src wtd 0.0@0%  ren wtd 0.0@0%  (AUROC src 0.99 ren 0.59)
-  seed 5: src wtd 0.0@0%  ren wtd 0.0@0%  (AUROC src 0.98 ren 0.64)
-  seed 6: src wtd 0.0@0%  ren wtd 0.0@0%  (AUROC src 0.98 ren 0.67)
-  seed 7: src wtd 0.0@0%  ren wtd 0.0@0%  (AUROC src 0.97 ren 0.63)
-  seed 8: src wtd 0.0@0%  ren wtd 0.0@0%  (AUROC src 0.97 ren 0.63)
-  seed 9: src wtd 0.0@0%  ren wtd 0.0@0%  (AUROC src 0.98 ren 0.64)
+  eval 388400 px / 184 components; 10 seeds x 10 splits; df=9
+  seed 0: src_u 29.4@93  src_w 5.6@22  ren_u 9.3@71  ren_w 8.9@69
+  seed 1: src_u 27.2@95  src_w 0.3@1  ren_u 8.9@70  ren_w 8.9@70
+  seed 2: src_u 29.0@94  src_w 0.4@2  ren_u 9.3@70  ren_w 9.3@70
+  seed 3: src_u 27.0@93  src_w 1.7@8  ren_u 9.2@70  ren_w 8.7@69
+  seed 4: src_u 27.4@95  src_w 0.5@3  ren_u 9.7@71  ren_w 9.2@70
+  seed 5: src_u 27.3@94  src_w 1.2@7  ren_u 9.7@72  ren_w 9.0@70
+  seed 6: src_u 28.8@95  src_w 1.1@6  ren_u 9.5@71  ren_w 8.6@68
+  seed 7: src_u 27.9@93  src_w 1.7@9  ren_u 9.2@70  ren_w 8.7@68
+  seed 8: src_u 26.9@93  src_w 1.7@11  ren_u 9.3@71  ren_w 8.8@70
+  seed 9: src_u 30.4@92  src_w 1.2@6  ren_u 9.8@71  ren_w 9.2@70
 
-  two-way SE, t df=9; ALPHA 10%  (joint risk % @ coverage %)
-  src_uniform    joint   0.00 +/- 0.00 [  0.0,  0.0]  cov    0%  (n=100)
-  src_weighted   joint   0.00 +/- 0.00 [  0.0,  0.0]  cov    0%  (n=100)
-  ren_uniform    joint   0.00 +/- 0.00 [  0.0,  0.0]  cov    0%  (n=100)
-  ren_weighted   joint   0.00 +/- 0.00 [  0.0,  0.0]  cov    0%  (n=100)
+  two-way SE df=9 tcrit 2.262; ALPHA 10%  (joint% @ cov%, feasible%)
+  src_uniform    joint 28.13 [ 26.9, 29.4]  cov   94 [  93,  94]  feasible  100%  (cond 28.1@94)
+  src_weighted   joint  1.54 [  0.5,  2.6]  cov    7 [   3,  12]  feasible   12%  (cond 12.3@60)
+  ren_uniform    joint  9.40 [  8.6, 10.2]  cov   71 [  69,  73]  feasible  100%  (cond 9.4@71)
+  ren_weighted   joint  8.92 [  8.1,  9.7]  cov   69 [  67,  72]  feasible   99%  (cond 9.0@70)
 
-  diagnostics: domain AUROC  source 0.988 -> re-normalized 0.606; calibration ESS  source 41% -> re-normalized 75%
-  SUMMARY (data): on the SOURCE representation the formal weighted CRC abstains (high AUROC, tiny ESS, low coverage); read whether RE-NORMALIZING first restores overlap (AUROC down, ESS up) and lets the SAME weighted CRC hold control at a useful coverage. Plug-in weights carry no exact finite-sample guarantee and the re-normalization is estimated from deployment data.
+  PAIRED factorial contrasts (mean [two-way t CI]):
+    renorm|uniform (ren_u - src_u)     joint -18.73 [-19.7,-17.8]  cov -22.9 [-24.9,-20.9]
+    weight|source (src_w - src_u)      joint -26.59 [-28.0,-25.2]  cov -86.0 [-90.6,-81.5]
+    weight|renorm (ren_w - ren_u)      joint -0.48 [ -1.0, +0.0]  cov  -1.2 [ -2.7, +0.2]
+    interaction (weight: ren - src)    joint +26.11 [+24.6,+27.6]  (<0 => weighting helps MORE on the re-normalized representation)
+
+  diagnostics: domain AUROC train 0.989->0.633  held-out 0.980->0.570; calib ESS 10%->75% (eval ESS 39%->67%); renorm clamp lo/hi 0.01/0.00%
+  (reading is the paired contrasts + held-out AUROC above; nothing here is hardcoded.)
 
   wrote /home/hctsai1006/cct/band-as-modality-hsi/experiments/../paper/results_phase8R19_weighted_crc_on_renorm_summary.json + _percell.csv
