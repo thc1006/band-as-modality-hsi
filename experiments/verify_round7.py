@@ -150,12 +150,14 @@ def r11_crc_machinery():
     assert np.all(np.diff(L, axis=1) <= 1e-9)                              # loss non-increasing in threshold
     assert np.all(np.diff(COV, axis=1) <= 1e-9)                            # coverage non-increasing in threshold
     cal, ev = np.arange(20), np.arange(20, 40)
-    r_u, c_u = weighted_crc_perunit(L[cal], np.ones(20), grid, L[ev], COV[ev], np.ones(20), 0.10)
+    r_u, c_u, f_u = weighted_crc_perunit(L[cal], np.ones(20), grid, L[ev], COV[ev], np.ones(20), 0.10)
     assert np.isfinite(r_u).all() and (c_u >= 0).all() and (c_u <= 100.001).all()
-    # infeasible/accept-nothing path: a huge test-point weight forces target<0 -> accept nothing (risk 0, cov 0)
-    r_a, c_a = weighted_crc_perunit(L[cal], np.ones(20), grid, L[ev], COV[ev], np.full(20, 1e6), 0.10)
-    assert r_a[0] == 0.0 and c_a[0] == 0.0
-check("R11 comp_loss monotone + weighted_crc_perunit uniform & accept-nothing path", r11_crc_machinery)
+    assert f_u.all()                                                       # uniform: target=alpha*W>=0 -> all FEASIBLE
+    # infeasible path (P0-3): a huge test-point weight forces target<0 -> NO valid bound -> abstain-FALLBACK,
+    # which must be FLAGGED infeasible (not recorded as a formal 0-risk).
+    r_a, c_a, f_a = weighted_crc_perunit(L[cal], np.ones(20), grid, L[ev], COV[ev], np.full(20, 1e6), 0.10)
+    assert r_a[0] == 0.0 and c_a[0] == 0.0 and not f_a.any()
+check("R11 comp_loss monotone + weighted_crc_perunit feasibility flag (P0-3)", r11_crc_machinery)
 
 # ==================== nested_boot ====================
 def nb_ci_relation():

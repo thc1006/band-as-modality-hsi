@@ -2,7 +2,8 @@ loaded 10 flagship dumps; FORMAL component-level weighted CRC (test-dependent la
 
   (1) L1C->L2A shift, component-equal certificate (joint risk % @ coverage %):
     naive  (uniform CRC) joint  28.29 +/- 0.58 [27.0,29.6]  cov 92%   (sanity: uniform weights == standard CRC, same order as the post-seedfix flagship ~27.8)
-    FORMAL weighted CRC  joint   1.87 +/- 0.33 [1.1,2.6]  cov 7%
+    FORMAL weighted CRC  joint   1.87 +/- 0.33 [1.1,2.6]  cov 7%  (DEPLOYMENT mean, incl. infeasible->abstain fallback)
+      P0-3 feasibility: only 12% of eval units are FEASIBLE (target=alpha*W-w(x)(1-alpha)>=0); the rest abstain by FALLBACK, not a formal 0-risk. Conditional-on-feasible: joint 15.4% @ cov 53%
     domain-classifier AUROC 0.985; calib ESS 12%; clip [1e-3,1e3]
 
   (2) positive control -- fully-synthetic pure covariate shift, P(Y|X) fixed by construction:

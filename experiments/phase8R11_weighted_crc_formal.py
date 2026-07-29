@@ -99,19 +99,27 @@ def ess_frac(w):
 
 def weighted_crc_perunit(Lc, wc, grid, Le, COVe, we, alpha):
     """Formal weighted CRC: per eval component, test-dependent lambda-hat(x); return per-unit realized
-    within-component confidently-wrong fraction and coverage. Uniform w reduces to standard CRC."""
+    within-component confidently-wrong fraction, coverage, and an explicit FEASIBILITY flag.
+
+    A unit is INFEASIBLE when target = alpha*W - w(x)*(1-alpha) < 0: no threshold -- not even lambda=+inf,
+    which accepts nothing and gives G=0 -- satisfies the weighted bound, so there is NO certified operating
+    point and deployment falls back to abstain-all (realized 0, cover 0, feasible False). This is DISTINCT
+    from a feasible unit whose valid bound happens to select abstain-all; recording an infeasible unit as a
+    formal 0-risk conflates the two (adversarial-review P0-3), so callers must report the feasibility RATE and
+    the CONDITIONAL-on-feasible risk/coverage separately from this deployment-fallback mean. Uniform w reduces
+    to standard CRC and is always feasible (target = alpha*W >= 0)."""
     W = wc.sum()
     G = (wc[:, None] * Lc).sum(0)                        # G(lambda), non-increasing across the grid
-    realized = np.zeros(len(we)); cover = np.zeros(len(we))
+    realized = np.zeros(len(we)); cover = np.zeros(len(we)); feasible = np.zeros(len(we), bool)
     for x in range(len(we)):
         target = alpha * W - we[x] * (1.0 - alpha)
         ok = np.nonzero(G <= target)[0]
         if len(ok) == 0:
-            realized[x] = 0.0; cover[x] = 0.0            # infeasible even at lambda=+inf: accept nothing
+            realized[x] = 0.0; cover[x] = 0.0            # INFEASIBLE (target<0): no valid bound -> abstain-fallback
         else:
             g = ok[0]
-            realized[x] = Le[x, g]; cover[x] = COVe[x, g]
-    return realized, cover
+            realized[x] = Le[x, g]; cover[x] = COVe[x, g]; feasible[x] = True
+    return realized, cover, feasible
 
 
 def make_grid(conf_calib):
@@ -156,8 +164,8 @@ def synthetic_positive_control(alpha, seeds, beta):
         L, COV, _ = comp_loss(conf.ravel(), wrong.ravel(), comp, grid)
         w = np.exp(beta * d)                                     # true covariate-shift weight
         perm = rng.permutation(Ncomp); cal, ev = perm[:100], perm[100:]
-        rn, cn = weighted_crc_perunit(L[cal], np.ones(len(cal)), grid, L[ev], COV[ev], np.ones(len(ev)), alpha)
-        rw, cw = weighted_crc_perunit(L[cal], w[cal], grid, L[ev], COV[ev], w[ev], alpha)
+        rn, cn, _ = weighted_crc_perunit(L[cal], np.ones(len(cal)), grid, L[ev], COV[ev], np.ones(len(ev)), alpha)
+        rw, cw, _ = weighted_crc_perunit(L[cal], w[cal], grid, L[ev], COV[ev], w[ev], alpha)
         we = w[ev]
         naive.append((we * rn).sum() / we.sum() * 100); wtd.append((we * rw).sum() / we.sum() * 100)
         ncov.append((we * cn).sum() / we.sum() * 100); wcov.append((we * cw).sum() / we.sum() * 100)
@@ -219,9 +227,9 @@ def estimated_weight_positive_control(alpha, seeds, a_src, b_src, a_tgt, b_tgt, 
         w_all = np.clip(oof / (1 - oof + 1e-12), 1.0 / CLIP, CLIP)
         what_s, what_t = w_all[:ncomp], w_all[ncomp:]
         # three certificates on the TARGET eval, all calibrated on the SOURCE
-        rn, cn = weighted_crc_perunit(Ls, np.ones(ncomp), grid, Lt, COVt, np.ones(ncomp), alpha)
-        rt, ct2 = weighted_crc_perunit(Ls, wstar_s, grid, Lt, COVt, wstar_t, alpha)
-        re_, ce = weighted_crc_perunit(Ls, what_s, grid, Lt, COVt, what_t, alpha)
+        rn, cn, _ = weighted_crc_perunit(Ls, np.ones(ncomp), grid, Lt, COVt, np.ones(ncomp), alpha)
+        rt, ct2, _ = weighted_crc_perunit(Ls, wstar_s, grid, Lt, COVt, wstar_t, alpha)
+        re_, ce, _ = weighted_crc_perunit(Ls, what_s, grid, Lt, COVt, what_t, alpha)
         naive.append(rn.mean() * 100); tru.append(rt.mean() * 100); est.append(re_.mean() * 100)
         ncov.append(cn.mean() * 100); tcov.append(ct2.mean() * 100); ecov.append(ce.mean() * 100)
         aurocs.append(roc_auc_score(yb, oof)); briers.append(brier_score_loss(yb, oof))
@@ -251,6 +259,7 @@ def main():
 
     # ---------- (1) real L1C->L2A shift ----------
     naive, wtd, ncov, wcov, aucs, esss = [], [], [], [], [], []
+    wfeas, wcond, wcondcov = [], [], []                     # P0-3: weighted-CRC feasibility + conditional-on-feasible
     for si, f in enumerate([] if args.pc_only else dumps):
         d = np.load(f); lc, ll, y, comp = d["logits_clean"], d["logits_l2a"], d["y"].astype(int), d["comp"]
         for ss in args.splits:
@@ -263,16 +272,22 @@ def main():
             _, _, _, F1, _ = state_arrays(ll, y, comp, mt, Tc, grid)             # L2A temp   (target 1)
             (wc, we), auc = domain_weights(F0, F1, [Fc, Fe])
             aucs.append(auc); esss.append(ess_frac(wc) * 100)
-            rn, cn = weighted_crc_perunit(Lc, np.ones(len(wc)), grid, Le, COVe, np.ones(len(we)), ALPHA)
-            rw, cw = weighted_crc_perunit(Lc, wc, grid, Le, COVe, we, ALPHA)
+            rn, cn, _ = weighted_crc_perunit(Lc, np.ones(len(wc)), grid, Le, COVe, np.ones(len(we)), ALPHA)
+            rw, cw, fw = weighted_crc_perunit(Lc, wc, grid, Le, COVe, we, ALPHA)
             naive.append((si, ss, rn.mean() * 100)); ncov.append(cn.mean() * 100)
             wtd.append((si, ss, rw.mean() * 100)); wcov.append(cw.mean() * 100)
+            wfeas.append(float(fw.mean()) * 100)                            # P0-3: formal-CRC feasibility rate
+            wcond.append(float(rw[fw].mean() * 100) if fw.any() else np.nan)      # conditional-on-feasible joint
+            wcondcov.append(float(cw[fw].mean() * 100) if fw.any() else np.nan)   # conditional-on-feasible coverage
     if naive:
         mn, sn = two_way_se(naive); mw, sw = two_way_se(wtd)
         tc = {3: 4.303, 5: 2.776}.get(len(dumps), 2.262)
         print("\n  (1) L1C->L2A shift, component-equal certificate (joint risk % @ coverage %):")
         print(f"    naive  (uniform CRC) joint {mn:6.2f} +/- {sn:.2f} [{mn-tc*sn:.1f},{mn+tc*sn:.1f}]  cov {np.mean(ncov):.0f}%   (sanity: uniform weights == standard CRC, same order as the post-seedfix flagship ~27.8)")
-        print(f"    FORMAL weighted CRC  joint {mw:6.2f} +/- {sw:.2f} [{mw-tc*sw:.1f},{mw+tc*sw:.1f}]  cov {np.mean(wcov):.0f}%")
+        print(f"    FORMAL weighted CRC  joint {mw:6.2f} +/- {sw:.2f} [{mw-tc*sw:.1f},{mw+tc*sw:.1f}]  cov {np.mean(wcov):.0f}%  (DEPLOYMENT mean, incl. infeasible->abstain fallback)")
+        print(f"      P0-3 feasibility: only {np.nanmean(wfeas):.0f}% of eval units are FEASIBLE "
+              f"(target=alpha*W-w(x)(1-alpha)>=0); the rest abstain by FALLBACK, not a formal 0-risk. "
+              f"Conditional-on-feasible: joint {np.nanmean(wcond):.1f}% @ cov {np.nanmean(wcondcov):.0f}%")
         print(f"    domain-classifier AUROC {np.mean(aucs):.3f}; calib ESS {np.mean(esss):.0f}%; clip [1e-3,1e3]")
 
     # ---------- (2) fully-synthetic PURE covariate-shift positive control (P(Y|X) fixed) ----------

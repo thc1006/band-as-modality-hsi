@@ -61,6 +61,43 @@ def _env_threads(default: int) -> int:
     return default
 
 
+def gpu_mem_gb() -> list[float]:
+    """Total memory (GB) of each visible CUDA device, in device order (empty if no CUDA)."""
+    out = []
+    for i in range(n_gpus()):
+        try:
+            out.append(torch.cuda.get_device_properties(i).total_memory / 1e9)
+        except Exception:
+            pass
+    return out
+
+
+def gpu_oversub_default(cap: int = 3) -> int:
+    """Memory-adaptive default for concurrent jobs PER GPU (the many-tiny-jobs workload).
+
+    Adapts to GPU *size*, not just count: uses the SMALLEST visible GPU's total memory (conservative
+    for heterogeneous multi-GPU) bucketed against the ~7-8 GB/worker peak these eval jobs reach.
+      <16 GB  -> 1   two ~7.6 GB workers would not co-reside -> OOM-safe on small / consumer GPUs
+      <64 GB  -> 2   V100-32 / A100-40: the value measured optimal on this box (--jobs 2 beat --jobs 7)
+      >=64 GB -> 3   A100-80 / H100: modest headroom; the workload is launch-bound, so deliberately capped
+    Returns 2 on the 2x V100-32GB box, so switching the planner to this default is a NO-OP there.
+    Override at any size with BANDSIM_GPU_OVERSUB=N; tune the per-worker budget via BANDSIM_PER_WORKER_GB."""
+    mem = gpu_mem_gb()
+    if not mem:
+        return 1
+    min_gb = min(mem)
+    try:
+        per = float(os.environ.get("BANDSIM_PER_WORKER_GB", "8"))
+    except ValueError:
+        per = 8.0
+    per = max(1.0, per)
+    if min_gb < 2 * per:            # can't safely co-reside two workers -> serialize per GPU
+        return 1
+    if min_gb < 8 * per:            # V100/A100-40 class: the empirically-optimal 2 here
+        return 2
+    return max(1, min(cap, 3))      # very large GPUs (>=~64 GB): a little headroom, still capped
+
+
 # ---------------------------------------------------------------------------------------
 # device selection
 # ---------------------------------------------------------------------------------------

@@ -28,7 +28,12 @@ Environment overrides
 ---------------------
   BANDSIM_WORKERS       int    force the number of concurrent workers (1 = serial)
   BANDSIM_DEVICE        str    cpu | cuda | auto  (device preference; default auto)
-  BANDSIM_GPU_OVERSUB   int    workers per GPU when on CUDA (default 2)
+  BANDSIM_GPU_OVERSUB   int    workers per GPU when on CUDA. Default is SIZE-AWARE (hw.gpu_oversub_default):
+                               <16GB->1 (OOM-safe), <64GB->2 (V100/A100-40, measured optimal here),
+                               >=64GB->3 (A100-80/H100). Set N to force any size.
+  BANDSIM_PER_WORKER_GB float  per-worker VRAM budget the size-aware default buckets against (default 8);
+                               raise it for heavier jobs (fewer workers/GPU), lower it for tiny ones.
+  BANDSIM_RESERVE_CORES int    cores held back from workers for the OS (default 1)
   BANDSIM_THREADS       int    intra-op/BLAS threads per worker (default cores//workers)
 """
 from __future__ import annotations
@@ -44,12 +49,13 @@ from concurrent.futures import ProcessPoolExecutor
 # =======================================================================================
 class Plan:
     """Resolved fan-out plan for a set of jobs."""
-    def __init__(self, workers, device_mode, n_gpus, oversub, threads_per_worker):
+    def __init__(self, workers, device_mode, n_gpus, oversub, threads_per_worker, gpu_gb=None):
         self.workers = workers                 # number of concurrent worker processes
         self.device_mode = device_mode         # "cuda" or "cpu"
         self.n_gpus = n_gpus
         self.oversub = oversub
         self.threads_per_worker = threads_per_worker
+        self.gpu_gb = list(gpu_gb or [])       # total memory (GB) per visible GPU (for the size-aware plan)
 
     @property
     def serial(self):
@@ -59,8 +65,11 @@ class Plan:
         if self.serial:
             return f"serial (1 worker, {self.device_mode}, {self.threads_per_worker} threads)"
         if self.device_mode == "cuda":
-            return (f"{self.workers} workers over {self.n_gpus} GPU(s) "
-                    f"(~{self.oversub}/GPU), {self.threads_per_worker} threads each")
+            gb = self.gpu_gb
+            memnote = (f", {gb[0]:.0f}GB" if gb and len({round(g) for g in gb}) == 1
+                       else (f", {min(gb):.0f}-{max(gb):.0f}GB" if gb else ""))
+            return (f"{self.workers} workers over {self.n_gpus} GPU(s){memnote} "
+                    f"(size-aware ~{self.oversub}/GPU), {self.threads_per_worker} threads each")
         return f"{self.workers} CPU workers, {self.threads_per_worker} threads each"
 
 
@@ -96,7 +105,10 @@ def plan_jobs(n_items, prefer=None, jobs=None, threads=None):
     forced = _int_env("BANDSIM_WORKERS", jobs if jobs is not None else 0)
 
     if device_mode == "cuda":
-        oversub = max(1, _int_env("BANDSIM_GPU_OVERSUB", 2))
+        # oversub PER GPU: size-aware by default (small GPU -> 1 to avoid OOM, V100/32G -> 2 as
+        # measured optimal here, big GPU -> a little more), overridable with BANDSIM_GPU_OVERSUB.
+        env_over = _int_env("BANDSIM_GPU_OVERSUB", 0)     # 0/unset => auto (hw.gpu_oversub_default)
+        oversub = max(1, env_over if env_over > 0 else hw.gpu_oversub_default())
         default_workers = min(n_items, max(1, ng * oversub))
     else:
         oversub = 0
@@ -111,7 +123,8 @@ def plan_jobs(n_items, prefer=None, jobs=None, threads=None):
         tpw = max(1, int(threads))
     else:
         tpw = max(1, cores // workers)
-    return Plan(workers, device_mode, ng, oversub, tpw)
+    return Plan(workers, device_mode, ng, oversub, tpw,
+                gpu_gb=(hw.gpu_mem_gb() if device_mode == "cuda" else None))
 
 
 # =======================================================================================

@@ -109,26 +109,66 @@ def robust_transport(Xeval, Xcal_l2a, Xsrc, mu_tr, sd_tr, keep_idx, floor=1e-6):
     return out
 
 
-def quantile_match(Xeval, Xcal_l2a, Xsrc, mu_tr, sd_tr, keep_idx):
-    """Per-band monotone quantile mapping (label-free, evaluation-disjoint): transform each eval L2A band so
-    its marginal matches the SOURCE (L1C-train) marginal, using the disjoint CALIBRATION L2A as the reference
-    for the L2A CDF -- no eval transduction. This aligns the FULL per-band distribution (all moments), not
-    only mean/std, to the scale the certificate was calibrated on; the result is then z-scored with the
-    model's own training statistics, exactly as at training. Formally v' = Q_src(F_{L2A-cal}(x)), band by
-    band, with plotting-position CDFs and linear interpolation (a proper monotone transport map). Dropped
-    bands (B10, zeroed in L2A and masked in the forward pass) fall back to the plain train z-score."""
+def _mid_cdf_knots(x):
+    """Tie-aware empirical CDF on the UNIQUE (strictly-increasing) values of x: each distinct value v gets
+    its mid-distribution rank F(v) = (cum_count - 0.5*count)/n. These are the monotone-increasing sample
+    points np.interp requires. The earlier `np.sort` + arange convention gave a tied cluster the rank of its
+    LAST duplicate (a first/last-rank, NOT a mid-distribution CDF), which mishandles the heavy ties in
+    quantised Sentinel reflectance -- adversarial-review P0-2. On the full 10x10 the tie-aware convention
+    lowers the quantile-transport joint ~0.1-0.2 pp vs the old first/last-rank (R10 9.6->9.5, R17 9.55->9.35),
+    within the pipeline's GPU run-to-run non-determinism (attention backward has no deterministic kernel, see
+    bandsim/parallel.py) and under the ~0.3 pp SE; the product-aware (mean/std) headline 10.8 and every paper
+    claim are unchanged. This is the correct definition and matches the docstring."""
+    v, c = np.unique(x, return_counts=True)
+    return v, (np.cumsum(c) - 0.5 * c) / len(x)
+
+
+def quantile_match(Xeval, Xcal_l2a, Xsrc, mu_tr, sd_tr, keep_idx, diag=None):
+    """Per-band monotone quantile transport (label-free, evaluation-disjoint): map each eval L2A band onto
+    the SOURCE (L1C-train) marginal via v' = Q_src(F_{L2A-cal}(x)), using the disjoint CALIBRATION L2A as the
+    L2A reference (no eval transduction), then z-score with the model's own training statistics. F and Q use
+    the TIE-AWARE mid-distribution CDF on unique knots (_mid_cdf_knots), so heavy reflectance ties are handled
+    correctly (adversarial-review P0-2). This aligns only the per-band MARGINAL; it does NOT preserve
+    cross-band (joint) dependence -- a residual the paper attributes to non-affine/unmodelled product
+    differences, not physics, so we read it as an EMPIRICAL change of the operating point, not proof that the
+    shift is purely input-scale. Dropped bands (B10) fall back to the plain train z-score. If `diag` is a
+    list, per-band transport diagnostics are appended (knot counts, out-of-calibration-range and
+    source-endpoint-mapping fractions, constant-band flag)."""
     out = ((Xeval - mu_tr) / sd_tr).astype(np.float32)       # safe finite default for every band
     keep = {int(i) for i in keep_idx}
     for b in range(Xeval.shape[1]):
         if b not in keep:
             continue
-        cal = np.sort(Xcal_l2a[:, b]); src = np.sort(Xsrc[:, b])
-        cdf_cal = (np.arange(len(cal)) + 0.5) / len(cal)     # plotting-position empirical CDF of calib L2A
-        cdf_src = (np.arange(len(src)) + 0.5) / len(src)
-        u = np.interp(Xeval[:, b], cal, cdf_cal)             # F_{L2A-cal}(x) in (0,1), monotone
-        v = np.interp(u, cdf_src, src)                       # Q_src(u): source quantile at that level
+        cv, cdf_cal = _mid_cdf_knots(Xcal_l2a[:, b])         # tie-aware, strictly-increasing knots
+        sv, cdf_src = _mid_cdf_knots(Xsrc[:, b])
+        xb = Xeval[:, b]
+        u = np.interp(xb, cv, cdf_cal)                       # F_{L2A-cal}(x) in (0,1), monotone
+        v = np.interp(u, cdf_src, sv)                        # Q_src(u): source quantile at that level
         out[:, b] = (v - mu_tr[b]) / sd_tr[b]                # z-score on the model's own training scale
+        if diag is not None:
+            diag.append(dict(band=int(b), n_knots_cal=int(cv.size), n_knots_src=int(sv.size),
+                             frac_below_cal_min=float(np.mean(xb < cv[0])),
+                             frac_above_cal_max=float(np.mean(xb > cv[-1])),
+                             frac_at_src_min=float(np.mean(v <= sv[0])),
+                             frac_at_src_max=float(np.mean(v >= sv[-1])),
+                             constant_band=bool(cv.size < 2 or sv.size < 2)))
     return out
+
+
+def _quantile_selftest():
+    """Adversarial-review P0-2 diagnostics that do not need data: monotonicity + identity + a tie example."""
+    rng = np.random.default_rng(0)
+    xs = np.sort(rng.integers(0, 40, size=4000).astype(float))[:, None] / 10.0   # heavy ties (quantised)
+    keep = [0]
+    ident = quantile_match(xs, xs, xs, np.array([0.0]), np.array([1.0]), keep)     # Xcal==Xsrc==Xeval
+    id_err = float(np.max(np.abs(ident[:, 0] - xs[:, 0])))
+    probe = np.linspace(-0.5, 4.5, 500)[:, None]
+    mapped = quantile_match(probe, xs, xs, np.array([0.0]), np.array([1.0]), keep)[:, 0]
+    mono = bool(np.all(np.diff(mapped) >= -1e-9))
+    # the reviewer's tie example: cal=[0,0,0,1], x=0 must get the MID rank 0.375, not last-rank 0.625
+    tv, tc = _mid_cdf_knots(np.array([0.0, 0.0, 0.0, 1.0]))
+    tie_u = float(np.interp(0.0, tv, tc))
+    return dict(identity_max_abs_err=id_err, monotone=mono, tie_example_F0=tie_u)
 
 
 def comp_equal_acc(corr, comp):
@@ -218,6 +258,11 @@ def main():
     rows = {s: [] for s in trk}
     covs = {s: [] for s in trk}
     sels = {s: [] for s in trk}
+    qm_diag = []                                             # per-band quantile-transport diagnostics (first cell)
+    qm_selftest = _quantile_selftest()                       # P0-2: monotonicity + identity + tie example
+    print(f"  [quantile P0-2 self-test] identity_max_abs_err={qm_selftest['identity_max_abs_err']:.2e} "
+          f"monotone={qm_selftest['monotone']} tie_example_F(0)={qm_selftest['tie_example_F0']:.3f} "
+          f"(tie-aware mid-CDF => 0.375; the old first/last-rank gave 0.625)", flush=True)
     pacc = {s: [] for s in trk}
     cacc = {s: [] for s in trk}
     for seed in seeds:
@@ -275,7 +320,8 @@ def main():
             # push the disjoint arm to <=alpha? calibration L2A is the reference; L1C-train is the target.
             Xrob = robust_transport(Xl2a_c[me], Xl2a_c[mc], Xtr_c, mu_tr, sd_tr, keep_b)
             record_normalized("L2A_prod_disj_robust", Xrob, DROP_L2A, me, Tc, thr)
-            Xqm = quantile_match(Xl2a_c[me], Xl2a_c[mc], Xtr_c, mu_tr, sd_tr, keep_b)
+            Xqm = quantile_match(Xl2a_c[me], Xl2a_c[mc], Xtr_c, mu_tr, sd_tr, keep_b,
+                                 diag=(qm_diag if not qm_diag else None))   # collect diag on the first cell
             record_normalized("L2A_prod_disj_quantile", Xqm, DROP_L2A, me, Tc, thr)
         cur = {s: np.mean([r[2] for r in rows[s] if r[0] == seed]) for s in ("clean", "L2A_src", "L2A_prod")}
         print(f"  seed {seed}: clean {cur['clean']:.1f}  L2A_src {cur['L2A_src']:.1f}  "
@@ -322,7 +368,17 @@ def main():
                "arms": {st: {"joint_mean": agg[st][0], "joint_se": agg[st][1],
                              "coverage": float(np.mean(covs[st])), "selective": float(np.mean(sels[st])),
                              "pixel_acc": float(np.mean(pacc[st])), "component_acc": float(np.mean(cacc[st]))}
-                        for st in trk}}
+                        for st in trk},
+               "quantile_transport_diagnostics": {"selftest": qm_selftest, "per_band_first_cell": qm_diag}}
+    if qm_diag:
+        below = float(np.mean([d["frac_below_cal_min"] for d in qm_diag]) * 100)
+        above = float(np.mean([d["frac_above_cal_max"] for d in qm_diag]) * 100)
+        endpt = float(np.mean([d["frac_at_src_min"] + d["frac_at_src_max"] for d in qm_diag]) * 100)
+        knots = float(np.mean([d["n_knots_cal"] for d in qm_diag]))
+        nconst = int(sum(d["constant_band"] for d in qm_diag))
+        print(f"  [quantile transport diag, {len(qm_diag)} kept bands, first cell] mean unique cal knots "
+              f"{knots:.0f}; eval below cal-min {below:.2f}% / above cal-max {above:.2f}%; mapped to a src "
+              f"endpoint {endpt:.2f}%; constant bands {nconst}", flush=True)
     with open(args.out + "_summary.json", "w") as f:
         json.dump(summary, f, indent=2)
 
