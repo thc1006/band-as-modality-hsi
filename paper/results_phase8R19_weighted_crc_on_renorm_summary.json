@@ -1,0 +1,45 @@
+{
+ "alpha": 0.1,
+ "df": 9,
+ "tcrit": 2.262157162798205,
+ "arms": {
+  "src_uniform": {
+   "mean": 0.0,
+   "se": 0.0,
+   "lo": 0.0,
+   "hi": 0.0,
+   "coverage": 0.0,
+   "n_cells": 100
+  },
+  "src_weighted": {
+   "mean": 0.0,
+   "se": 0.0,
+   "lo": 0.0,
+   "hi": 0.0,
+   "coverage": 0.0,
+   "n_cells": 100
+  },
+  "ren_uniform": {
+   "mean": 0.0,
+   "se": 0.0,
+   "lo": 0.0,
+   "hi": 0.0,
+   "coverage": 0.0,
+   "n_cells": 100
+  },
+  "ren_weighted": {
+   "mean": 0.0,
+   "se": 0.0,
+   "lo": 0.0,
+   "hi": 0.0,
+   "coverage": 0.0,
+   "n_cells": 100
+  }
+ },
+ "diagnostics": {
+  "src_auc": 0.9879536862003782,
+  "src_ess": 0.4149602338419036,
+  "ren_auc": 0.6059357277882798,
+  "ren_ess": 0.7483794998224065
+ }
+}

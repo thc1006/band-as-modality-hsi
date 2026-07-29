@@ -1,0 +1,22 @@
+  eval 388400 px / 184 components; 10 seeds x 10 splits
+  seed 0: src wtd 0.0@0%  ren wtd 0.0@0%  (AUROC src 0.96 ren 0.57)
+  seed 1: src wtd 0.0@0%  ren wtd 0.0@0%  (AUROC src 1.00 ren 0.57)
+  seed 2: src wtd 0.0@0%  ren wtd 0.0@0%  (AUROC src 1.00 ren 0.61)
+  seed 3: src wtd 0.0@0%  ren wtd 0.0@0%  (AUROC src 0.98 ren 0.61)
+  seed 4: src wtd 0.0@0%  ren wtd 0.0@0%  (AUROC src 0.99 ren 0.59)
+  seed 5: src wtd 0.0@0%  ren wtd 0.0@0%  (AUROC src 0.98 ren 0.64)
+  seed 6: src wtd 0.0@0%  ren wtd 0.0@0%  (AUROC src 0.98 ren 0.67)
+  seed 7: src wtd 0.0@0%  ren wtd 0.0@0%  (AUROC src 0.97 ren 0.63)
+  seed 8: src wtd 0.0@0%  ren wtd 0.0@0%  (AUROC src 0.97 ren 0.63)
+  seed 9: src wtd 0.0@0%  ren wtd 0.0@0%  (AUROC src 0.98 ren 0.64)
+
+  two-way SE, t df=9; ALPHA 10%  (joint risk % @ coverage %)
+  src_uniform    joint   0.00 +/- 0.00 [  0.0,  0.0]  cov    0%  (n=100)
+  src_weighted   joint   0.00 +/- 0.00 [  0.0,  0.0]  cov    0%  (n=100)
+  ren_uniform    joint   0.00 +/- 0.00 [  0.0,  0.0]  cov    0%  (n=100)
+  ren_weighted   joint   0.00 +/- 0.00 [  0.0,  0.0]  cov    0%  (n=100)
+
+  diagnostics: domain AUROC  source 0.988 -> re-normalized 0.606; calibration ESS  source 41% -> re-normalized 75%
+  SUMMARY (data): on the SOURCE representation the formal weighted CRC abstains (high AUROC, tiny ESS, low coverage); read whether RE-NORMALIZING first restores overlap (AUROC down, ESS up) and lets the SAME weighted CRC hold control at a useful coverage. Plug-in weights carry no exact finite-sample guarantee and the re-normalization is estimated from deployment data.
+
+  wrote /home/hctsai1006/cct/band-as-modality-hsi/experiments/../paper/results_phase8R19_weighted_crc_on_renorm_summary.json + _percell.csv
