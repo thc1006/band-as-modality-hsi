@@ -29,5 +29,5 @@ two-way cluster-robust SE):
     parameter-matched two-way SE)
 
 Source and full result manifest: github.com/thc1006/band-as-modality-hsi
-  release v1.1.0 (commit f5a9742); paper/RESULT_MANIFEST.md maps every number to its
+  release v1.1.0 (git tag v1.1.0); paper/RESULT_MANIFEST.md maps every number to its
   script, log, CSV and seed; verify_round7.py is an 18-check regression suite (all green).

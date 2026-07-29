@@ -1,0 +1,22 @@
+  eval 388400 px / 184 components; warm 102 / cold 82; newSC(>=N02.13) 124 / oldSC 60; 10 seeds x 10 splits
+  seed 0: full-calib quantile mean 9.53
+  seed 1: full-calib quantile mean 8.77
+  seed 2: full-calib quantile mean 9.47
+  seed 3: full-calib quantile mean 9.13
+  seed 4: full-calib quantile mean 9.93
+  seed 5: full-calib quantile mean 10.21
+  seed 6: full-calib quantile mean 9.63
+  seed 7: full-calib quantile mean 9.35
+  seed 8: full-calib quantile mean 9.32
+  seed 9: full-calib quantile mean 10.12
+
+  two-way SE, t df=9 (tcrit 2.262); ALPHA target 10%
+  full           joint   9.55 +/- 0.24  [  9.0, 10.1]  cov   70%  (n=100)
+  calib_warm     joint  10.41 +/- 0.31  [  9.7, 11.1]  cov   70%  (n=100)
+  calib_cold     joint   9.78 +/- 0.30  [  9.1, 10.5]  cov   68%  (n=100)
+  calib_newSC    joint   9.94 +/- 0.27  [  9.3, 10.6]  cov   68%  (n=100)
+  calib_oldSC    joint  10.77 +/- 0.28  [ 10.1, 11.4]  cov   71%  (n=100)
+
+  SUMMARY (data): full-calib 9.55% (anchor). Cross-season (warm/cold) and cross-baseline (new/old Sen2Cor) arms show whether a mapping estimated on one season or processing-baseline group still reaches near target on the mixed eval set. Cross-DATE and cross-PROCESSOR transfer remain untested.
+
+  wrote /home/hctsai1006/cct/band-as-modality-hsi/experiments/../paper/results_phase8R18_quantile_season_baseline_summary.json + _percell.csv

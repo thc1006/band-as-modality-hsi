@@ -23,6 +23,7 @@ running the scripts themselves.
 | Normalization control (disjoint / pooled) | 10.8±0.3 / 10.5±0.3 (from 28.4) | `phase8R10_normalization_control.py` | `paper/results_phase8R10_normalization_control_{summary.json,percell.csv,10seed.log}` |
 | Normalization decomposition | product +17.9 / composition +0.0 / TTA +1.0 | same | same |
 | Quantile-transport generalization (3.2) | full-calib 9.55 (anchor≈headline 9.6); sample-size n8/16/24/40 = 13.0/11.2/10.4/9.8; random halves 10.1/9.9 (agree); bright/dark calib 12.5/14.4 (surface-dependent); cov ~70% all arms (df=9) | `phase8R17_quantile_generalization.py` (10 model × 10 split seed) | `paper/results_phase8R17_quantile_generalization_{summary.json,percell.csv,log}` |
+| Quantile transfer: season + Sen2Cor baseline | full 9.55; warm/cold calib 10.4/9.8 (cold matches full, warm +0.9); new/old Sen2Cor baseline 9.9/10.8 (older +1.2 above full); season+baseline effects ≪ surface (df=9) | `phase8R18_quantile_season_baseline.py` (10 model × 10 split seed) | `paper/results_phase8R18_quantile_season_baseline_{summary.json,percell.csv,log}` |
 | ACOLITE paired diff | 29.6 vs 29.34, +0.26 [−1.2,+1.7] TOST pass | `phase8R3_acolite.py`+`phase8R10_acolite_paired_diff.py` | `paper/results_phase8R3_acolite10.csv` |
 | Validation replication | 28.0±0.7 | `phase8R5_secondbench.py` | `paper/results_phase8R5_secondbench_seedfix.log` |
 | Validation per-class | IoU 54.4→30.0 | `phase8R5_valdump.py`+`phase8R5_val_classwise.py` | `paper/results_val_classwise_seedfix.log` |
