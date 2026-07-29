@@ -36,19 +36,35 @@
     "target_risk": 0.1,
     "weight_rule": "p(group) proportional to (1 - mean 6S transmittance)^tau; tau=0 is uniform"
   },
-  "generated_utc": "2026-07-20T11:05:04+00:00",
+  "generated_utc": "2026-07-29T21:14:06+00:00",
   "git": {
-    "branch": "main",
-    "commit": "c1fc32bfd7b71d78b145431381c8ab06c2c506f9",
-    "dirty": false,
-    "dirty_code_paths": [],
-    "dirty_files": 0,
+    "branch": "reviewer-response-2026-07-22",
+    "commit": "5720a0db69f414c595d4f8ef4fbd36ff2bc8932f",
+    "dirty": true,
+    "dirty_code_paths": [
+      "experiments/phase8R10_normalization_control.py",
+      "experiments/phase8R11_weighted_crc_formal.py",
+      "experiments/phase8R12_radiometric_audit.py",
+      "experiments/phase8R15_receptive_field.py",
+      "experiments/phase8R16_classwise_10x10.py",
+      "experiments/phase8R17_quantile_generalization.py",
+      "experiments/phase8R18_quantile_season_baseline.py",
+      "experiments/phase8R19_weighted_crc_on_renorm.py",
+      "experiments/phase8R8_spatial_isolation.py",
+      "experiments/phase8R9_acolite_clip_sensitivity.py",
+      "experiments/phase8R9_acolite_retained_bias.py",
+      "experiments/phase8R9_surface_nested_boot.py",
+      "experiments/phase9_physics_vs_random.py",
+      "experiments/verify_round7.py"
+    ],
+    "dirty_files": 14,
     "outputs_dirty": true
   },
   "smoke": false,
   "versions": {
     "cuda": "12.4",
     "gpus": [
+      "Tesla V100-SXM2-32GB",
       "Tesla V100-SXM2-32GB"
     ],
     "h5py": "3.16.0",
