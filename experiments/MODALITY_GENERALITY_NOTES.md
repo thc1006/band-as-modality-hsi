@@ -99,9 +99,29 @@ NOT which whole SCENES are bad. **IMPLICATION (honest):** the paper's Mondrian r
 confident PIXELS, so it IS supported (pixel AURC 19.6 → recovers ~74 % coverage on CloudSEN12; contrast the
 extreme HSI-6S pixel AURC 91.4 ≈ error → Mondrian collapses to 7–13 %). But a whole-SCENE trust decision is
 NOT supported by the confidence. So the earlier unqualified "core confidence is informative" was
-pixel-level-optimistic; the precise statement is: informative for pixel-level acceptance (Mondrian) and for
-the severity axis, NOT for scene-level trust. The paper's OPERATIONAL claims (pixel-level Mondrian, re-norm,
-silent CRC failure) stand; the flagship is safe for what it actually asserts, with this unit caveat recorded.
+pixel-level-optimistic; the precise statement is: informative for pixel-level acceptance (Mondrian), NOT for
+scene-level trust. The paper's OPERATIONAL claims (pixel-level Mondrian, re-norm, silent CRC failure) stand;
+the flagship is safe for what it actually asserts, with this unit caveat recorded.
+
+## Is confidence-informativeness a clean "severity axis"? NO — EMIT refutes it (self-review).
+An earlier note claimed informativeness scales inversely with shift SEVERITY. The EMIT AURC (`aurc_emit.py`,
+MLP vs band, 5 seeds, pixel-level) is a direct COUNTEREXAMPLE:
+
+| pixel-level naive AURC | AURC | error | gap | verdict |
+|---|---|---|---|---|
+| CloudSEN12 L1C→L2A (mild) | 19.6 | 32 | +12 | informative |
+| **EMIT radiance→reflectance (extreme)** | **~50** | ~71 | **+20** | informative |
+| HSI 6S dry→humid, MLP (extreme) | 83 | 86 | +3 | weakly informative |
+| HSI 6S dry→humid, band (extreme) | 91 | 92 | +1 | dead |
+
+EMIT is a MORE extreme shift than CloudSEN12 yet its confidence is MORE informative (+20 > +12), so
+informativeness is NOT a monotone function of severity — it is shift×model-specific (the HSI-6S *band* going
+dead is the outlier, its attention locking onto the corrupted water-vapour bands). Two further honesties:
+(1) on EMIT, MLP ≈ band at matched coverage (selective risk @40 % 48.7 vs 50.3; AURC 50.9 vs 48.6, within
+seed noise sd~3) — so the band is NOT more robust on EMIT either, confirming the coverage-artifact reading.
+(2) "informative" ≠ "usable": EMIT's top-40 %-confident pixels are still ~49 % wrong, which is why EMIT
+Mondrian needs ~27 % coverage. So Mondrian's coverage cost depends on BOTH the target error level AND the
+ranking (AURC), not on a single severity number.
 (`phase8G_emit_shift.py --model {mlp,band}`, `phase8H_hsi6s_shift.py --model band [--spatial-cwv]`.)
 
 ## Honest scope / caveats
