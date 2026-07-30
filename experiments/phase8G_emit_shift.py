@@ -115,6 +115,12 @@ def main():
                     help="mlp = plain MLP (default, the pushed result); band = GroupedCrossBandAttention "
                          "+ SGMAE pretraining (the paper's actual architecture) to show the silent failure "
                          "is architecture-independent")
+    ap.add_argument("--bs", type=int, default=0,
+                    help="training batch size for the band model; 0 = auto_bs (=256 here, LAUNCH-BOUND: "
+                         "d_model=64 -> microseconds of GPU work per ~15ms Python/launch overhead x 117 "
+                         "steps/epoch). A larger bs (e.g. 2048) is ~10x faster wall-clock -- fewer, bigger "
+                         "steps -- and is the codebase's own auto_bs remedy. bs is a hyperparameter, so pair a "
+                         "raised bs with more epochs to keep the update count comparable.")
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--out", default=os.path.join(_HERE, "..", "paper", "results_phase8G_emit_shift"))
     args = ap.parse_args()
@@ -148,7 +154,10 @@ def main():
         if args.model == "band":
             cwl = group_center_wavelengths(_first_wl(), groups)
             model = GroupedCrossBandAttention(groups, cwl, K)
-            _bs = P2.auto_bs(len(Xtr_n))
+            _bs = args.bs if args.bs > 0 else P2.auto_bs(len(Xtr_n))   # --bs 0 keeps the pushed 40ep byte-identical
+            if seed == args.seeds[0]:
+                hint = "  <- LAUNCH-BOUND; pass --bs 2048 for ~10x wall-clock" if _bs <= 256 else ""
+                print(f"  band model: bs={_bs} ({len(Xtr_n)//_bs + 1} steps/epoch){hint}", flush=True)
             P2.pretrain_sgmae(model, Xtr_n, groups, seed, epochs=max(1, args.epochs // 2), bs=_bs)
             P2.finetune_proposed(model, Xtr_n, Y[tr], groups, seed, epochs=args.epochs, bs=_bs,
                                  group_dropout=False)

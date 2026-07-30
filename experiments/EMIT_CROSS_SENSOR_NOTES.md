@@ -67,6 +67,21 @@ NAIVE **57.5 ± 3.6** / Mondrian 9.9 @ 19 % / re-norm 26.7 ± 1.4 / calib-stat 9
 silent pattern and partial-re-norm residual as the MLP (9.8 / 66.6 / 10.0 / 24.8). It is a property of the
 stale-normalization CONTRACT, not of the classifier family. See MODALITY_GENERALITY_NOTES.md.
 
+**Performance note (band model is LAUNCH-BOUND at the default batch).** The GroupedCrossBandAttention model is
+`d_model=64`, so each training step is microseconds of GPU work wrapped in ~15 ms of Python/kernel-launch
+overhead (exactly the regime `phase2_degradation.auto_bs` documents). At EMIT's ~30k train px `auto_bs`
+floors to **bs=256 → 117 steps/epoch**, which is pure launch overhead and runs at a misleadingly "high"
+`nvidia-smi` utilisation while being ~10x slower than it should be (a 100-epoch × 10-seed run stretched to
+hours, made worse by concurrent GPU jobs). Profiled: bs=256 **1847 ms/epoch** vs bs=2048 **176 ms/epoch**
+(10.5x) vs bs=8192 112 ms/epoch (16.5x). Fix: `phase8G_emit_shift.py --model band --bs 2048` (≈29 s/seed).
+bs is a hyperparameter, so `--bs 0` (auto=256) is kept as the default to hold the pushed 40-epoch result
+byte-identical; the convergence check `results_phase8G_emit_shift_band_bs2048.json` uses `--bs 2048 --epochs
+300` (matched ~4.5k-update budget, ~15 min for 10 seeds vs hours) and reproduces the silent breach MORE
+strongly: clean 9.8 / NAIVE **70.0** / Mondrian 9.8 @ 17 % / re-norm 30.4 / calib 9.9 (acc L1B 85-86 %,
+converged). A better-trained band model breaches HARDER than the 40-epoch one (70.0 vs 57.5) -- convergence
+does not rescue the certificate; the sharper model is simply more confidently wrong on the stale-normalized
+target.
+
 ## Honest scope
 - A cross-sensor **generalization** of the reliability finding to hyperspectral land-cover under a real
   atmospheric shift — NOT a second cloud dataset (EMIT scenes are arid/low-cloud).
