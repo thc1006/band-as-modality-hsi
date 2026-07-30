@@ -58,25 +58,29 @@ The label-free remedy is therefore **not a panacea** — it is the right fix pre
 is global-per-band-dominated (the CloudSEN12 operational case the paper targets), and it can help little or
 nothing when the shift is strongly heterogeneous or non-affine.
 
-## Architecture GENERALITY (self-review corrected this from "independence")
+## Architecture GENERALITY — the band is NOT "more robust" (AURC/matched-coverage settles it)
 The silent failure holds for BOTH a plain MLP and the paper's band-as-modality GroupedCrossBandAttention
-(+ SGMAE), but the band model is consistently MORE ROBUST in breach MAGNITUDE — and the self-review shows WHY:
-it partially self-protects by becoming UNCERTAIN under shift (its coverage COLLAPSES), not by being more
-accurate. Compare NAIVE joint @ coverage, 10 seeds each:
+(+ SGMAE). The band model's LOWER joint-risk under shift (HSI 6S NAIVE 36.7 vs MLP 86.0) tempted an earlier
+"self-protects / graceful degradation" reading — a **coverage-honest AURC / matched-coverage analysis REFUTES
+it**. The band's low joint-risk is purely an OPERATING-POINT artifact:
 
-| shift | MLP NAIVE | band NAIVE | what happens |
+| model | NAIVE joint @ cov | AURC clean→naive | selective-risk @ matched 40 % cov (naive) |
 |---|---|---|---|
-| EMIT product | 66.6 @ 95 % | 57.5 @ 83 % | band sheds some coverage |
-| HSI 6S uniform (IP) | 86.0 @ 97 % | 36.7 @ **41 %** | band coverage COLLAPSES 80→41 % |
-| HSI 6S spatial (IP) | 78.4 @ 95 % | 36.7 @ **43 %** | same |
+| MLP | 86.0 @ 97 % | 4.9 → 83.0 | **84** |
+| band | 36.7 @ **41 %** | 6.7 → **91.4** | **91** |
 
-Under the severe 6S shift the MLP stays OVERCONFIDENT (accepts ~97 %, breaches 86 %) while the band model's
-confidence collapses (accepts ~41 %, breaches 37 %) — graceful degradation via abstention, NOT higher
-accuracy. So the joint-risk magnitude is **coverage-confounded**; the band model is not simply "more accurate
-under shift". What IS robust: BOTH breach the certificate (37–86 % ≫ 10 % target) SILENTLY (calib
+(10 seeds.) The band's joint-risk is lower only because it happens to ACCEPT far fewer pixels (41 % vs 97 %).
+Hold coverage FIXED and the band is WORSE at every level (selective risk 91 vs 84 at 40 % cov; also 60/80 %).
+Under shift the MLP's confidence stays WEAKLY informative (AURC 83 < its full-coverage error 86) while the
+band's is UNINFORMATIVE (AURC 91.4 ≈ its error 92 — essentially zero signal about which shifted predictions
+are wrong, so no threshold recovers useful coverage). So neither model's confidence is trustworthy under the
+stale-normalization shift, and the band's is the WORSE — the apparent robustness was a coverage mirage
+(`aurc_matched_coverage.py`).
+
+What IS robust across architectures: BOTH breach the certificate (≫ 10 % target) SILENTLY (calib
 9.8–9.9 % ≤ α), and BOTH follow the re-norm spectrum (uniform full-fix MLP 11.3 / band 10.7; spatial partial
-MLP 38.9 / band 26.2). The failure is a property of the stale-normalization CONTRACT; the classifier family
-sets only its SEVERITY and how gracefully it degrades — not whether it happens.
+MLP 38.9 / band 26.2). The failure is a property of the stale-normalization CONTRACT, not the classifier
+family — and no architecture's confidence self-rescues.
 (`phase8G_emit_shift.py --model {mlp,band}`, `phase8H_hsi6s_shift.py --model band [--spatial-cwv]`.)
 
 ## Honest scope / caveats
