@@ -135,6 +135,23 @@ ranking (AURC), not on a single severity number.
   NAIVE 62.6). These are DIFFERENT quantities (naive confidence RANKING vs accuracy AFTER the remedy), so no
   contradiction: the band's confidence is less trustworthy, but the label-free remedy works better for it here.
 
+## Pavia (ROSIS, weak VNIR shift) band — REFUTES "band worse everywhere": shift-DEPENDENT
+On Pavia's mild VNIR shift (mean |dT| 0.026, no deep water bands), the coverage-honest AURC shows the band
+RANKS BETTER than the MLP — the OPPOSITE of IP/Salinas (5 seeds):
+
+| Pavia band vs MLP (naive) | AURC | matched-cov-40 % selective risk |
+|---|---|---|
+| uniform | MLP 25.5 / **band 23.2** | MLP 27.6 / **band 20.2** |
+| spatial | MLP 19.8 / **band 15.3** | MLP 21.4 / **band 13.7** |
+
+So the band's confidence-ranking vs the MLP is SHIFT-DEPENDENT, NOT uniformly worse: WORSE under severe
+band-specific corruption (IP/Salinas — the spectral attention locks onto the crushed SWIR water bands and goes
+dead) but BETTER under a mild shift (Pavia — attention intact). The earlier "band not more reliable ANYWHERE"
+was an over-generalization from the severe-shift datasets; corrected here. (Positive control + spectrum still
+hold: Pavia band uniform re-norm 5.5 ≈ clean 5.2 full-fix; spatial re-norm 13.5 partial.) Net honest claim:
+neither model's confidence is TRUSTWORTHY under shift (all breach silently), but which architecture ranks its
+errors better is a function of whether the shift corrupts the specific bands the spectral attention relies on.
+
 ## Methods caveat (self-review): AURC is only APPROXIMATELY temperature-invariant
 The AURC scripts use raw max-softmax (no calibration). For K>2 classes a single scalar temperature T can
 slightly reorder max-softmax, so AURC is not EXACTLY T-invariant. A direct check (fit T on source calib,
