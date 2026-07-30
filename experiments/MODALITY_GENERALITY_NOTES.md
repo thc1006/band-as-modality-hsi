@@ -82,22 +82,26 @@ What IS robust across architectures: BOTH breach the certificate (≫ 10 % targe
 MLP 38.9 / band 26.2). The failure is a property of the stale-normalization CONTRACT, not the classifier
 family — and no architecture's confidence self-rescues.
 
-## Does the "confidence dies" finding backwash onto the paper's FLAGSHIP? NO.
-Checked directly on the CloudSEN12 flagship (band-as-modality) core, offline from the banked scenedump_rich
-(AURC is temperature-invariant, so no retraining/calibration needed), 10 seeds, `aurc_cloudsen12_core.py`:
+## Does the "confidence dies" finding backwash onto the FLAGSHIP? It is UNIT-DEPENDENT (self-review sharpened).
+Checked on the CloudSEN12 flagship (band-as-modality) offline from scenedump_rich (AURC is temperature-
+invariant, no retrain), 10 seeds. The FIRST pass (`aurc_cloudsen12_core.py`, pixel-level) said "informative";
+the scene-component pass (`aurc_scene_component.py`, the paper's EXCHANGEABLE UNIT) shows it does NOT lift to
+the unit:
 
-| shift (band-as-modality) | AURC naive | full error | verdict |
+| CloudSEN12 flagship, L1C→L2A naive | AURC | error | gap |
 |---|---|---|---|
-| **CloudSEN12 L1C→L2A (the paper's core)** | **19.6** | 32 | **INFORMATIVE** (AURC ≪ error, gap +12 pp) |
-| HSI 6S dry→humid (extreme) | 91.4 | 92 | dead (gap +0.6) |
+| pixel-level (accept individual pixels) | 19.6 | 32 | +12 → informative |
+| **scene-component-level (accept WHOLE components)** | **30.6** | 32 | **+1 → NOT informative** |
 
-Under the REALISTIC L1C→L2A shift the flagship confidence still RANKS its L2A errors (matched-cov 40 %
-selective risk 17 % vs 32 % full error), so the finding that band confidence goes uninformative is specific to
-the EXTREME constructed shifts (radiance→reflectance, dry→humid at full CWV range), NOT the paper's operational
-case. This also EXPLAINS the varying Mondrian coverage cost: informative confidence → Mondrian recovers at high
-coverage (CloudSEN12 ~74 %); dead confidence → Mondrian only holds risk by near-total abstention (HSI 6S
-7–13 %, EMIT 17–29 %). **Confidence-informativeness under shift scales inversely with shift severity** — a clean
-unifying axis, and the flagship sits on the safe end.
+Component-cluster bootstrap 90 % CI on the pixel AURC is [18.9, 22.4] (the pixel result is solid), but the
+confidence's ranking power is almost entirely WITHIN-scene: it identifies which PIXELS in a scene are wrong,
+NOT which whole SCENES are bad. **IMPLICATION (honest):** the paper's Mondrian remedy accepts individual
+confident PIXELS, so it IS supported (pixel AURC 19.6 → recovers ~74 % coverage on CloudSEN12; contrast the
+extreme HSI-6S pixel AURC 91.4 ≈ error → Mondrian collapses to 7–13 %). But a whole-SCENE trust decision is
+NOT supported by the confidence. So the earlier unqualified "core confidence is informative" was
+pixel-level-optimistic; the precise statement is: informative for pixel-level acceptance (Mondrian) and for
+the severity axis, NOT for scene-level trust. The paper's OPERATIONAL claims (pixel-level Mondrian, re-norm,
+silent CRC failure) stand; the flagship is safe for what it actually asserts, with this unit caveat recorded.
 (`phase8G_emit_shift.py --model {mlp,band}`, `phase8H_hsi6s_shift.py --model band [--spatial-cwv]`.)
 
 ## Honest scope / caveats
