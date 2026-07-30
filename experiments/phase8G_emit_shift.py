@@ -34,7 +34,8 @@ import phase8G_emit_io as EIO
 import phase2_degradation as P2
 import phase8R10_normalization_control as R10   # reuse the mid-CDF quantile transport (P0-2 fix)
 from bandsim import hw
-from bandsim.grouping import contiguous_groups
+from bandsim.grouping import contiguous_groups, group_center_wavelengths
+from bandsim.model import GroupedCrossBandAttention
 from bandsim.reliability import conformal_risk_control, fit_temperature
 
 ALPHA = 0.10
@@ -73,6 +74,28 @@ def logits_of(model, X, dev, bs=8192):
     return np.concatenate(out)
 
 
+def logits_band(model, X, groups, dev, bs=8192):
+    """Logits for the band-as-modality GroupedCrossBandAttention: forward takes (x, present_mask); we
+    pass an all-present mask (drop=[]) since EMIT keeps every good band at deployment."""
+    out = []
+    model.eval()
+    with torch.no_grad():
+        for s in range(0, len(X), bs):
+            xb = torch.from_numpy(X[s:s + bs].astype(np.float32)).to(dev)
+            pm = P2.group_present_mask(len(xb), groups, [])
+            out.append(model(xb, torch.from_numpy(pm).to(dev)).detach().cpu().numpy())
+    return np.concatenate(out)
+
+
+def _first_wl():
+    """EMIT good-band wavelength axis (nm) from the first available per-biome cache (all share it)."""
+    for _, d in EIO.list_biomes():
+        cp = EIO.shift_cache_path(d)
+        if os.path.exists(cp):
+            return np.load(cp)["wl"].astype(float)
+    raise RuntimeError("no shift cache -- run: .venv/bin/python experiments/phase8G_emit_io.py --build-cache")
+
+
 def joint(corr, conf, thr):
     """(joint risk %, coverage %, selective %) at acceptance threshold thr on max-softmax conf."""
     acc = conf >= thr
@@ -88,6 +111,10 @@ def main():
     ap.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2, 3, 4])
     ap.add_argument("--epochs", type=int, default=40)
     ap.add_argument("--hidden", type=int, default=256)
+    ap.add_argument("--model", choices=["mlp", "band"], default="mlp",
+                    help="mlp = plain MLP (default, the pushed result); band = GroupedCrossBandAttention "
+                         "+ SGMAE pretraining (the paper's actual architecture) to show the silent failure "
+                         "is architecture-independent")
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--out", default=os.path.join(_HERE, "..", "paper", "results_phase8G_emit_shift"))
     args = ap.parse_args()
@@ -117,11 +144,22 @@ def main():
         mu = clipR(RAD[tr]).mean(0); sd = clipR(RAD[tr]).std(0) + 1e-6       # SOURCE (L1B) train stats = the stale contract
         norm = lambda X, m, s: ((X - m) / s).astype(np.float32)
         groups = contiguous_groups(RAD.shape[1], 12)
-        model = P2.train_mlp(norm(clipR(RAD[tr]), mu, sd), Y[tr], groups, seed, group_dropout=False,
-                             epochs=args.epochs, hidden=args.hidden, num_classes=K)
+        Xtr_n = norm(clipR(RAD[tr]), mu, sd)
+        if args.model == "band":
+            cwl = group_center_wavelengths(_first_wl(), groups)
+            model = GroupedCrossBandAttention(groups, cwl, K)
+            _bs = P2.auto_bs(len(Xtr_n))
+            P2.pretrain_sgmae(model, Xtr_n, groups, seed, epochs=max(1, args.epochs // 2), bs=_bs)
+            P2.finetune_proposed(model, Xtr_n, Y[tr], groups, seed, epochs=args.epochs, bs=_bs,
+                                 group_dropout=False)
+            L = lambda X: logits_band(model, X, groups, dev)
+        else:
+            model = P2.train_mlp(Xtr_n, Y[tr], groups, seed, group_dropout=False,
+                                 epochs=args.epochs, hidden=args.hidden, num_classes=K)
+            L = lambda X: logits_of(model, X, dev)
 
         # SOURCE (L1B) calibration on the calib pixels: temperature (first half) + CRC threshold (second half)
-        lc = logits_of(model, norm(clipR(RAD[ca]), mu, sd), dev)
+        lc = L(norm(clipR(RAD[ca]), mu, sd))
         half = len(lc) // 2
         Tc = fit_temperature(lc[:half], Y[ca][:half])
         pc = softmax(lc[half:] / Tc, axis=1); corr_c = pc.argmax(1) == Y[ca][half:]
@@ -129,18 +167,18 @@ def main():
         calib_stat = float(np.mean((~corr_c) & (pc.max(1) >= thr))) * 100   # the statistic CRC minimises (<= alpha)
 
         # DEPLOY on the SAME eval pixels -- PURE product shift: L1B clean / L2A stale / L2A product-aware re-norm
-        pe_clean = softmax(logits_of(model, norm(clipR(RAD[ev]), mu, sd), dev) / Tc, axis=1)
-        pe_stale = softmax(logits_of(model, norm(clipL(RFL[ev]), mu, sd), dev) / Tc, axis=1)     # STALE L1B stats on L2A
+        pe_clean = softmax(L(norm(clipR(RAD[ev]), mu, sd)) / Tc, axis=1)
+        pe_stale = softmax(L(norm(clipL(RFL[ev]), mu, sd)) / Tc, axis=1)                         # STALE L1B stats on L2A
         muL = clipL(RFL[ca]).mean(0); sdL = clipL(RFL[ca]).std(0) + 1e-6                         # TARGET stats from CALIB (eval-disjoint)
-        pe_renorm = softmax(logits_of(model, norm(clipL(RFL[ev]), muL, sdL), dev) / Tc, axis=1)
+        pe_renorm = softmax(L(norm(clipL(RFL[ev]), muL, sdL)) / Tc, axis=1)
         # richer label-free transport: per-band quantile map L2A(eval)->L1B(train) marginal, eval-disjoint L2A(calib)
         # as the L2A reference (R10.quantile_match returns the L1B-train z-scored input, so feed it directly)
         Xq = R10.quantile_match(clipL(RFL[ev]), clipL(RFL[ca]), clipR(RAD[tr]), mu, sd, list(range(RAD.shape[1])))
-        pe_quant = softmax(logits_of(model, Xq.astype(np.float32), dev) / Tc, axis=1)
+        pe_quant = softmax(L(Xq.astype(np.float32)) / Tc, axis=1)
         cc = pe_clean.argmax(1) == Y[ev]; cs = pe_stale.argmax(1) == Y[ev]
         cr = pe_renorm.argmax(1) == Y[ev]; cq = pe_quant.argmax(1) == Y[ev]
         # Mondrian: recalibrate the threshold on the TARGET product (L2A of the calib pixels, eval-disjoint)
-        pca = softmax(logits_of(model, norm(clipL(RFL[ca]), mu, sd), dev) / Tc, axis=1); cca = pca.argmax(1) == Y[ca]
+        pca = softmax(L(norm(clipL(RFL[ca]), mu, sd)) / Tc, axis=1); cca = pca.argmax(1) == Y[ca]
         thrM = float(conformal_risk_control(cca, pca.max(1), cca, pca.max(1), alpha=ALPHA)["threshold"])
 
         r = dict(seed=seed, K=K, n_eval_px=int(len(ev)), calib_stat=calib_stat,
