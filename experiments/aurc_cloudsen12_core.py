@@ -5,8 +5,8 @@ UNINFORMATIVE (aurc_matched_coverage.py)? This checks the new AURC finding does 
 flagship.
 
 Runs entirely OFFLINE from the banked scenedump_rich (raw reflectance + per-seed clean/L2A logits) — no
-retraining. AURC is invariant to temperature scaling (a monotone transform does not change the max-softmax
-RANKING), so no calibration is needed: load logits -> confidence + correctness -> AURC. The dumped L2A logits
+retraining. AURC is only APPROXIMATELY temperature-invariant (for K>2 a single scalar T can slightly reorder
+max-softmax; a direct check found <=2 pp impact and no verdict change), so raw logits are used here. The dumped L2A logits
 already use the STALE L1C-train normalization (the naive silent-failure deployment). Pixel-level.
 
   python experiments/aurc_cloudsen12_core.py            # reads paper/scenedump_rich/ (build it first via

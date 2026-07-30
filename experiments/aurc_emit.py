@@ -3,8 +3,9 @@
 
 Parallels aurc_matched_coverage.py (HSI 6S) for the EMIT cross-sensor case. Question: is the band model's
 LOWER joint-risk on EMIT (NAIVE 57.5 @ 83% cov vs MLP 66.6 @ 95%) genuine robustness or an operating-point
-artifact, and is EITHER confidence informative under this EXTREME shift? AURC is invariant to temperature
-scaling (monotone -> ranking unchanged), so no calibration is needed; confidence = max-softmax. Pixel-level
+artifact, and is EITHER confidence informative under this EXTREME shift? AURC is only APPROXIMATELY invariant
+to temperature (for K>2 a scalar T can slightly reorder max-softmax; a direct check found <=2 pp impact and no
+verdict change), so raw max-softmax is used. Pixel-level
 (EMIT has no scene-component unit here).
 """
 import argparse

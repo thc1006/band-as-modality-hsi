@@ -3,7 +3,7 @@
 
 The pixel-level AURC (aurc_cloudsen12_core.py) treats each pixel independently, which can look OPTIMISTIC when
 errors cluster spatially. The paper's exchangeable unit is the scene-connected-component, so this recomputes
-AURC two unit-honest ways from the banked scenedump_rich (offline; AURC is temperature-invariant):
+AURC two unit-honest ways from the banked scenedump_rich (offline; AURC is ~temperature-invariant, <=2 pp):
 
   1. COMPONENT-level selective classification: accept/reject WHOLE components ranked by their mean confidence
      (you cannot cherry-pick confident pixels inside a bad region), integrated over pixel coverage -- directly

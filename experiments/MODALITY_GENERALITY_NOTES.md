@@ -122,6 +122,25 @@ seed noise sd~3) — so the band is NOT more robust on EMIT either, confirming t
 (2) "informative" ≠ "usable": EMIT's top-40 %-confident pixels are still ~49 % wrong, which is why EMIT
 Mondrian needs ~27 % coverage. So Mondrian's coverage cost depends on BOTH the target error level AND the
 ranking (AURC), not on a single severity number.
+
+## Salinas (2nd AVIRIS dataset) band — two SEPARATE axes, framed conservatively
+- Positive control holds for the band: Salinas band UNIFORM re-norm 7.2 ≈ clean 6.7 (per-band-multiply
+  invariance is architecture-free).
+- **Confidence still WORSE-ranked** for the band (AURC naive, coverage-honest): uniform band **90.2 ≈ error 91
+  (dead)** vs MLP 67.4; spatial matched-cov-40 % band **57.7** vs MLP 49.5. Consistent with IP/EMIT — the band
+  is NOT more reliable.
+- **Yet band re-norm recovers more ACCURACY on Salinas SPATIAL**: re-norm error 48.5 vs MLP 63.5 at ~matched
+  coverage (97 vs 100 %), 10 seeds — a genuine model×remedy INTERACTION (the band's spectral attention
+  leverages the re-normed heterogeneous input where the MLP cannot; the MLP re-norm gave no benefit, 63.5 ≈
+  NAIVE 62.6). These are DIFFERENT quantities (naive confidence RANKING vs accuracy AFTER the remedy), so no
+  contradiction: the band's confidence is less trustworthy, but the label-free remedy works better for it here.
+
+## Methods caveat (self-review): AURC is only APPROXIMATELY temperature-invariant
+The AURC scripts use raw max-softmax (no calibration). For K>2 classes a single scalar temperature T can
+slightly reorder max-softmax, so AURC is not EXACTLY T-invariant. A direct check (fit T on source calib,
+T=1.2–2.4) shifts AURC by ≤2 pp and flips NO verdict here (band still dead/worse-ranked, MLP still weakly
+informative), so the conclusions hold; the "temperature-invariant" wording in the AURC scripts is corrected to
+"approximately (≤2 pp)".
 (`phase8G_emit_shift.py --model {mlp,band}`, `phase8H_hsi6s_shift.py --model band [--spatial-cwv]`.)
 
 ## Honest scope / caveats
