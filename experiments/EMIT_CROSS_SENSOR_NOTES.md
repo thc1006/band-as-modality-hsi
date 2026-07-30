@@ -75,12 +75,20 @@ floors to **bs=256 → 117 steps/epoch**, which is pure launch overhead and runs
 hours, made worse by concurrent GPU jobs). Profiled: bs=256 **1847 ms/epoch** vs bs=2048 **176 ms/epoch**
 (10.5x) vs bs=8192 112 ms/epoch (16.5x). Fix: `phase8G_emit_shift.py --model band --bs 2048` (≈29 s/seed).
 bs is a hyperparameter, so `--bs 0` (auto=256) is kept as the default to hold the pushed 40-epoch result
-byte-identical; the convergence check `results_phase8G_emit_shift_band_bs2048.json` uses `--bs 2048 --epochs
-300` (matched ~4.5k-update budget, ~15 min for 10 seeds vs hours) and reproduces the silent breach MORE
-strongly: clean 9.8 / NAIVE **70.0** / Mondrian 9.8 @ 17 % / re-norm 30.4 / calib 9.9 (acc L1B 85-86 %,
-converged). A better-trained band model breaches HARDER than the 40-epoch one (70.0 vs 57.5) -- convergence
-does not rescue the certificate; the sharper model is simply more confidently wrong on the stale-normalized
-target.
+byte-identical; the efficient config `results_phase8G_emit_shift_band_bs2048.json` uses `--bs 2048 --epochs 300`
+(~4.5k-update budget, ~15 min for 10 seeds vs hours): clean 9.8 / NAIVE **70.0** / Mondrian 9.8 @ 17 % /
+re-norm 30.4 / calib 9.9 (acc L1B 85-86 %).
+
+⚠️ **Honesty correction (adversarial self-review).** An earlier note here claimed "convergence makes the
+breach worse (70.0 vs the 40-epoch 57.5)". That was a CONFOUND -- the two runs differ in BOTH epochs (40->300)
+AND batch size (256->2048). Isolating each: at fixed bs=2048, NAIVE is 64.3 (40ep) -> 63.7 (100ep) -> 69.0
+(300ep), i.e. the epoch trend is small and swamped by huge per-seed variance (e.g. 100ep seeds 49 and 79). The
+step from bs=256/40ep (57.5) to bs=2048/40ep (64.3) shows the batch size (a different optimization trajectory)
+accounts for most of the gap. So the magnitude is BATCH-SIZE-dependent and NOT cleanly attributable to
+convergence. What IS robust across every config (bs 256-2048, 40-300 epochs): the silent failure holds --
+NAIVE 57-70 %, calibration statistic 9.9 % <= alpha, always catastrophic and always silent. A separate check
+confirmed the classifier is real (clean acc 85 % vs 36 % majority class; per-class recall [88,83,81,64,97,17]),
+not a majority-class collapse.
 
 ## Honest scope
 - A cross-sensor **generalization** of the reliability finding to hyperspectral land-cover under a real
