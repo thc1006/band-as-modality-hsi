@@ -30,6 +30,7 @@ from scipy.special import softmax
 
 import phase1_indian_pines as P1
 import phase2_degradation as P2
+import phase6_second_dataset as P6
 from bandsim import hw
 from bandsim.io import disjoint_block_split
 from bandsim.grouping import contiguous_groups
@@ -37,32 +38,70 @@ from bandsim.reliability import conformal_risk_control, fit_temperature
 from phase8G_emit_shift import logits_of, joint         # reuse the exact inference + joint-risk helpers
 
 ALPHA = 0.10
-LUT = os.path.join(os.path.dirname(_HERE), "data", "srf_cache", "T_6s_grid.npz")
+SRF = os.path.join(os.path.dirname(_HERE), "data", "srf_cache")
+
+
+def _load_dataset(name):
+    """(cube (H,W,B) reflectance, gt (H,W) labels 1..K, K, LUT path). Indian Pines keeps its original
+    loader + the shipped 200-band LUT; salinas/pavia use the phase6 registry + their own generated LUT
+    (run experiments/precompute_6s_dataset.py --dataset <name> first)."""
+    if name == "indian_pines":
+        cube, gt = P1.load_indian_pines()
+        return cube, gt, 16, os.path.join(SRF, "T_6s_grid.npz")
+    cube, gt, _wl, K, _ = P6.load_dataset(name)
+    return cube, gt, int(K), os.path.join(SRF, f"T_6s_grid_{name}.npz")
 
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--dataset", default="indian_pines", choices=["indian_pines", "salinas", "pavia"])
     ap.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
     ap.add_argument("--epochs", type=int, default=60)
     ap.add_argument("--hidden", type=int, default=256)
     ap.add_argument("--src-cwv", default="cwv0.5")
     ap.add_argument("--tgt-cwv", default="cwv4.0")
-    ap.add_argument("--out", default=os.path.join(_HERE, "..", "paper", "results_phase8H_hsi6s_shift"))
+    ap.add_argument("--spatial-cwv", action="store_true",
+                    help="target atmosphere varies PER PIXEL (a smooth CWV gradient src->tgt down the scene) so "
+                         "the shift is NOT a global per-band multiply -- global per-band re-norm then only "
+                         "PARTIALLY realigns it (the realistic heterogeneous-atmosphere case). The uniform "
+                         "default is a per-band-multiply POSITIVE CONTROL that re-norm inverts by construction.")
+    ap.add_argument("--out", default=None)
     args = ap.parse_args()
+    if args.out is None:
+        stem = "results_phase8H_hsi6s_shift" if args.dataset == "indian_pines" else f"results_phase8H_hsi6s_{args.dataset}"
+        if args.spatial_cwv:
+            stem += "_spatial"
+        args.out = os.path.join(_HERE, "..", "paper", stem)
     hw.setup(deterministic=True, prefer="auto")
     dev = hw.device()
     print("HW:", hw.info(), flush=True)
 
-    cube, gt = P1.load_indian_pines()                                   # (145,145,200) reflectance, gt 1..16
-    z = np.load(LUT)
+    cube, gt, K, lut = _load_dataset(args.dataset)                      # (H,W,B) reflectance, gt 1..K
+    z = np.load(lut)
     Ts = np.asarray(z[args.src_cwv], float); Tt = np.asarray(z[args.tgt_cwv], float)
     if Ts.shape[0] != cube.shape[-1] or Tt.shape[0] != cube.shape[-1]:
         raise ValueError(f"6S LUT has {Ts.shape[0]} bands but cube has {cube.shape[-1]} -- axis mismatch")
-    src_cube = cube * Ts                                                 # dry-atmosphere product
-    tgt_cube = cube * Tt                                                 # humid-atmosphere product
+    src_cube = cube * Ts                                                 # dry (uniform) source product
     dw = float(np.mean(np.abs(Ts - Tt)))                                # mean per-band transmittance gap
-    print(f"6S shift {args.src_cwv}->{args.tgt_cwv}: mean |dT| {dw:.3f}, "
-          f"max |dT| {float(np.max(np.abs(Ts-Tt))):.3f} over {len(Ts)} bands", flush=True)
+    if args.spatial_cwv:
+        # per-PIXEL atmosphere: a smooth CWV gradient src->tgt down the scene, T linearly interpolated over the
+        # LUT's CWV grid. tgt = cube * T(cwv[i,j]) is NOT a global per-band multiply, so per-band re-norm (which
+        # is EXACTLY invariant to a global per-band multiply -- the uniform case is a positive control) can only
+        # PARTIALLY realign it. This is the realistic heterogeneous-atmosphere case, matching CloudSEN12/EMIT.
+        grid = np.array([0.5, 2.0, 4.0])
+        Tg = np.stack([np.asarray(z[f"cwv{c}"], float) for c in grid])   # (3, nbands)
+        sv = float(args.src_cwv.replace("cwv", "")); tv = float(args.tgt_cwv.replace("cwv", ""))
+        H, W = gt.shape
+        cwv_map = (sv + (tv - sv) * np.linspace(0, 1, H)[:, None] * np.ones((1, W))).reshape(-1)
+        Tt_map = np.stack([np.interp(cwv_map, grid, Tg[:, b]) for b in range(Tg.shape[1])], axis=1)
+        tgt_cube = (cube.reshape(-1, cube.shape[-1]) * Tt_map).reshape(cube.shape)
+        print(f"6S shift {args.src_cwv}->{args.tgt_cwv} SPATIAL (per-pixel CWV {sv}->{tv} gradient): uniform-gap "
+              f"mean |dT| {dw:.3f} over {len(Ts)} bands -- re-norm expected PARTIAL", flush=True)
+    else:
+        tgt_cube = cube * Tt                                             # humid (uniform) target product
+        print(f"6S shift {args.src_cwv}->{args.tgt_cwv} UNIFORM: mean |dT| {dw:.3f}, "
+              f"max |dT| {float(np.max(np.abs(Ts-Tt))):.3f} over {len(Ts)} bands -- per-band multiply, "
+              f"re-norm inverts by construction (POSITIVE CONTROL)", flush=True)
     groups = contiguous_groups(cube.shape[-1], 12)
 
     rows = []
@@ -80,7 +119,7 @@ def main():
         mu = Xtr_s.mean(0); sd = Xtr_s.std(0) + 1e-6
         norm = lambda X: ((X - mu) / sd).astype(np.float32)
         model = P2.train_mlp(norm(Xtr_s), ytr, groups, seed, group_dropout=False,
-                             epochs=args.epochs, hidden=args.hidden, num_classes=16)
+                             epochs=args.epochs, hidden=args.hidden, num_classes=K)
 
         # SOURCE calibration on the (dry) calib pixels: temperature (first half) + CRC threshold (second half)
         lc = logits_of(model, norm(gv(src_cube, cai)), dev); yc = gv(yx, cai); h = len(lc) // 2
@@ -115,7 +154,8 @@ def main():
     def agg(key, i):
         v = np.array([r[key][i] for r in rows], float)
         return float(np.nanmean(v)), (float(np.nanstd(v, ddof=1) / np.sqrt(len(v))) if len(v) > 1 else float("nan"))
-    print(f"\n=== HSI 6S reliability (Indian Pines, {args.src_cwv}->{args.tgt_cwv}, {len(rows)} seeds, "
+    print(f"\n=== HSI 6S reliability ({args.dataset}, {args.src_cwv}->{args.tgt_cwv}"
+          f"{' SPATIAL/per-pixel' if args.spatial_cwv else ' UNIFORM'}, {len(rows)} seeds, "
           f"alpha={ALPHA*100:.0f}%) ===")
     for k, l in [("clean_src", "clean (dry source)"), ("naive_tgt", "NAIVE (humid, stale)"),
                  ("mondrian_tgt", "Mondrian (humid recalib)"), ("renorm_tgt", "re-norm (humid stats)")]:
