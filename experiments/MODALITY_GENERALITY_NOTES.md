@@ -81,6 +81,23 @@ What IS robust across architectures: BOTH breach the certificate (≫ 10 % targe
 9.8–9.9 % ≤ α), and BOTH follow the re-norm spectrum (uniform full-fix MLP 11.3 / band 10.7; spatial partial
 MLP 38.9 / band 26.2). The failure is a property of the stale-normalization CONTRACT, not the classifier
 family — and no architecture's confidence self-rescues.
+
+## Does the "confidence dies" finding backwash onto the paper's FLAGSHIP? NO.
+Checked directly on the CloudSEN12 flagship (band-as-modality) core, offline from the banked scenedump_rich
+(AURC is temperature-invariant, so no retraining/calibration needed), 10 seeds, `aurc_cloudsen12_core.py`:
+
+| shift (band-as-modality) | AURC naive | full error | verdict |
+|---|---|---|---|
+| **CloudSEN12 L1C→L2A (the paper's core)** | **19.6** | 32 | **INFORMATIVE** (AURC ≪ error, gap +12 pp) |
+| HSI 6S dry→humid (extreme) | 91.4 | 92 | dead (gap +0.6) |
+
+Under the REALISTIC L1C→L2A shift the flagship confidence still RANKS its L2A errors (matched-cov 40 %
+selective risk 17 % vs 32 % full error), so the finding that band confidence goes uninformative is specific to
+the EXTREME constructed shifts (radiance→reflectance, dry→humid at full CWV range), NOT the paper's operational
+case. This also EXPLAINS the varying Mondrian coverage cost: informative confidence → Mondrian recovers at high
+coverage (CloudSEN12 ~74 %); dead confidence → Mondrian only holds risk by near-total abstention (HSI 6S
+7–13 %, EMIT 17–29 %). **Confidence-informativeness under shift scales inversely with shift severity** — a clean
+unifying axis, and the flagship sits on the safe end.
 (`phase8G_emit_shift.py --model {mlp,band}`, `phase8H_hsi6s_shift.py --model band [--spatial-cwv]`.)
 
 ## Honest scope / caveats
