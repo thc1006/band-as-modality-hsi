@@ -93,9 +93,27 @@ not a majority-class collapse.
 ## Honest scope
 - A cross-sensor **generalization** of the reliability finding to hyperspectral land-cover under a real
   atmospheric shift — NOT a second cloud dataset (EMIT scenes are arid/low-cloud).
-- Pixel-level CRC (no scene-connected-component exchangeable unit here); WorldCover mixed-pixel label noise;
-  the model trains on radiance (unusual, but that is exactly the stale source the shift then breaks).
+- ⚠️ **This is a CONSTRUCTED cross-product STRESS TEST, more extreme than a realistic pipeline — say so
+  plainly.** The source is L1B **radiance** and the target is L2A **reflectance**: the real EMIT product pair,
+  but no operational land-cover system trains on radiance (you would train on reflectance). Radiance (~2–7)
+  and reflectance (~0.2–0.4) differ ~10× in scale AND are related by a spectrally-varying atmospheric+
+  illumination transform, so the stale-normalization failure here is deliberately SEVERE (NAIVE ~66 %). We do
+  NOT claim operators train on radiance; we use this real product pair only to show the silent-failure
+  MECHANISM generalizes to a hyperspectral spectrometer. It is a demonstration of the mechanism at an extreme,
+  not an estimate of a typical deployment breach — the flagship CloudSEN12 L1C→L2A (both reflectance) is the
+  realistic-magnitude case.
+- Pixel-level CRC (no scene-connected-component exchangeable unit here); WorldCover 10 m labels sampled at
+  ~60 m EMIT pixels carry mixed-pixel noise.
 - The cross-BIOME (geographic) axis is confounded with the product shift and is measured separately.
+
+## What adversarial self-review CONFIRMED is sound (not artifacts)
+- **Source calibration is genuinely HEALTHY**, so the silent failure is real, not a mis-calibration artifact:
+  temperature T=1.05 (already well-calibrated, NOT overconfident), ECE 0.9 %, CRC threshold 0.52 (real
+  selection at 92 % coverage), held-out source calib-stat 10.0 % ≤ α.
+- **The classifier is real, not a majority-class collapse:** clean acc 85 % vs 36 % majority class; per-class
+  recall [88,83,81,64,97,17] (5 of 6 classes well-discriminated).
+- **K is consistent:** all 10 production seeds keep the SAME 6 classes [tree,shrub,grass,crop,bare,water]
+  (the K=5 seen under `--smoke` is a small-subsample artifact, not in the reported runs).
 
 ## Reproduce
 ```

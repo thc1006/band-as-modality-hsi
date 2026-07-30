@@ -33,9 +33,10 @@ import phase2_degradation as P2
 import phase6_second_dataset as P6
 from bandsim import hw
 from bandsim.io import disjoint_block_split
-from bandsim.grouping import contiguous_groups
+from bandsim.grouping import contiguous_groups, group_center_wavelengths
+from bandsim.model import GroupedCrossBandAttention
 from bandsim.reliability import conformal_risk_control, fit_temperature
-from phase8G_emit_shift import logits_of, joint         # reuse the exact inference + joint-risk helpers
+from phase8G_emit_shift import logits_of, logits_band, joint   # reuse the exact inference + joint-risk helpers
 
 ALPHA = 0.10
 SRF = os.path.join(os.path.dirname(_HERE), "data", "srf_cache")
@@ -58,6 +59,9 @@ def main():
     ap.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
     ap.add_argument("--epochs", type=int, default=60)
     ap.add_argument("--hidden", type=int, default=256)
+    ap.add_argument("--model", choices=["mlp", "band"], default="mlp",
+                    help="mlp = plain MLP (default); band = GroupedCrossBandAttention + SGMAE (arch-independence check)")
+    ap.add_argument("--bs", type=int, default=0, help="band training batch size; 0=2048 (launch-bound fix)")
     ap.add_argument("--src-cwv", default="cwv0.5")
     ap.add_argument("--tgt-cwv", default="cwv4.0")
     ap.add_argument("--spatial-cwv", action="store_true",
@@ -71,6 +75,8 @@ def main():
         stem = "results_phase8H_hsi6s_shift" if args.dataset == "indian_pines" else f"results_phase8H_hsi6s_{args.dataset}"
         if args.spatial_cwv:
             stem += "_spatial"
+        if args.model == "band":
+            stem += "_band"
         args.out = os.path.join(_HERE, "..", "paper", stem)
     hw.setup(deterministic=True, prefer="auto")
     dev = hw.device()
@@ -103,6 +109,7 @@ def main():
               f"max |dT| {float(np.max(np.abs(Ts-Tt))):.3f} over {len(Ts)} bands -- per-band multiply, "
               f"re-norm inverts by construction (POSITIVE CONTROL)", flush=True)
     groups = contiguous_groups(cube.shape[-1], 12)
+    cwl = group_center_wavelengths(np.asarray(z["wl_nm"], float), groups) if args.model == "band" else None
 
     rows = []
     for seed in args.seeds:
@@ -118,24 +125,33 @@ def main():
         Xtr_s, ytr = gv(src_cube, tri), gv(yx, tri)
         mu = Xtr_s.mean(0); sd = Xtr_s.std(0) + 1e-6
         norm = lambda X: ((X - mu) / sd).astype(np.float32)
-        model = P2.train_mlp(norm(Xtr_s), ytr, groups, seed, group_dropout=False,
-                             epochs=args.epochs, hidden=args.hidden, num_classes=K)
+        if args.model == "band":
+            _bs = args.bs if args.bs > 0 else 2048
+            model = GroupedCrossBandAttention(groups, cwl, K)
+            P2.pretrain_sgmae(model, norm(Xtr_s), groups, seed, epochs=max(1, args.epochs // 2), bs=_bs)
+            P2.finetune_proposed(model, norm(Xtr_s), ytr, groups, seed, epochs=args.epochs, bs=_bs,
+                                 group_dropout=False)
+            Lg = lambda X: logits_band(model, X, groups, dev)
+        else:
+            model = P2.train_mlp(norm(Xtr_s), ytr, groups, seed, group_dropout=False,
+                                 epochs=args.epochs, hidden=args.hidden, num_classes=K)
+            Lg = lambda X: logits_of(model, X, dev)
 
         # SOURCE calibration on the (dry) calib pixels: temperature (first half) + CRC threshold (second half)
-        lc = logits_of(model, norm(gv(src_cube, cai)), dev); yc = gv(yx, cai); h = len(lc) // 2
+        lc = Lg(norm(gv(src_cube, cai))); yc = gv(yx, cai); h = len(lc) // 2
         Tc = fit_temperature(lc[:h], yc[:h])
         pc = softmax(lc[h:] / Tc, axis=1); corr = pc.argmax(1) == yc[h:]
         thr = float(conformal_risk_control(corr, pc.max(1), corr, pc.max(1), alpha=ALPHA)["threshold"])
         cstat = float(np.mean((~corr) & (pc.max(1) >= thr))) * 100
 
         yev = gv(yx, evi)
-        pe_src = softmax(logits_of(model, norm(gv(src_cube, evi)), dev) / Tc, axis=1)   # dry -> should hold
-        pe_tgt = softmax(logits_of(model, norm(gv(tgt_cube, evi)), dev) / Tc, axis=1)   # humid, STALE dry stats
+        pe_src = softmax(Lg(norm(gv(src_cube, evi))) / Tc, axis=1)   # dry -> should hold
+        pe_tgt = softmax(Lg(norm(gv(tgt_cube, evi))) / Tc, axis=1)   # humid, STALE dry stats
         muT = gv(tgt_cube, cai).mean(0); sdT = gv(tgt_cube, cai).std(0) + 1e-6          # target stats, eval-disjoint
-        pe_rn = softmax(logits_of(model, ((gv(tgt_cube, evi) - muT) / sdT).astype(np.float32), dev) / Tc, axis=1)
+        pe_rn = softmax(Lg(((gv(tgt_cube, evi) - muT) / sdT).astype(np.float32)) / Tc, axis=1)
         cs, ct, cr = pe_src.argmax(1) == yev, pe_tgt.argmax(1) == yev, pe_rn.argmax(1) == yev
         # Mondrian: recalibrate the threshold on the humid product (calib pixels, eval-disjoint)
-        pca = softmax(logits_of(model, norm(gv(tgt_cube, cai)), dev) / Tc, axis=1); cca = pca.argmax(1) == gv(yx, cai)
+        pca = softmax(Lg(norm(gv(tgt_cube, cai))) / Tc, axis=1); cca = pca.argmax(1) == gv(yx, cai)
         thrM = float(conformal_risk_control(cca, pca.max(1), cca, pca.max(1), alpha=ALPHA)["threshold"])
 
         r = dict(seed=seed, n_eval=int(len(evi)), calib_stat=cstat,
@@ -154,7 +170,7 @@ def main():
     def agg(key, i):
         v = np.array([r[key][i] for r in rows], float)
         return float(np.nanmean(v)), (float(np.nanstd(v, ddof=1) / np.sqrt(len(v))) if len(v) > 1 else float("nan"))
-    print(f"\n=== HSI 6S reliability ({args.dataset}, {args.src_cwv}->{args.tgt_cwv}"
+    print(f"\n=== HSI 6S reliability ({args.dataset}/{args.model}, {args.src_cwv}->{args.tgt_cwv}"
           f"{' SPATIAL/per-pixel' if args.spatial_cwv else ' UNIFORM'}, {len(rows)} seeds, "
           f"alpha={ALPHA*100:.0f}%) ===")
     for k, l in [("clean_src", "clean (dry source)"), ("naive_tgt", "NAIVE (humid, stale)"),
