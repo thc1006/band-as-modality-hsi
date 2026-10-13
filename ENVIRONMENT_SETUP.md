@@ -47,8 +47,9 @@ bash reproduce.sh
 **榨硬體的旋鈕**（環境變數或各 phase 的 `--jobs/--device`）：
 - `BANDSIM_DEVICE=cpu|cuda|auto`（預設 auto→cuda）
 - `BANDSIM_WORKERS=N`（併行 seed 工作數；`=1` 為序列參考路徑）
-- `BANDSIM_GPU_OVERSUB=K`（每張 GPU 疊幾個 worker，預設 2；模型極小、顯存幾乎沒用，可調高）
-- `BANDSIM_THREADS=T`（每 worker 的 BLAS/intra-op 執行緒；固定它可得逐位元重現）
+- `BANDSIM_GPU_OVERSUB=K`（強制每張 GPU 疊 K 個 worker；預設依最小那張卡的顯存與每 worker 預算自動決定，預算 8 GB 時 16 GiB P100 與 32 GB V100 皆為 2。實測單一旗艦工作峰值 5,478 MiB、phase8R2 評估 9,090 MiB，調高可能 OOM）
+- `BANDSIM_PER_WORKER_GB=G`（上述自動決定所用的每 worker 顯存預算，十進位 GB，預設 8；腳本可自帶較大預算，如 phase8R2 評估階段用 11。設定後兩者都被取代，設太小可能 OOM；inf = 每卡 1 個；NaN、0、負數會被忽略）
+- `BANDSIM_THREADS=T`（每 worker 的 torch intra-op 執行緒；spawn 出的 worker 裡 numpy 的 OpenBLAS 執行緒數沿用父程序的環境（父程序的 hw.setup 會把未設定的 OMP_NUM_THREADS 設為匯出的 BANDSIM_THREADS 或全部核心數），不是每個 worker 的預算，見 `bandsim/parallel.py`。CPU 結果隨執行緒數改變，固定它才可比較。穩定的逐位元重現只在 CUDA（實測）或 CPU 每 worker 1 執行緒（小型合成實驗實測）時觀察到；2 執行緒時偶有不一致，見 `bandsim/parallel.py` 的 Determinism）
 
 **NVLink**：兩張 V100 直連 1 條 NVLink（`nvidia-smi topo -m` 顯示 NV1，實測 P2P 24.3 GB/s）。
 目前設計是「一個 seed 一張 GPU」的工作級並行，**不走 NVLink**（對 <100k 參數小模型，獨立工作

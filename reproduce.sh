@@ -5,9 +5,17 @@
 # per-seed jobs across all GPUs + CPU cores via bandsim.parallel — no flags needed. Tune with:
 #   BANDSIM_DEVICE=cpu|cuda|auto   force device      (default: auto -> cuda if present)
 #   BANDSIM_WORKERS=N              force concurrent seed workers (1 = serial reference)
-#   BANDSIM_GPU_OVERSUB=K          seed workers per GPU when on CUDA (default 2)
-#   BANDSIM_THREADS=T              intra-op/BLAS threads per worker (default cores/workers)
-# e.g.  BANDSIM_WORKERS=1 bash reproduce.sh     # deterministic serial reference run
+#   BANDSIM_GPU_OVERSUB=K          seed workers per GPU when on CUDA (default: size-aware, from the
+#                                  smallest GPU's memory and a per-worker VRAM budget; 2 on a 16 GiB P100
+#                                  or a 32 GB V100 at the default 8 GB budget)
+#   BANDSIM_PER_WORKER_GB=G        that per-worker budget in decimal GB (default 8; some scripts pass a
+#                                  larger one for heavy stages, e.g. phase8R2's evaluation uses 11). When
+#                                  set it REPLACES those too, so a small value can run them out of memory
+#   BANDSIM_THREADS=T              torch intra-op threads per worker (default cores/workers)
+# e.g.  BANDSIM_WORKERS=1 bash reproduce.sh     # serial reference run (phase8R/phase8R2 were observed
+#                                                bitwise repeatable on CUDA on the 4x P100 box; on the
+#                                                CPU only at BANDSIM_THREADS=1, on small synthetic
+#                                                campaigns -- bandsim/parallel.py, "Determinism")
 #
 # Usage: bash reproduce.sh [TIER]      (from repo root; bootstraps .venv via uv if missing)
 #   core      HSI experiments on Indian Pines / Pavia / Salinas          (hours)
@@ -46,7 +54,7 @@ from bandsim import hw, parallel
 print(" HW:", hw.info())
 print(" fan-out (5 seeds):", parallel.plan_jobs(5).describe())
 PY
-echo " override via BANDSIM_DEVICE / BANDSIM_WORKERS / BANDSIM_GPU_OVERSUB / BANDSIM_THREADS"
+echo " override via BANDSIM_DEVICE / BANDSIM_WORKERS / BANDSIM_GPU_OVERSUB / BANDSIM_PER_WORKER_GB / BANDSIM_THREADS"
 echo "======================================================================"
 _t0=$(date +%s)
 
@@ -141,7 +149,20 @@ echo "== Phase 8 (real Sentinel-2 CloudSEN12 degradation) [FLAGSHIP] =="
 python experiments/phase8_cloudsen12.py --seeds 0 1 2 3 4 5 6 --patches-train 3000 --epochs 40
 
 echo "== Phase 8R (conformal risk control on CloudSEN12, ROI-disjoint) [FLAGSHIP] =="
-python experiments/phase8R_reliability.py --seeds 0 1 2 3 4 5 6
+# The paper's flagship is the crossed 10 split-seed x 10 model-seed campaign (paper/RESULT_MANIFEST.md:
+# results_phase8R_reliability_10seed.csv -- the seed-fixed 2x V100 re-run committed in c59100a; its
+# .provenance.json was not regenerated then and still describes the earlier, pre-fix run). It is
+# reproduced under its OWN tag rather than over the committed file, because the numbers depend on the
+# machine: on 4x P100 this code gives a headline naive L2A joint risk of 28.707 +/- 0.815 against the
+# paper's 27.849 +/- 0.786, every one of the 100 cells' trained models coming out different (clean
+# accuracy differs in all of them), while the pre-H-10 per-cell code gives byte-identical CSVs on the
+# same P100s -- so the gap is not H-10's: the models are re-drawn on the other machine (same data and
+# numeric packages; different GPU, CPU instruction set, driver patch, Python patch release, OS and
+# container -- not isolated further; experiments/H10_TRAIN_ONCE_VERIFICATION.md).
+# Compare the two files rather than overwrite the paper's.
+# This script has no --seeds option -- the line here used to pass one, argparse rejected it, and set -e
+# stopped reproduce.sh there.
+python experiments/phase8R_reliability.py --split-seeds $(seq 0 9) --model-seeds $(seq 0 9) --out-tag _10seed_repro
 
 echo "== Phase 8D (difficulty stratification) =="
 python experiments/phase8D_difficulty.py --seeds 0 1 2

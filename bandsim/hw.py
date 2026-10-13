@@ -14,8 +14,12 @@ independent per-seed jobs across all GPUs + CPU cores.
 Environment overrides (all optional)
 ------------------------------------
   BANDSIM_DEVICE   cpu | cuda | cuda:N | auto   force the device (default: auto)
-  BANDSIM_THREADS  int                          intra-op / BLAS threads for THIS process
-                                                (parallel workers set this to their budget)
+  BANDSIM_THREADS  int                          torch intra- and inter-op threads for THIS process
+                                                (parallel workers set this to their budget). numpy's
+                                                BLAS pool is sized when numpy loads -- this module
+                                                imports it -- so the OMP_NUM_THREADS that setup()
+                                                sets does not reach numpy's pool in this process (a
+                                                BLAS loaded later, or a later process, reads it)
 
 The `CUBLAS_WORKSPACE_CONFIG` env is set at import (before the CUDA context initializes) so
 deterministic cuBLAS is available if requested.
@@ -72,28 +76,57 @@ def gpu_mem_gb() -> list[float]:
     return out
 
 
-def gpu_oversub_default(cap: int = 3) -> int:
+def per_worker_budget_gb(per_worker_gb: float | None = None) -> float:
+    """The per-worker VRAM budget (decimal GB) the size-aware workers-per-GPU default buckets against:
+    BANDSIM_PER_WORKER_GB when it is set to a positive number (the user's override), else the caller's
+    `per_worker_gb`, else 8; floored at 1. A larger budget never gives MORE workers: +inf, like any
+    budget above half the smallest card, gives one per GPU. A malformed override is ignored, as before,
+    and so now is NaN, 0 or a negative one -- these used to be floored to 1 GB and so failed OPEN (3
+    workers per card). A caller passing such a budget is a bug and raises ValueError."""
+    if per_worker_gb is not None:
+        per_worker_gb = float(per_worker_gb)
+        if not per_worker_gb > 0:                                    # NaN fails this comparison too
+            raise ValueError(f"per_worker_gb must be a positive number of GB, got {per_worker_gb!r}")
+    per = 8.0 if per_worker_gb is None else per_worker_gb
+    env = os.environ.get("BANDSIM_PER_WORKER_GB")
+    if env:
+        try:
+            override = float(env)
+        except ValueError:
+            override = None
+        if override is not None and override > 0:                 # NaN fails this comparison too
+            per = override
+    return max(1.0, per)
+
+
+def gpu_oversub_default(cap: int = 3, per_worker_gb: float | None = None,
+                        mem: list[float] | None = None) -> int:
     """Memory-adaptive default for concurrent jobs PER GPU (the many-tiny-jobs workload).
 
     Adapts to GPU *size*, not just count: uses the SMALLEST visible GPU's total memory (conservative
-    for heterogeneous multi-GPU) bucketed against the ~7-8 GB/worker peak these eval jobs reach.
-      <16 GB  -> 1   two ~7.6 GB workers would not co-reside -> OOM-safe on small / consumer GPUs
-      <64 GB  -> 2   V100-32 / A100-40: the value measured optimal on this box (--jobs 2 beat --jobs 7)
-      >=64 GB -> 3   A100-80 / H100: modest headroom; the workload is launch-bound, so deliberately capped
+    for heterogeneous multi-GPU) bucketed against the per-worker budget `per` (per_worker_budget_gb:
+    BANDSIM_PER_WORKER_GB, else the caller's `per_worker_gb`, else 8):
+      < 2*per -> 1   two workers would not co-reside -> OOM-safe on small / consumer GPUs
+      < 8*per -> 2   V100-32 / A100-40 (the 2x V100 box's default; there --jobs 2 beat --jobs 7)
+      else    -> 3   A100-80 / H100: modest headroom; the workload is launch-bound, so deliberately capped
     Returns 2 on the 2x V100-32GB box, so switching the planner to this default is a NO-OP there.
-    Override at any size with BANDSIM_GPU_OVERSUB=N; tune the per-worker budget via BANDSIM_PER_WORKER_GB."""
-    mem = gpu_mem_gb()
+    UNITS: decimal GB, as gpu_mem_gb() reports (total_memory / 1e9) -- so a 16 GiB P100 counts as 17.07,
+    and at the default budget gets 2 workers per GPU. That held for the phase8R flagship: with the
+    job-boundary cache release its two workers per card peaked at no more than 11,574 MiB (11.3 GiB) in
+    four 10x10 runs (2026-10-13); a caller whose jobs are heavier passes `per_worker_gb` (phase8R2's
+    evaluation does).
+    BANDSIM_GPU_OVERSUB=N, read by the planner, overrides this function's answer at any size. `mem` is
+    the per-GPU memory list when the caller has already read it (the planner does, once); an empty one
+    -- memory unreadable -- gives 1."""
+    if mem is None:
+        mem = gpu_mem_gb()
     if not mem:
         return 1
     min_gb = min(mem)
-    try:
-        per = float(os.environ.get("BANDSIM_PER_WORKER_GB", "8"))
-    except ValueError:
-        per = 8.0
-    per = max(1.0, per)
+    per = per_worker_budget_gb(per_worker_gb)
     if min_gb < 2 * per:            # can't safely co-reside two workers -> serialize per GPU
         return 1
-    if min_gb < 8 * per:            # V100/A100-40 class: the empirically-optimal 2 here
+    if min_gb < 8 * per:            # V100/A100-40 class: 2
         return 2
     return max(1, min(cap, 3))      # very large GPUs (>=~64 GB): a little headroom, still capped
 
@@ -137,9 +170,11 @@ def setup(seed=0, deterministic=True, threads=None, prefer=None):
     seed          : int    seeds numpy + torch (+ cuda) RNGs.
     deterministic : bool   enable bit-reproducible algorithms where the backend supports it
                            (small speed cost). Set False for the fastest non-deterministic runs.
-    threads       : int|None  intra-op / BLAS threads for this process. None -> auto:
+    threads       : int|None  torch intra-op threads for this process. None -> auto:
                            BANDSIM_THREADS if set, else all available cores (single-process),
-                           which a parallel worker overrides with its per-worker budget.
+                           which a parallel worker overrides with its per-worker budget. Also
+                           exported as OMP_NUM_THREADS if unset, which numpy's BLAS pool reads
+                           only in processes started afterwards (numpy is already loaded here).
     prefer        : str|None  device preference; see device().
     """
     if threads is None:

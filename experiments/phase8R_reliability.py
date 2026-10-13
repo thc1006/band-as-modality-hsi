@@ -76,10 +76,14 @@ so it must never touch the paths above. Its 80-patch cap also samples patch INDI
 smoke's unit counts as a mechanism check, not as the full run's numbers.
 
 Usage:
-  python experiments/phase8R_reliability.py --smoke          # 2 seeds, quick (_smoke outputs)
-  python experiments/phase8R_reliability.py --seeds 0 1 2 3 4 --jobs 5
+  python experiments/phase8R_reliability.py --smoke          # 2 splits x 1 model seed, quick (_smoke outputs)
+  python experiments/phase8R_reliability.py --split-seeds 0 1 2 3 4 --model-seeds 0 1 2 --jobs 5
+  # the paper's 10x10 flagship (results_phase8R_*_10seed.csv, 2x V100) -- re-run it under ANOTHER tag,
+  # or the committed files are overwritten:
+  python experiments/phase8R_reliability.py --split-seeds $(seq 0 9) --model-seeds $(seq 0 9) \\
+      --out-tag _10seed_repro
 """
-import os, sys, csv, argparse
+import os, sys, csv, argparse, pickle
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
@@ -193,7 +197,7 @@ def test_patch_split(n_test_patches, calib_frac=0.5, max_patches=None, seed=0, r
 
 
 def reliability_over_states(kind, model, tmp, cal, ev, groups, states, unit_cal=None,
-                            unit_ev=None, target=TARGET_RISK):
+                            unit_ev=None, *, target):
     """For one trained model: per degradation state, descriptive reliability + a clean-calibrated
     versus a state-calibrated conformal arm, plus a temperature control.
 
@@ -353,40 +357,46 @@ def split_test_rois(rid_te, split_seed):
     return (np.isin(rid_te, ro_t), np.isin(rid_te, ro_c), np.isin(rid_te, ro_e))
 
 
-def run_seed(job, Xtr, ytr, Xte, yte, rid_te, groups, cwl, subsample_frac, epochs,
-             target=TARGET_RISK):
-    """One (split_seed, model_seed) draw: re-split the test ROIs, train, evaluate every state.
+def train_models(model_seed, Xtr, ytr, groups, cwl, subsample_frac, epochs):
+    """The TRAINING half of a (split_seed, model_seed) draw. It reads neither `split_seed` nor any RNG
+    state left behind by earlier work: the pixel subsample is drawn from default_rng(model_seed), every
+    constructor is preceded by hw.seed_model(model_seed), and the train/pretrain/finetune helpers seed
+    their own explicit streams. So wherever training is deterministic the trained models are a
+    function of model_seed alone -- the property H-10 (train ONCE per model seed, evaluate it on every
+    split; run_two_stage) rests on, where the per-cell protocol retrained the identical model once per
+    split seed. Observed on the 4x P100 box (2026-10-13, torch 2.6.0+cu124, CUDA, deterministic=True)
+    -- an observation, not a guarantee: the flagship's model seed 0 gave identical b2 and proposed
+    weight hashes on each of the four GPUs at 1 and at 4 intra-op threads and when trained twice in one
+    process, and the per-cell and two-stage protocols gave identical rows at full precision for all ten
+    model seeds (experiments/H10_TRAIN_ONCE_VERIFICATION.md). On the CPU the weights depend on the
+    intra-op thread count, which is why run_two_stage gives both of its stages ONE thread budget; and repeated
+    two-thread CPU campaigns occasionally disagreed in the last bits of some evaluation rows, at a
+    locus not isolated, while at one thread per worker they never did in 120 repetitions of a small
+    synthetic campaign (bandsim.parallel, "Determinism").
 
-    `target` is the CRC risk level (alpha). It MUST be threaded from --alpha to every
-    conformal_risk_control call; a previous version left run_seed without this parameter, so
-    reliability_over_states silently used its default 0.10 while --alpha was written to the plot,
-    console and provenance -- making any run with --alpha != 0.10 mislabelled. A regression test
-    (tests/test_phase8R_alpha_propagates) now fails if the two ever diverge again.
+    Training once also realises EXACTLY the design two_way_se assumes ("a given model_seed recurs across
+    all splits (same trained model, same subsample)"), including where training is not deterministic
+    (e.g. --nondeterministic), where per-cell retraining only approximated it.
 
     The training subsample is over PIXELS, not ROIs -- the docstring used to say "train ROIs", which
     it never was. Pixel subsampling over-represents whichever patches contribute more pixels and its
     variance is pixel-resampling variance, not spatial-unit variance; it is kept only because the
     train loader does not return patch ids, and the label now says so."""
-    split_seed, model_seed = job
     # No P2.NUM_CLASSES = ... here. That module-global rewrite is the non-reentrant pattern the
     # merge campaign removed from phase8 (it is what made PR #11's b2m test order-dependent: any
     # test that ran this file first left P2 configured for 4 classes). num_classes is passed
     # explicitly at the one call that needs it; 8R's own logits_at scores the models directly, so
     # nothing else reads the global.
-    mt, mc, me = split_test_rois(rid_te, split_seed)
-
-    def part(mask):
-        return {k: (Xte[k][mask], yte[mask]) for k in ("l1c", "l2a")}
-    tmp, cal, ev = part(mt), part(mc), part(me)
-
     rs = np.random.default_rng(model_seed)
     k = max(1, int(round(subsample_frac * Xtr.shape[0])))
     sub = rs.choice(Xtr.shape[0], size=k, replace=False)
     Xs, ys = Xtr[sub], ytr[sub]
 
     # bs=auto_bs: same rationale and same caveat as phase8 -- P2's 256 default is sized for 21k
-    # pixels, this trains on ~900k, and the models are launch-bound at 256 (measured ~25 min/run
-    # that this brings to ~2-3). A hyperparameter change, recorded in the sidecar.
+    # pixels, the flagships train on hundreds of thousands (phase8R: 0.8 x 900k = 720k px; phase8R2,
+    # which shares this function: 0.8 x its source-domain pixels, 552k on the surface axis), and the
+    # models are launch-bound at 256 (measured ~25 min/run that this brings to ~2-3). A
+    # hyperparameter change, recorded in the sidecar.
     bs = P2.auto_bs(Xs.shape[0])
     hw.seed_model(model_seed)                                       # P0-2: seed before the B2 constructor
     m_b2 = P2.train_mlp(Xs, ys, groups, model_seed, group_dropout=True, epochs=epochs,
@@ -395,7 +405,34 @@ def run_seed(job, Xtr, ytr, Xte, yte, rid_te, groups, cwl, subsample_frac, epoch
     m_prop = GroupedCrossBandAttention(groups, cwl, NUM_CLASSES)    # init reproducible, not order-dependent
     P2.pretrain_sgmae(m_prop, Xs, groups, model_seed, epochs=max(1, epochs // 2), bs=bs)
     P2.finetune_proposed(m_prop, Xs, ys, groups, model_seed, epochs=epochs, bs=bs)
-    models = {"proposed": m_prop, "b2": m_b2}
+    return {"proposed": m_prop, "b2": m_b2}
+
+
+def evaluate_cell(split_seed, model_seed, models, Xte, yte, rid_te, groups, *, target):
+    """The EVALUATION half of a (split_seed, model_seed) draw: re-split the test ROIs for `split_seed`
+    and score both trained models on every state. Reads no process-global RNG (split_test_rois seeds
+    its own generator from split_seed; bandsim.reliability draws no random numbers), so wherever the
+    computation is deterministic its rows depend only on its arguments -- not on where or when the
+    models were trained. (On the CPU the logits moved in the last bits with the intra-op thread count at
+    the larger two of the four input sizes measured -- up to 2.4e-7 in absolute logit at 145,650 and
+    388,400 rows, not at 2,400 or 60,000 -- which run_two_stage holds fixed; repeated two-thread CPU
+    campaigns occasionally disagreed in some evaluation rows, at a locus not isolated, and never in 120
+    repetitions at one thread per worker -- bandsim.parallel, "Determinism". On a P100 the rows of a
+    flagship cell evaluated after train_job/eval_job's GPU->CPU->bytes->GPU round trip matched
+    run_seed's at full precision. Both measured 2026-10-13 with scripts/verify_h10.py;
+    experiments/H10_TRAIN_ONCE_VERIFICATION.md.)
+
+    `target` is the CRC risk level (alpha) and is REQUIRED here and on every hop from main() down to
+    reliability_over_states -- none of them has a default any more. A previous version left run_seed
+    without the parameter, so reliability_over_states silently used its default 0.10 while --alpha was
+    written to the plot, console and provenance, mislabelling any run with --alpha != 0.10. A required
+    argument cannot be dropped silently, and tests/test_phase8R_p0_fixes.py checks that every CRC call
+    receives the value passed in."""
+    mt, mc, me = split_test_rois(rid_te, split_seed)
+
+    def part(mask):
+        return {k: (Xte[k][mask], yte[mask]) for k in ("l1c", "l2a")}
+    tmp, cal, ev = part(mt), part(mc), part(me)
 
     g_b1 = P8._assert_singleton(groups, P8.B1_IDX, "B1")
     g_b9 = P8._assert_singleton(groups, P8.B9_IDX, "B9")
@@ -412,6 +449,108 @@ def run_seed(job, Xtr, ytr, Xte, yte, rid_te, groups, cwl, subsample_frac, epoch
                             n_calib_roi=int(np.unique(rid_te[mc]).size),
                             n_eval_roi=int(np.unique(rid_te[me]).size)))
     return out
+
+
+def run_seed(job, Xtr, ytr, Xte, yte, rid_te, groups, cwl, subsample_frac, epochs, *, target):
+    """One (split_seed, model_seed) draw in ONE call: train, then evaluate -- the per-cell protocol
+    main() used before H-10, kept as the single-cell reference path. main() runs the same two halves
+    through run_two_stage: train_job once per model seed, then eval_job once per cell."""
+    split_seed, model_seed = job
+    models = train_models(model_seed, Xtr, ytr, groups, cwl, subsample_frac, epochs)
+    return evaluate_cell(split_seed, model_seed, models, Xte, yte, rid_te, groups, target=target)
+
+
+def train_job(model_seed, Xtr, ytr, groups, cwl, subsample_frac, epochs):
+    """H-10 stage 1, one job per MODEL seed: train once and return the models as PICKLED BYTES of
+    their CPU copies, which the parent hands to every evaluation job of that seed.
+
+    Bytes, not module objects, on purpose. A module that crosses the process pool (returned here, or
+    shared with the evaluation jobs) is pickled by torch's multiprocessing reducer, which moves every
+    tensor into shared memory and passes one file descriptor per tensor -- 40 per seed, so 400 for each
+    evaluation job of a 10-seed campaign. That crashed the pool with "Too many open files" under the
+    common `ulimit -n 1024` (measured 2026-10-13; this box's limit of 1048576 hid it). Plain pickle
+    writes each tensor's storage BY VALUE (torch.save), so a seed travels as ~0.6 MB of immutable
+    bytes: no descriptor, every weight round-trips exactly, and no evaluation job can alter the model
+    another one receives. .cpu() first so the bytes load on any worker, GPU or CPU; the eval() mode the
+    trainers leave the models in is part of the pickled state."""
+    models = train_models(model_seed, Xtr, ytr, groups, cwl, subsample_frac, epochs)
+    return pickle.dumps({k: m.cpu() for k, m in models.items()}, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+def eval_job(job, trained, Xte, yte, rid_te, groups, *, target):
+    """H-10 stage 2, one job per (split_seed, model_seed) CELL: evaluate the cell against the model
+    trained once for its seed. `trained` maps model_seed -> train_job's bytes; unpickling gives this
+    job a private copy, moved to this worker's device."""
+    split_seed, model_seed = job
+    dev = hw.device()
+    models = {k: m.to(dev) for k, m in pickle.loads(trained[model_seed]).items()}
+    return evaluate_cell(split_seed, model_seed, models, Xte, yte, rid_te, groups, target=target)
+
+
+def run_two_stage(eval_fn, jobs, *, train_shared, eval_shared, prefer=None, n_jobs=None, threads=None,
+                  deterministic=True, label="two-stage", log=print, eval_per_worker_gb=None):
+    """H-10's campaign driver, shared by phase8R and phase8R2: train every model seed that occurs in
+    `jobs` ONCE (train_job, one parallel job per seed), then evaluate every (split_seed, model_seed)
+    cell against its seed's model (`eval_fn`, one parallel job per cell; each job receives `trained` =
+    {model_seed: train_job's bytes} for ALL seeds, plus `eval_shared`, and uses its own seed's entry).
+    Returns (results, compute): the results in `jobs` order -- the order, and wherever training and
+    evaluation are bitwise deterministic (observed: CUDA on the 4x P100 box; the CPU at one thread per
+    worker, on small synthetic campaigns) the values, that the per-cell protocol (run_seed per cell)
+    produced -- and both stages' plans for the provenance sidecar.
+
+    ONE THREAD BUDGET FOR BOTH STAGES. Unless `threads` is given (None or 0 mean not given; a negative
+    count raises), both stages get the per-worker intra-op thread count the per-cell protocol had for
+    this campaign (plan_jobs over the CELLS, BANDSIM_THREADS included). Left to plan_jobs, the training
+    stage -- one job per model seed, so fewer jobs -- can get MORE threads per worker (whenever there
+    are fewer seeds than cell workers), and CPU weights depend on the thread count: the two-stage rows
+    then differed from the per-cell ones on the CPU (found in review, 2026-10-13). On the P100s the
+    count did not change CUDA-trained weights, so there holding it changed no number.
+
+    `eval_per_worker_gb` is the VRAM budget (decimal GB) of ONE evaluation job for the size-aware
+    workers-per-GPU default (bandsim.parallel.run_jobs); None keeps the default, and a NaN or
+    non-positive one raises before anything is trained. A caller whose
+    evaluation is heavier than the default budget passes it (phase8R2 does). Here it changes only how
+    many evaluation jobs share a GPU: the thread budget is pinned above, so no number moves with it.
+
+    `compute` records, per stage, the plan the run_jobs call actually ran (its on_plan callback, not a
+    re-plan): device, worker count and whether it was forced, workers per GPU, the VRAM budget that took
+    effect ("inf" for an infinite one, which JSON cannot hold), threads per worker -- plus the requested
+    budget and the deterministic flag, which is what a reader needs to judge whether the per-cell
+    equality can be expected.
+
+    Stage 1 uses at most one worker per model seed; a single seed (e.g. --smoke) trains serially in
+    this process, after which run_jobs releases this process's CUDA cache before the evaluation workers
+    start."""
+    model_seeds = list(dict.fromkeys(ms for _, ms in jobs))
+    if threads is not None and threads < 0:
+        raise ValueError(f"threads must be >= 0 (None or 0: the per-cell plan's), got {threads}")
+    if eval_per_worker_gb is not None:               # refuse a bad budget BEFORE anything is trained
+        eval_per_worker_gb = float(eval_per_worker_gb)
+        hw.per_worker_budget_gb(eval_per_worker_gb)  # raises on NaN / non-positive
+    if not threads:
+        threads = parallel.plan_jobs(len(jobs), prefer=prefer, jobs=n_jobs).threads_per_worker
+    plans = {}
+    blobs = parallel.run_jobs(train_job, model_seeds, shared=train_shared, prefer=prefer, jobs=n_jobs,
+                              threads=threads, deterministic=deterministic, log=log,
+                              label=f"{label}/train", on_plan=lambda p: plans.__setitem__("train", p))
+    trained = dict(zip(model_seeds, blobs))
+    results = parallel.run_jobs(eval_fn, jobs, shared=dict(eval_shared, trained=trained), prefer=prefer,
+                                jobs=n_jobs, threads=threads, deterministic=deterministic, log=log,
+                                label=f"{label}/eval", per_worker_gb=eval_per_worker_gb,
+                                on_plan=lambda p: plans.__setitem__("eval", p))
+    def gb(x):                       # json.dump would write an inf budget as the non-JSON token Infinity
+        return x if x is None or np.isfinite(float(x)) else str(float(x))
+
+    def stage(p):
+        return {"plan": p.describe(), "device": p.device_mode, "workers": p.workers,
+                "workers_forced": p.workers_forced, "max_workers_per_gpu": p.per_gpu,
+                "gpu_oversub": p.oversub, "gpu_oversub_forced": p.oversub_forced,
+                "vram_budget_gb": gb(p.budget_gb), "threads_per_worker": p.threads_per_worker}
+    compute = {"train_stage": stage(plans["train"]), "eval_stage": stage(plans["eval"]),
+               "device": plans["eval"].device_mode, "threads_per_worker": plans["eval"].threads_per_worker,
+               "deterministic_flag": bool(deterministic),
+               "eval_vram_budget_gb_requested": gb(eval_per_worker_gb), "parent_process": hw.info()}
+    return results, compute
 
 
 def main():
@@ -441,8 +580,6 @@ def main():
             raise ValueError(f"--{name.replace('_','-')} must be in ({lo}, {hi}], got {v}")
     if args.epochs < 1 or args.px_test < 1 or args.px_train < 1:
         raise ValueError("epochs / px-train / px-test must all be >= 1")
-    if not args.split_seeds or not args.model_seeds:
-        raise ValueError("need at least one split seed and one model seed")
     for nm, sq in (("split-seeds", args.split_seeds), ("model-seeds", args.model_seeds)):
         if len(set(sq)) != len(sq):
             raise ValueError(f"--{nm} has duplicates ({sq}); a repeated seed is the SAME draw and "
@@ -513,14 +650,20 @@ def main():
           f"alpha {args.alpha:.0%} | "
           f"{len(args.split_seeds)} splits x {len(args.model_seeds)} model seeds = {len(jobs)} runs")
 
-    results = parallel.run_jobs(
-        run_seed, jobs,
+    # H-10 (run_two_stage): train each model seed ONCE, then evaluate every (split_seed, model_seed)
+    # cell against it. Wherever training is deterministic it depends on model_seed alone
+    # (train_models), so the old per-cell loop retrained the identical model once per split seed --
+    # 90% of the campaign's training on a 10x10 design. `jobs` keeps its split-major order, so the
+    # rows, the CSV and every aggregate come out in exactly the order run_seed produced them.
+    results, compute = run_two_stage(
+        eval_job, jobs,
+        train_shared=dict(Xtr=Xtr, ytr=ytr, groups=groups, cwl=cwl,
+                          subsample_frac=args.subsample_frac, epochs=args.epochs),
         # rid_te is the EXCHANGEABLE UNIT handed to the split and CRC grouping: pass the scene-component
         # ids (P0-2), not the raw roi_ids, so two ROIs sharing a Sentinel-2 product are one unit.
-        shared=dict(Xtr=Xtr, ytr=ytr, Xte=Xte, yte=y_te, rid_te=cid_te, groups=groups, cwl=cwl,
-                    subsample_frac=args.subsample_frac, epochs=args.epochs, target=args.alpha),
-        prefer=args.device, jobs=args.jobs, deterministic=not args.nondeterministic,
-        label="phase8R/run")
+        eval_shared=dict(Xte=Xte, yte=y_te, rid_te=cid_te, groups=groups, target=args.alpha),
+        prefer=args.device, n_jobs=args.jobs, deterministic=not args.nondeterministic,
+        label="phase8R")
     rows = [r for sub in results for r in sub]
 
     # ---- RAW long-form rows: one per (split_seed, model_seed, method, state, arm) ----------------
@@ -556,10 +699,10 @@ def main():
         return [r for r in v if r["crc_feasible"]] if feasible_only else v
 
     def two_way_se(a, splits, models):
-        """Cameron-Gelbach-Miller two-way cluster-robust SE of the mean (P0-3). The 30 cells are a
-        CROSSED 3-model x 10-split design, not 30 iid draws: a given model_seed recurs across all 10
-        splits (same trained model, same subsample) and a given split_seed across all 3 models (same
-        ROI partition), so an iid std/sqrt(n) understates the SE. SE^2 = V_split + V_model - V_iid,
+        """Cameron-Gelbach-Miller two-way cluster-robust SE of the mean (P0-3). The cells are a CROSSED
+        model-seed x split-seed design (e.g. 10 x 10 = 100), not iid draws: a given model_seed recurs
+        across all splits (same trained model, same subsample) and a given split_seed across all models
+        (same ROI partition), so an iid std/sqrt(n) understates the SE. SE^2 = V_split + V_model - V_iid,
         each V the cluster-robust variance of the mean treating that factor as the cluster. Degrades
         to the iid SE when neither factor clusters."""
         N = a.size
@@ -699,8 +842,9 @@ def main():
                         "model init ONLY -- it does NOT include pixel-sampling uncertainty, and the "
                         "controlled quantity is the loss on this ROI-composite pixel sample, not the "
                         "full-image or full-patch pixel risk); NOT a per-run certificate check",
-            "se_method": "two-way cluster-robust over split_seed x model_seed (P0-3; the 30 cells are "
-                         "a crossed 3-model x 10-split design, not 30 iid draws)",
+            "se_method": f"two-way cluster-robust over split_seed x model_seed (P0-3; the {len(jobs)} "
+                         f"cells are a crossed {len(args.model_seeds)}-model x {len(args.split_seeds)}-"
+                         f"split design, not {len(jobs)} iid draws)",
             "method_comparison_caveat": "H-9: proposed (SGMAE pretrain + finetune) and b2 (supervised "
                                         "MLP) are NOT compute/step/exposure-matched; this file's finding "
                                         "is the WITHIN-method naive-vs-Mondrian coverage gap, not a "
@@ -714,7 +858,17 @@ def main():
                                   "ROIs (temperature reorders MSP across samples, so fitting it on "
                                   "the calibration set breaks exchangeability)",
             "n_runs": len(jobs), "n_split_seeds": len(args.split_seeds),
-            # Recomputed with run_seed's own expression (k = round(frac * n)), not stored from a
+            "train_protocol": "H-10 two-stage (run_two_stage): each model_seed trained ONCE (train_job), "
+                              "then every (split_seed, model_seed) cell evaluated against that model "
+                              "(eval_job) -- one model per seed across all splits, the crossed design "
+                              "two_way_se assumes. It reproduces per-cell retraining (run_seed) if "
+                              "training and evaluation are bitwise deterministic in this run's "
+                              "configuration (compute: device, threads_per_worker, deterministic_flag) "
+                              "and identical across the GPUs and processes used -- observed on 4x P100 "
+                              "(torch 2.6.0+cu124, CUDA, deterministic=True) and, on small synthetic "
+                              "campaigns, on the CPU at one thread per worker; not guaranteed elsewhere",
+            "compute": compute,
+            # Recomputed with train_models' own expression (k = round(frac * n)), not stored from a
             # worker: every job draws the same-SIZED subsample, so the value is identical across
             # runs and deterministic from args. A hyperparameter -- see P2.auto_bs.
             "train_bs": int(P2.auto_bs(max(1, int(round(args.subsample_frac * Xtr.shape[0]))))),

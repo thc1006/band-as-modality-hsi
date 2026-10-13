@@ -38,25 +38,40 @@ calibration shift -- that is the operational reality of deploying on an unseen s
 
 Outputs (../paper/): results_phase8R2_landcover.csv + _raw.csv. --smoke writes *_smoke only.
 Usage: python experiments/phase8R2_landcover_reliability.py --split-seeds 0 1 2 3 4 --model-seeds 0 1 2
+  # the paper's 10x10 (results_phase8R2_landcover*_10seed.csv; --axis geography for
+  # results_phase8R2_geography*) -- re-run it under ANOTHER tag, or the committed files are overwritten:
+  python experiments/phase8R2_landcover_reliability.py --split-seeds $(seq 0 9) --model-seeds $(seq 0 9) \\
+      --axis surface --jobs 2 --device cuda --out-tag _10seed_repro
 """
-import os, sys, csv, argparse
+import os, sys, csv, argparse, pickle
 import numpy as np
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 sys.path.insert(0, os.path.dirname(_HERE))
 import phase8_cloudsen12 as P8
-import phase2_degradation as P2
 import phase8R_reliability as P8R           # logits_at / METHODS / NUM_CLASSES / P()
 from bandsim.grouping import group_center_wavelengths
-from bandsim.model import GroupedCrossBandAttention
 from bandsim.reliability import confidence_msp, fit_temperature, conformal_risk_control, aurc, selective_auroc
-from bandsim import hw, parallel
+from bandsim import hw
 from bandsim.provenance import stamp
 
 TARGET_RISK = P8R.TARGET_RISK
 NUM_CLASSES = P8R.NUM_CLASSES
 METHODS = P8R.METHODS
+
+# VRAM budget (decimal GB, the unit hw.gpu_mem_gb reports) of ONE evaluation job, for the size-aware
+# workers-per-GPU planner. domain_gap_reliability scores the WHOLE test set (388,400 px at --px-test 400,
+# either axis) in one forward per model, so an evaluation worker peaked at 9,090 MiB (9.5 GB, CUDA context
+# included; nvidia-smi per process, one worker per P100, 2026-10-13) -- ~1.7x a phase8R flagship job
+# (5,478 MiB). At the planner's default 8 GB a 16 GiB P100 (17.07 GB) gets 2 workers per GPU, and two such
+# peaks need ~19 GB; with H-10 every job of the evaluation stage runs this forward, so the two workers on
+# a card can peak together. 11 GB gives 1 per GPU below 22 GB (the P100), 2 from 22 GB (24 GiB cards, up
+# to 80 GiB ones) and 3 from 88 GB. Chunking the forward would lower the peak but is not bitwise neutral
+# on CUDA (with the phase8R flagship's models over its 388,400 test rows on a P100, b2 in 16,384-row chunks
+# differed by up to 7.6e-6 in absolute logit; scripts/verify_h10.py chunking), so the plan changes, not
+# the computation. BANDSIM_PER_WORKER_GB overrides it.
+EVAL_VRAM_GB = 11.0
 
 # ESA WorldCover code -> {dark source (trained on) | bright target (unseen, deployed on)}. bright groups
 # the high-albedo surfaces that are the operational cloud-confusion case (built 50, bare 60, snow/ice 70).
@@ -170,27 +185,39 @@ def domain_gap_reliability(kind, model, X, y, unit, is_target, split_seed, targe
     return rows
 
 
-def run_seed(job, Xtr_src, ytr_src, X, y, unit, is_target, groups, cwl, subsample_frac, epochs, target):
-    """One (split_seed, model_seed): train on a DARK-surface subsample, evaluate the domain-gap arms."""
-    split_seed, model_seed = job
-    rs = np.random.default_rng(model_seed)
-    k = max(1, int(round(subsample_frac * Xtr_src.shape[0])))
-    sub = rs.choice(Xtr_src.shape[0], size=k, replace=False)
-    Xs, ys = Xtr_src[sub], ytr_src[sub]
-    bs = P2.auto_bs(Xs.shape[0])
-    hw.seed_model(model_seed)                                       # P0-2: seed before the B2 constructor
-    m_b2 = P2.train_mlp(Xs, ys, groups, model_seed, group_dropout=True, epochs=epochs,
-                        num_classes=NUM_CLASSES, bs=bs)
-    hw.seed_model(model_seed)                                       # P0-2: and before the proposed model
-    m_prop = GroupedCrossBandAttention(groups, cwl, NUM_CLASSES)
-    P2.pretrain_sgmae(m_prop, Xs, groups, model_seed, epochs=max(1, epochs // 2), bs=bs)
-    P2.finetune_proposed(m_prop, Xs, ys, groups, model_seed, epochs=epochs, bs=bs)
-    models = {"proposed": m_prop, "b2": m_b2}
+def evaluate_cell(split_seed, model_seed, models, X, y, unit, is_target, groups, target):
+    """The EVALUATION half of a (split_seed, model_seed) draw: the domain-gap arms of both trained
+    models on this split. Reads no process-global RNG (_split_units seeds its own generator from
+    split_seed), so wherever the computation is deterministic the rows depend only on the arguments --
+    in particular not on where or when the model was trained (the CPU caveats are P8R.evaluate_cell's)."""
     out = []
     for meth in METHODS:
         for r in domain_gap_reliability(meth, models[meth], X, y, unit, is_target, split_seed, target, groups):
             out.append(dict(r, method=meth, split_seed=split_seed, model_seed=model_seed))
     return out
+
+
+def run_seed(job, Xtr_src, ytr_src, X, y, unit, is_target, groups, cwl, subsample_frac, epochs, target):
+    """One (split_seed, model_seed) in ONE call: train on a SOURCE-domain subsample, evaluate the
+    domain-gap arms. The single-cell reference path; main() runs the same two halves as H-10 stages.
+
+    Training is phase8R's train_models: this file's training block was a line-for-line copy of it
+    (same default_rng(model_seed) pixel subsample, same seed_model calls, same recipe and auto_bs),
+    so it is now SHARED -- the two flagships can no longer drift apart -- and it reads no split seed,
+    which is what lets main() train each seed once (see P8R.train_models)."""
+    split_seed, model_seed = job
+    models = P8R.train_models(model_seed, Xtr_src, ytr_src, groups, cwl, subsample_frac, epochs)
+    return evaluate_cell(split_seed, model_seed, models, X, y, unit, is_target, groups, target=target)
+
+
+def eval_job(job, trained, X, y, unit, is_target, groups, target):
+    """H-10 stage 2, one job per (split_seed, model_seed) CELL, against the model P8R.train_job trained
+    ONCE for that seed. `trained` maps model_seed -> those pickled bytes (see P8R.train_job for why
+    bytes); unpickling gives this job a private copy, moved to this worker's device."""
+    split_seed, model_seed = job
+    dev = hw.device()
+    models = {k: m.to(dev) for k, m in pickle.loads(trained[model_seed]).items()}
+    return evaluate_cell(split_seed, model_seed, models, X, y, unit, is_target, groups, target=target)
 
 
 def _two_way_se(a, splits, models):
@@ -227,6 +254,10 @@ def main():
     args = ap.parse_args()
     if not (0.0 < args.subsample_frac <= 1.0) or not (0.0 < args.alpha <= 1.0):
         raise ValueError("--subsample-frac and --alpha must be in (0, 1]")
+    for nm, sq in (("split-seeds", args.split_seeds), ("model-seeds", args.model_seeds)):
+        if len(set(sq)) != len(sq):
+            raise ValueError(f"--{nm} has duplicates ({sq}); a repeated seed is the SAME draw and "
+                             f"would be double-counted as an independent run in the two-way SE")
     _safe = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.-")
     if args.out_tag and (set(args.out_tag) - _safe):
         raise ValueError(f"--out-tag must be filename-safe [A-Za-z0-9_.-], got {args.out_tag!r}")
@@ -275,12 +306,18 @@ def main():
         raise SystemExit(f"only {nb_u} {tgt_name} test units -- need >= 3 for the deployment split")
 
     jobs = [(ss, ms) for ss in args.split_seeds for ms in args.model_seeds]
-    results = parallel.run_jobs(
-        run_seed, jobs,
-        shared=dict(Xtr_src=Xtr_src, ytr_src=ytr_src, X=X, y=y, unit=unit, is_target=is_target,
-                    groups=groups, cwl=cwl, subsample_frac=args.subsample_frac, epochs=args.epochs,
-                    target=args.alpha),
-        prefer=args.device, jobs=args.jobs, deterministic=True, label="phase8R2/run")
+    # H-10, through phase8R's run_two_stage: train each model seed ONCE on the source subsample, then
+    # evaluate every (split_seed, model_seed) cell against it. Wherever training is deterministic it
+    # depends on model_seed alone (P8R.train_models), so the per-cell loop retrained the identical model
+    # once per split seed. `jobs` keeps its split-major order, so the rows come out in exactly the order
+    # run_seed produced them.
+    results, compute = P8R.run_two_stage(
+        eval_job, jobs,
+        train_shared=dict(Xtr=Xtr_src, ytr=ytr_src, groups=groups, cwl=cwl,
+                          subsample_frac=args.subsample_frac, epochs=args.epochs),
+        eval_shared=dict(X=X, y=y, unit=unit, is_target=is_target, groups=groups, target=args.alpha),
+        prefer=args.device, n_jobs=args.jobs, deterministic=True, label="phase8R2",
+        eval_per_worker_gb=EVAL_VRAM_GB)
     rows = [r for sub in results for r in sub]
 
     raw_fields = ["split_seed", "model_seed", "method", "arm", "acc_bright", "aurc_bright",
@@ -319,11 +356,21 @@ def main():
                             "temperature_mean": f"{np.mean([r['temperature'] for r in g]):.4f}",
                             "n_calib_units_med": int(np.median([r['n_calib_units'] for r in g])),
                             "feasible_rate": f"{np.mean([r['crc_feasible'] for r in g]):.3f}"})
+    train_protocol = ("H-10 two-stage (phase8R run_two_stage): each model_seed trained ONCE (phase8R "
+                      "train_job), then every (split_seed, model_seed) cell evaluated against that model "
+                      "(eval_job) -- one model per seed across all splits. It reproduces per-cell "
+                      "retraining (run_seed) if training and evaluation are bitwise deterministic in "
+                      "this run's configuration (compute: device, threads_per_worker, "
+                      "deterministic_flag) and identical across the GPUs and processes used -- observed "
+                      "on 4x P100 (torch 2.6.0+cu124, CUDA, deterministic=True) and, on small synthetic "
+                      "campaigns, on the CPU at one thread per worker; not guaranteed elsewhere")
     stamp(agg_out, args, extra={"dataset": "cloudsen12", "shift_axis": f"{args.axis}_domain_gap",
                                 "source": f"{src_name}_trained", "target": f"{tgt_name}_unseen",
                                 "unit": "scene_component", "se": "two-way cluster-robust",
-                                "target_risk": args.alpha, "methods": METHODS})
-    stamp(raw_out, args, extra={"n_rows": len(rows), "shift_axis": f"{args.axis}_domain_gap"})
+                                "target_risk": args.alpha, "methods": METHODS,
+                                "train_protocol": train_protocol, "compute": compute})
+    stamp(raw_out, args, extra={"n_rows": len(rows), "shift_axis": f"{args.axis}_domain_gap",
+                                "train_protocol": train_protocol, "compute": compute})
     print(f"\n  wrote {os.path.basename(agg_out)} + {os.path.basename(raw_out)}")
     print(f"\n  proposed on {tgt_name.upper()} (unseen) domain (target joint risk {args.alpha:.0%}):")
     print(f"  {'arm':9s} {'coverage':>9s} {'jointRisk':>10s} {'acc':>6s}")
