@@ -17,7 +17,10 @@ path = [
     "bandsim/**",
     "experiments/**",
     "tests/**",
+    "scripts/**",
     "configs/**",
+    # 6S gaseous-transmittance tables that experiments/precompute_6s_*.py generate and the code reads
+    "data/srf_cache/**",
     "requirements-lock.txt",
     "pyproject.toml",
     "reproduce.sh",
