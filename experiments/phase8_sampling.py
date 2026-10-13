@@ -84,18 +84,20 @@ def paired(rows, a, b, max_missing):
     return out
 
 
-# Faithfulness tolerance is NOISE-AWARE, not bit-for-bit. phase8_cloudsen12.py:888 states the
-# attention backward has NO deterministic CUDA kernel, so a GPU run of the SAME proposed model does
-# NOT reproduce bit-for-bit run-to-run (only the CPU reference path does). The residual is tiny
-# (phase2X's GPU reruns matched to 4 decimals), so a coupling bug — wrong standardisation, subsample,
-# or build — announces itself as a LARGE curve delta (the smoke's mis-scaled load gave 5-26 mIoU),
-# cleanly separable from ~<0.1 mIoU nondeterminism noise. ANCHOR_TOL sits between them.
+# Faithfulness tolerance is NOISE-AWARE, not bit-for-bit: the anchor compares this script's dropout arm
+# with results_phase8_cloudsen12_curve.csv, which another run made. On one machine, under
+# hw.setup(deterministic=True), GPU training has been bit-repeatable (bandsim.parallel's determinism
+# note), but another machine trains different models (experiments/H10_TRAIN_ONCE_VERIFICATION.md), so
+# the anchor is meant for a curve made on the same machine (reproduce.sh runs phase8 first). Small
+# residual differences stay well below a coupling bug — wrong standardisation, subsample, or build —
+# which announces itself as a LARGE curve delta (the smoke's mis-scaled load gave 5-26 mIoU; phase2X's
+# GPU reruns matched to 4 decimals). ANCHOR_TOL sits between them.
 ANCHOR_TOL = 0.5   # mIoU: worst per-level |drop − phase8 proposed| below this = faithful replication
 
 
 def anchor_check(drop_curve_by_seed, seeds, max_missing):
-    """The 'drop' arm should reproduce phase8's committed Proposed curve to within CUDA-nondeterminism
-    noise. Compare against results_phase8_cloudsen12_curve.csv (proposed_mean per level).
+    """The 'drop' arm should reproduce phase8's committed Proposed curve to within ANCHOR_TOL (see the
+    comment above it). Compare against results_phase8_cloudsen12_curve.csv (proposed_mean per level).
     Returns (worst_abs_delta_or_None, detail_lines)."""
     p = Path(__file__).resolve().parents[1] / "paper" / "results_phase8_cloudsen12_curve.csv"
     if not p.exists():
@@ -194,7 +196,7 @@ def main():
         elif worst < 1e-4:
             verdict = "✓ bit-for-bit (≤1e-4) — replication faithful"
         elif worst < ANCHOR_TOL:
-            verdict = f"✓ faithful within CUDA-nondeterminism noise (< {ANCHOR_TOL} mIoU)"
+            verdict = f"✓ faithful within the anchor tolerance (< {ANCHOR_TOL} mIoU)"
         else:
             verdict = f"⚠ MISMATCH ≥ {ANCHOR_TOL} mIoU — a coupling bug, do NOT trust the arms"
         print(f"\n  anchor (drop arm vs phase8 committed Proposed): worst |Δ| = {worst:.4f}  → {verdict}")
@@ -245,14 +247,14 @@ def main():
                                 "anchor_worst_abs_delta_vs_phase8_proposed":
                                     (None if not isinstance(worst, float) else round(worst, 6)),
                                 "anchor_tol_miou": ANCHOR_TOL,
-                                "anchored_within_cuda_noise": anchored,
+                                "anchored_within_cuda_noise": anchored,   # legacy key: within ANCHOR_TOL
                                 "dcs_scope": "sampling component only (Algorithm 1), no CDL/TDL",
                                 "runtime_s": round(time.time() - t0, 1)})
     stamp(raw_out, args, extra={"n_rows": len(rows)})
 
     if isinstance(worst, float) and not args.smoke and worst >= ANCHOR_TOL:
         print(f"\n  ANCHOR FAILED (worst |Δ| = {worst:.4f} ≥ {ANCHOR_TOL} mIoU): the drop arm does not "
-              "reproduce phase8's Proposed curve within CUDA-nondeterminism noise, so the replication "
+              "reproduce phase8's Proposed curve within the anchor tolerance, so the replication "
               "is not faithful and the arms must not be cited. Investigate the coupling (load params "
               "/ subsample / standardisation / build / auto_bs / epochs) before trusting.")
         return 1

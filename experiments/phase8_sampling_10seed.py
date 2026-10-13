@@ -71,7 +71,7 @@ def main():
     worst, detail = PS.anchor_check(drop_by_seed, args.anchor_seeds, max_missing)
     if isinstance(worst, float):
         verdict = ("bit-for-bit (<=1e-4)" if worst < 1e-4 else
-                   f"faithful within CUDA noise (< {PS.ANCHOR_TOL})" if worst < PS.ANCHOR_TOL else
+                   f"faithful within the anchor tolerance (< {PS.ANCHOR_TOL})" if worst < PS.ANCHOR_TOL else
                    f"MISMATCH >= {PS.ANCHOR_TOL} — coupling bug")
         print(f"  anchor (drop, seeds {args.anchor_seeds}): worst |Δ|={worst:.4f} → {verdict}")
     else:

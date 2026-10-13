@@ -219,8 +219,9 @@ def setup(seed=0, deterministic=True, threads=None, prefer=None):
     if deterministic:
         os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
         try:
-            # warn_only: some ops (e.g. GPU multi-head-attention backward) have no
-            # deterministic kernel; we warn rather than crash so training still runs.
+            # warn_only: an op with no deterministic kernel warns instead of crashing, so training
+            # still runs. Attention is not such an op here: the math kernel forced below has a
+            # deterministic backward (none of the logged P100 runs warned).
             torch.use_deterministic_algorithms(True, warn_only=True)
         except Exception:
             pass

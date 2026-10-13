@@ -113,12 +113,12 @@ def _mid_cdf_knots(x):
     """Tie-aware empirical CDF on the UNIQUE (strictly-increasing) values of x: each distinct value v gets
     its mid-distribution rank F(v) = (cum_count - 0.5*count)/n. These are the monotone-increasing sample
     points np.interp requires. The earlier `np.sort` + arange convention gave a tied cluster the rank of its
-    LAST duplicate (a first/last-rank, NOT a mid-distribution CDF), which mishandles the heavy ties in
-    quantised Sentinel reflectance -- adversarial-review P0-2. On the full 10x10 the tie-aware convention
-    lowers the quantile-transport joint ~0.1-0.2 pp vs the old first/last-rank (R10 9.6->9.5, R17 9.55->9.35),
-    within the pipeline's GPU run-to-run non-determinism (attention backward has no deterministic kernel, see
-    bandsim/parallel.py) and under the ~0.3 pp SE; the product-aware (mean/std) headline 10.8 and every paper
-    claim are unchanged. This is the correct definition and matches the docstring."""
+    LAST duplicate (a last-duplicate rank, NOT a mid-distribution CDF), which mishandles the heavy ties in
+    quantised Sentinel reflectance -- adversarial-review P0-2. The committed R10/R17/R18 outputs predate it;
+    on the same trained models (4x P100, full 10x10, both conventions in one run) it moves the
+    quantile-transport joint risk by -0.039 pp (95% CI [-0.079, +0.002], p = 0.06;
+    experiments/PHASE8R10_QUANTILE_CONVENTION_CHECK.md). The product-aware (mean/std) arms, the paper's
+    headline 10.8, do not use it. This is the correct definition and matches quantile_match's docstring."""
     v, c = np.unique(x, return_counts=True)
     return v, (np.cumsum(c) - 0.5 * c) / len(x)
 

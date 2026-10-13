@@ -932,9 +932,10 @@ def run_seed(seed, Xtr, ytr, Xte, yte, Xte_l2a, subsample_frac, max_missing, epo
         # yet, identical SGMAE-pretrained weights. They then diverge in finetuning by more than
         # the dropout itself — drawing dropout masks consumes RNG, so the batch permutation
         # differs from the second epoch on. That is inherent to the ablation, not a defect, but it
-        # is not a strict single-factor contrast and must not be described as one. (On CUDA the
-        # attention backward has no deterministic kernel, so all of this holds exactly only on the
-        # CPU reference path — see bandsim.parallel's determinism note.)
+        # is not a strict single-factor contrast and must not be described as one. ("Identical" holds
+        # where training is bit-repeatable: on the CPU at one thread per worker, and on CUDA under
+        # hw.setup(deterministic=True), which forces the math attention kernel -- observed on the 4x P100
+        # box; see bandsim.parallel's determinism note.)
         # Without B7, B6 -> Proposed moves two factors at once and NOTHING in this experiment
         # licenses "the wavelength PE contributes N mIoU".
         m_b7 = _build_grouped(groups, cwl, seed, pe_type="learned")
