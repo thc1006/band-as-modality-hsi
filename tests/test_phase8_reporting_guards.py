@@ -67,7 +67,8 @@ def _args(**over):
 
 
 def test_preflight_accepts_the_canonical_reproduce_sh_configuration():
-    # reproduce.sh runs 7 seeds; that must not have been made illegal by the >=5 rule.
+    # reproduce.sh runs the committed 5-seed configuration (it once ran 7); the >=5 rule must not
+    # make either illegal.
     P8._preflight(_args(seeds=[0, 1, 2, 3, 4, 5, 6]), len(P8.S2_PHYSICAL_GROUPS))
     P8._preflight(_args(), len(P8.S2_PHYSICAL_GROUPS))
 
