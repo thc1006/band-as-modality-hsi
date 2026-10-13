@@ -208,7 +208,7 @@ def _fake_loader(calls):
         if product == "L2A":
             X = (X * 1.1 + 0.2).astype(np.float32)
             X[:, P8.B10_IDX] = 0.0
-        calls.append(dict(split=split, product=product, X=X, y=y, pid=pid))
+        calls.append(dict(split=split, product=product, X=X, y=y, pid=pid, seed=seed))
         return (X, y, pid) if return_patch_id else (X, y)
     return load_split
 
@@ -283,18 +283,48 @@ def test_phase8R_main_hands_the_two_stage_driver_the_right_arguments(cpu, monkey
     assert seen.get("eval_per_worker_gb") is None
 
 
-def test_phase8R2_main_hands_the_two_stage_driver_the_right_arguments(cpu, monkeypatch, tmp_path):
+@pytest.mark.parametrize("extra,expected", [([], 54321), (["--test-pixel-seed", "7"], 7)])
+def test_phase8R_main_draws_the_test_pixels_with_the_test_pixel_seed(cpu, monkeypatch, tmp_path, extra, expected):
+    """--test-pixel-seed (default 54321, the paper's draw) reaches every test-split read, L1C and L2A alike
+    (they must stay the same pixels), and only those: the train draw keeps its own seed."""
+    import phase8R_reliability as P8R
+    seen, calls = _run_main_until_two_stage(monkeypatch, tmp_path, P8R, [
+        "phase8R_reliability.py", "--split-seeds", "0", "1", "--model-seeds", "3",
+        "--patches-train", "40", "--px-train", "2", "--patches-test", "60", "--px-test", "2",
+        "--device", "cpu", "--out-tag", "_pytest"] + extra)
+    test_calls = [c for c in calls if c["split"] == "test"]
+    assert {c["product"] for c in test_calls} == {"L1C", "L2A"}
+    assert all(c["seed"] == expected for c in test_calls)
+    train_calls = [c for c in calls if c["split"] == "train"]
+    assert train_calls and all(c["seed"] == 12345 for c in train_calls)
+
+
+def test_phase8R_stamps_the_test_pixel_seed_it_used():
+    """The provenance estimand names the pixel-sampling seed; it must be the one the run used, not a
+    hard-coded 54321 that a --test-pixel-seed run would then misreport."""
+    import ast
+    src = open(os.path.join(_HERE, "..", "experiments", "phase8R_reliability.py"), encoding="utf-8").read()
+    parts = [n for n in ast.walk(ast.parse(src))
+             if isinstance(n, ast.JoinedStr) and "shared across all runs" in ast.unparse(n)]
+    assert len(parts) == 1 and "args.test_pixel_seed" in ast.unparse(parts[0])
+    assert "54321 shared across all runs" not in src
+
+
+@pytest.mark.parametrize("norm_stats", [None, "source"])
+def test_phase8R2_main_hands_the_two_stage_driver_the_right_arguments(cpu, monkeypatch, tmp_path, norm_stats):
     """Behavioural, on synthetic pixels: phase8R2's main() trains on the SOURCE-domain train pixels ONLY
-    (normalised, as it always was, with the statistics of the whole train draw), evaluates every
-    leak-guarded test pixel with its scene component and target-domain flag, and gives the evaluation
-    stage --alpha and its measured VRAM budget."""
+    (normalised by default, as it always was, with the statistics of the whole train draw; with
+    --norm-stats source, with those of the source-domain train pixels), evaluates every leak-guarded test
+    pixel with its scene component and target-domain flag, and gives the evaluation stage --alpha and its
+    measured VRAM budget."""
     import pandas as pd
     import phase8_cloudsen12 as P8
     import phase8R2_landcover_reliability as R2
     seen, calls = _run_main_until_two_stage(monkeypatch, tmp_path, R2, [
         "phase8R2_landcover_reliability.py", "--split-seeds", "0", "1", "--model-seeds", "3", "5",
         "--patches-train", "40", "--px-train", "2", "--px-test", "2", "--alpha", "0.2",
-        "--jobs", "3", "--device", "cpu", "--axis", "surface", "--out-tag", "_pytest"])
+        "--jobs", "3", "--device", "cpu", "--axis", "surface", "--out-tag", "_pytest"]
+        + (["--norm-stats", norm_stats] if norm_stats else []))
     tr_call = next(c for c in calls if c["split"] == "train")
     te_call = next(c for c in calls if c["split"] == "test")
     src = ~R2._target_mask("surface", "train", tr_call["pid"])
@@ -302,7 +332,8 @@ def test_phase8R2_main_hands_the_two_stage_driver_the_right_arguments(cpu, monke
     meta = pd.read_csv(os.path.join(P8.DATA, "test", "metadata.csv"))
     keep = ~np.isin(te_call["pid"], meta.index[meta["s2_id"].isin(train_products)].to_numpy())
     pid = te_call["pid"][keep]
-    mu = tr_call["X"].mean(0); sd = tr_call["X"].std(0) + 1e-8
+    stats_px = tr_call["X"][src] if norm_stats == "source" else tr_call["X"]
+    mu = stats_px.mean(0); sd = stats_px.std(0) + 1e-8
     norm = lambda A: ((A - mu) / sd).astype(np.float32)
     assert 0 < src.sum() < src.size, "the synthetic train draw must hold both domains"
     assert seen["eval_fn"] is R2.eval_job and seen["jobs"] == [(0, 3), (0, 5), (1, 3), (1, 5)]

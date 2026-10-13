@@ -39,34 +39,36 @@ the GPUs directly). The headline (proposed, L2A_real, naive) on the P100s is 28.
 paper's 27.849 +/- 0.786 (the seed-fixed 2x V100 run committed in c59100a). The per-cell code gives the same
 CSVs on the P100s as the two-stage code, so that gap is not a consequence of H-10: the trained models are
 re-drawn on the other machine -- clean accuracy differs in all 100 cells, for both models. The two machines
-share the input data (the restored CloudSEN12-high: the test inputs compared value by value with inputs
-banked on the V100 box, the training draw through its normalisation mean and standard deviation, the only
-statistic of the training pixels banked there) and the numeric packages (torch 2.6.0+cu124, numpy 2.1.0,
-scipy 1.18.0); they differ in GPU (V100 sm_70 against P100 sm_60), CPU (an AVX-512 Xeon Gold 6154 against
-this box's AVX2 Xeon E5-2696 v4), NVIDIA driver patch (535.161.08 against 535.230.02) -- the V100 host's CPU
-and driver from notes kept on that machine, as its provenance records neither -- Python patch release
-(3.12.3 against 3.12.15), operating system and container. Which of these re-draws the models was not
-isolated. The seeded draws are the same on both: both models draw their random initial weights only through
-`uniform_`, for which torch 2.6.0 ships no AVX-512 kernel, so an AVX-512 CPU is dispatched to the AVX2
-kernel this box uses by default (forcing ATen's `default` path here does change the weights). The proposed
-model's construction does differ, in its fixed wavelength encoding, through `exp`: torch hands it to oneMKL,
-whose result depends on its instruction-set path (restricting MKL to SSE4.2 here changes 13 of the
-encoding's 448 elements), and the V100-built models banked in `paper/scenedump_rich` carry an encoding that
-differs from this box's in 12 elements (at most 2.4e-7; the same in all ten, identical here at 1, 4 and 8
-threads) -- reproduced exactly by raising two of the 32 `exp` outputs by one ulp. b2, whose construction
-computes nothing but `uniform_`, differs in every cell all the same, so construction is not the only cause;
-and the V100 run, made from the development repository's working tree, was never repeated there, so its own
-run-to-run spread is unknown. phase8R2's 10 x 10 on the P100s (the acceptance runs, both axes) re-draws its
-models too (accuracy differs for 399 of its 400 (cell, model) pairs), and every arm's mean joint risk and
-coverage moves by at most 0.69 of the paper's standard error (largest: geography, proposed, naive coverage,
-79.05 against 78.58 +/- 0.68; joint risks by at most 0.14 points). Compared cell by cell -- the two
+share the input data (the restored CloudSEN12-high: the test inputs compared value by value with inputs banked
+on the V100 box, the training draw through its normalisation mean and standard deviation, the only statistic
+of the training pixels banked there) and the numeric packages (torch 2.6.0+cu124, numpy 2.1.0, scipy 1.18.0);
+they differ in GPU (V100 sm_70 against P100 sm_60), CPU (an AVX-512 Xeon Gold 6154 against this box's AVX2
+Xeon E5-2696 v4), NVIDIA driver patch (535.161.08 against 535.230.02) -- the V100 host's CPU and driver from
+notes kept on that machine, as its provenance records neither -- Python patch release (3.12.3 against
+3.12.15), operating system and container. Which of these re-draws the models was not isolated. The seeded
+draws are the same on both: both models draw their random initial weights only through `uniform_`, for which
+torch 2.6.0 ships no AVX-512 kernel, so an AVX-512 CPU is dispatched to the AVX2 kernel this box uses by
+default (forcing ATen's `default` path here does change the weights). The proposed model's construction does
+differ, in its fixed wavelength encoding, through `exp`: torch hands it to oneMKL, whose result depends on its
+instruction-set path (restricting MKL to SSE4.2 here changes 13 of the encoding's 448 elements), and the
+V100-built models banked in `paper/scenedump_rich` carry an encoding that differs from this box's in 12
+elements (at most 2.4e-7; the same in all ten, identical here at 1, 4 and 8 threads) -- reproduced exactly by
+raising two of the 32 `exp` outputs by one ulp. b2, whose construction computes nothing but `uniform_`,
+differs in every cell all the same, so construction is not the only cause; and the V100 run, made from the
+development repository's working tree, was never repeated there, so its own run-to-run spread is not measured
+-- though the V100 box did reproduce other training bit for bit: R10, R17 and R18 each trained the proposed
+model afresh and gave identical per-cell results for the same quantile-transport arm
+(`PHASE8R10_QUANTILE_CONVENTION_CHECK.md`). phase8R2's 10 x 10 on the P100s (the acceptance runs, both axes)
+re-draws its models too (accuracy differs for 399 of its 400 (cell, model) pairs), and every arm's mean joint
+risk and coverage moves by at most 0.69 of the paper's standard error (largest: geography, proposed, naive
+coverage, 79.05 against 78.58 +/- 0.68; joint risks by at most 0.14 points). Compared cell by cell -- the two
 campaigns share splits, seeds and data -- one land-cover estimate (b2, Mondrian, joint risk) is set aside
 because its two-way variance nearly cancels (SE 0.0025 against an iid 0.038: 12.9 two-way standard errors,
 0.84 iid ones). The other 15 shifts reach at most 2.33 two-way cluster-robust standard errors (geography,
-proposed, naive coverage; all of geography's naive-arm shifts are upward; one further land-cover SE is the
-iid floor, its two-way variance being negative), and none is significant once the 16 comparisons are taken
-into account (two-sided p > 0.04 each at 9 degrees of freedom). So the hardware re-draw leaves at most a
-hint of a systematic shift, small next to the reported uncertainty.
+proposed, naive coverage; all of geography's naive-arm shifts are upward; one further land-cover SE is the iid
+floor, its two-way variance being negative), and none is significant once the 16 comparisons are taken into
+account (two-sided p > 0.04 each at 9 degrees of freedom). So the hardware re-draw leaves at most a hint of a
+systematic shift, small next to the reported uncertainty.
 
 ## 2. Training is bit-identical across processes, GPUs and thread counts (CUDA, deterministic=True)
 
@@ -170,14 +172,15 @@ python scripts/verify_h10.py cpu-repeat --threads 2 --repeat 40      # and --thr
 python scripts/verify_h10.py cpu-thread-logits --rows 388400
 ```
 
-The 10 x 10 CSV comparisons are two runs of `phase8R_reliability.py --split-seeds $(seq 0 9) --model-seeds
-$(seq 0 9)` (with different `--out-tag`s), one from a worktree of the pre-H-10 commit with
-`BANDSIM_GPU_OVERSUB=1` (one worker per GPU, see section 4), compared with `cmp`. The pre-H-10 runs above
-use `BANDSIM_GPU_OVERSUB=1` for the same reason. Session-only probes, not in the script: the data check
-against the V100 banks, the initialisation and encoding probes and the P100-against-paper comparisons
-(section 1), the three-process training probe and the scan of the run logs for determinism warnings (section
-2), the nvidia-smi memory sampling and the benchmark timings (sections 4 and 6), the mutation harness
-(section 6), the open-files reproductions (the test above covers a smaller case), the CPU repetition loops
-other than `cpu-repeat` (3 of 20, 7 of 40, `MKL_CBWR=AUTO` 2 of 40, the fifth review's 0 of 20, the first
-single-thread 60 of 60), the real-data repetitions, the probes behind the "ruled out" list and the two field
-captures (section 5), and the first review's 257-field measurement.
+The acceptance runs' CSVs (the flagship and both phase8R2 axes, `--out-tag _10seed_repro`) are committed in
+`paper/p100_rerun_2026-10-13/`. The 10 x 10 CSV comparisons are two runs of `phase8R_reliability.py
+--split-seeds $(seq 0 9) --model-seeds $(seq 0 9)` (with different `--out-tag`s), one from a worktree of the
+pre-H-10 commit with `BANDSIM_GPU_OVERSUB=1` (one worker per GPU, see section 4), compared with `cmp`. The
+pre-H-10 runs above use `BANDSIM_GPU_OVERSUB=1` for the same reason. Session-only probes, not in the script:
+the data check against the V100 banks, the initialisation and encoding probes and the P100-against-paper
+comparisons (section 1), the three-process training probe and the scan of the run logs for determinism
+warnings (section 2), the nvidia-smi memory sampling and the benchmark timings (sections 4 and 6), the
+mutation harness (section 6), the open-files reproductions (the test above covers a smaller case), the CPU
+repetition loops other than `cpu-repeat` (3 of 20, 7 of 40, `MKL_CBWR=AUTO` 2 of 40, the fifth review's 0 of
+20, the first single-thread 60 of 60), the real-data repetitions, the probes behind the "ruled out" list and
+the two field captures (section 5), and the first review's 257-field measurement.

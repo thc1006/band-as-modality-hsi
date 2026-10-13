@@ -220,6 +220,23 @@ def eval_job(job, trained, X, y, unit, is_target, groups, target):
     return evaluate_cell(split_seed, model_seed, models, X, y, unit, is_target, groups, target=target)
 
 
+def standardisation_stats(Xtr, Xtr_src, which):
+    """Per-band (mean, sd + 1e-8) every input is standardised with, by --norm-stats.
+
+    "train" (the default, and what the paper's runs used): the WHOLE train draw. That includes the
+    TARGET domain's train pixels, which the model never trains on but whose unlabelled statistics then
+    shape the input scale. "source": the source-domain train pixels only, the stricter protocol.
+    Measured on the 4x P100 box (both axes, 10 split x 10 model seeds, paired by cell): no reported
+    quantity moves measurably between the two (experiments/PHASE8R2_NORM_STATS_CHECK.md)."""
+    if which == "train":
+        px = Xtr
+    elif which == "source":
+        px = Xtr_src
+    else:
+        raise ValueError(f"norm-stats must be 'train' or 'source', got {which!r}")
+    return px.mean(0), px.std(0) + 1e-8
+
+
 def _two_way_se(a, splits, models):
     a = np.asarray(a, float); N = a.size
     if N < 2:
@@ -248,6 +265,11 @@ def main():
     ap.add_argument("--axis", default="surface", choices=["surface", "geography"],
                     help="the shift axis: surface (train dark, deploy bright) or geography "
                          "(train Northern Hemisphere, deploy Southern)")
+    ap.add_argument("--norm-stats", default="train", choices=["train", "source"],
+                    help="standardisation statistics: the whole train draw (train, the paper's) or the "
+                         "SOURCE-domain train pixels only (source). With train, the statistics include "
+                         "the target domain's train pixels, which the model never trains on. Give a "
+                         "non-default choice an --out-tag, or the run writes over the canonical CSVs.")
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--out-tag", default="", help="filename suffix for ALL outputs (e.g. _10seed) so a "
                     "re-run does not clobber the canonical results; must be filename-safe. --smoke forces _smoke.")
@@ -296,7 +318,7 @@ def main():
     unit = P8.scene_component_ids("test")[pid]                 # P0-2: scene-component unit
     is_target = _target_mask(args.axis, "test", pid)          # TEST pixels in the unseen TARGET domain
 
-    mu = Xtr.mean(0); sd = Xtr.std(0) + 1e-8
+    mu, sd = standardisation_stats(Xtr, Xtr_src, args.norm_stats)
     norm = lambda A: ((A - mu) / sd).astype(np.float32)
     Xtr_src, X = norm(Xtr_src), norm(X)
     nb_u = int(np.unique(unit[is_target]).size); nd_u = int(np.unique(unit[~is_target]).size)

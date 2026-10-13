@@ -1,0 +1,102 @@
+{
+  "args": {
+    "alpha": 0.1,
+    "axis": "geography",
+    "device": null,
+    "epochs": 40,
+    "jobs": null,
+    "model_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "norm_stats": "source",
+    "out_tag": "_10seed_srcnorm",
+    "patches_train": 3000,
+    "px_test": 400,
+    "px_train": 300,
+    "smoke": false,
+    "split_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "subsample_frac": 0.8
+  },
+  "command": "experiments/phase8R2_landcover_reliability.py --split-seeds 0 1 2 3 4 5 6 7 8 9 --model-seeds 0 1 2 3 4 5 6 7 8 9 --axis geography --norm-stats source --out-tag _10seed_srcnorm",
+  "cwd": "<temporary copy of the repository: exp_next>",
+  "extra": {
+    "compute": {
+      "deterministic_flag": true,
+      "device": "cuda",
+      "eval_stage": {
+        "device": "cuda",
+        "gpu_oversub": 1,
+        "gpu_oversub_forced": false,
+        "max_workers_per_gpu": 1,
+        "plan": "4 workers over 4 GPU(s), 17GB (size-aware ~1/GPU at 11GB/worker), 1 threads each",
+        "threads_per_worker": 1,
+        "vram_budget_gb": 11.0,
+        "workers": 4,
+        "workers_forced": false
+      },
+      "eval_vram_budget_gb_requested": 11.0,
+      "parent_process": "device=cuda (4x Tesla P100-PCIE-16GB 17GB) | 8 cores, 8 threads/proc | torch 2.6.0+cu124",
+      "threads_per_worker": 1,
+      "train_stage": {
+        "device": "cuda",
+        "gpu_oversub": 2,
+        "gpu_oversub_forced": false,
+        "max_workers_per_gpu": 2,
+        "plan": "8 workers over 4 GPU(s), 17GB (size-aware ~2/GPU at 8GB/worker), 1 threads each",
+        "threads_per_worker": 1,
+        "vram_budget_gb": 8.0,
+        "workers": 8,
+        "workers_forced": false
+      }
+    },
+    "n_rows": 400,
+    "shift_axis": "geography_domain_gap",
+    "train_protocol": "H-10 two-stage (phase8R run_two_stage): each model_seed trained ONCE (phase8R train_job), then every (split_seed, model_seed) cell evaluated against that model (eval_job) -- one model per seed across all splits. It reproduces per-cell retraining (run_seed) if training and evaluation are bitwise deterministic in this run's configuration (compute: device, threads_per_worker, deterministic_flag) and identical across the GPUs and processes used -- observed on 4x P100 (torch 2.6.0+cu124, CUDA, deterministic=True) and, on small synthetic campaigns, on the CPU at one thread per worker; not guaranteed elsewhere"
+  },
+  "generated_utc": "2026-10-13T14:22:27+00:00",
+  "git": {
+    "branch": null,
+    "commit": null,
+    "dirty": null,
+    "dirty_files": 0,
+    "outputs_dirty": null
+  },
+  "smoke": false,
+  "versions": {
+    "cuda": "12.4",
+    "gpus": [
+      "Tesla P100-PCIE-16GB",
+      "Tesla P100-PCIE-16GB",
+      "Tesla P100-PCIE-16GB",
+      "Tesla P100-PCIE-16GB"
+    ],
+    "h5py": "3.16.0",
+    "matplotlib": "3.11.1",
+    "numpy": "2.1.0",
+    "platform": "Linux-6.8.0-138-generic-x86_64-with-glibc2.35",
+    "pyspectral": "0.14.3",
+    "python": "3.12.15",
+    "scipy": "1.18.0",
+    "torch": "2.6.0+cu124"
+  }
+}

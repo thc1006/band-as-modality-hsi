@@ -570,6 +570,10 @@ def main():
     ap.add_argument("--jobs", type=int, default=None)
     ap.add_argument("--device", default=None, choices=["cpu", "cuda", "auto"])
     ap.add_argument("--nondeterministic", action="store_true")
+    ap.add_argument("--test-pixel-seed", type=int, default=54321,
+                    help="seed of the per-patch test-pixel draw (54321 = the paper's). The reported SE "
+                         "leaves this draw out (H-8); varying it measures that uncertainty. Give a "
+                         "non-default seed an --out-tag, or the run writes over the canonical CSVs.")
     ap.add_argument("--out-tag", default="", help="filename suffix for ALL outputs (e.g. _10seed) so "
                     "a re-run with more seeds does not clobber the canonical (untagged) results; must "
                     "be filename-safe. --smoke forces _smoke and ignores this.")
@@ -628,7 +632,7 @@ def main():
                                                           replace=False))
     def load_test(product, want_pid=False):
         return P8.load_split("test", product, pixels_per_patch=args.px_test, patch_ids=ids,
-                             seed=54321, return_patch_id=want_pid)
+                             seed=args.test_pixel_seed, return_patch_id=want_pid)
     X_l1c, y_te, pid_te = load_test("L1C", want_pid=True)
     X_l2a, y_l2a = load_test("L2A")
     if not np.array_equal(y_te, y_l2a):
@@ -838,7 +842,7 @@ def main():
     prov = {"target_risk": args.alpha,
             "estimand": "MEAN held-out group joint loss over (split_seed, model_seed) draws, on the "
                         "FIXED sampled pixels (H-8: px-test pixels/patch, one pixel-sampling seed "
-                        "54321 shared across all runs, so the reported SE is over the ROI split and "
+                        f"{args.test_pixel_seed} shared across all runs, so the reported SE is over the ROI split and "
                         "model init ONLY -- it does NOT include pixel-sampling uncertainty, and the "
                         "controlled quantity is the loss on this ROI-composite pixel sample, not the "
                         "full-image or full-patch pixel risk); NOT a per-run certificate check",
