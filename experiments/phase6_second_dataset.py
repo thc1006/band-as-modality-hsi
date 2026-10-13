@@ -73,7 +73,7 @@ SOURCE_DATASET = "indian_pines"          # where every hyper-parameter here was 
 # here rather than repeated: as duplicate literals they can drift, and raising a default without
 # touching this dict would make a plain no-flag run non-canonical, redirect it to a _nc- path, and
 # quietly stop regenerating the deliverables while the stale ones stayed in place.
-# seeds = 0..4 because that is what reproduce.sh:72,100,101 and this module's usage lines run --
+# seeds = 0..4 because that is what reproduce.sh's phase6 lines and this module's usage lines run --
 # both were checked against this dict, and the docstring's synthetic line was corrected to match.
 # Setting it to [0,1,2] made every one of those invocations non-canonical: they would have written
 # _nc-s01234 artefacts, left the committed deliverables untouched and stale, and exited 0 -- turning

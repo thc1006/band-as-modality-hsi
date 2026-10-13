@@ -7,7 +7,7 @@ model. These are adequate for ROBUSTNESS stress-testing (an extra corruption axi
 a validated radiometric noise model — EXCLUDE Design D from any physics-claiming result in the
 D5 reliability paper (the physics claims rest on real 6S transmittance + real pyspectral SRF,
 Designs B & A). If a calibrated model is needed, substitute a per-band measured NEdL/SNR curve.
-See docs/review/PAPER_DESIGN.md §5 and the analogous scoping note in bandsim/cirrus.py.
+See the analogous scoping note in bandsim/cirrus.py.
 
 Physics:  rho_obs[:, c, b] = g_c * rho[:, c, b] + N(0, sigma_b^2),  sigma_b = L_b / SNR_b
 with occasional g_c = 0 (dead detector columns). Hyperion SNR falls VNIR ~500 -> SWIR ~50.

@@ -12,21 +12,23 @@ ACOLITE band order [443,492,560,665,704,740,783,833,865,1614,2202] nm = S2 B1,B2
 B8,B8A,B11,B12 (ACOLITE emits NO surface reflectance for B09/B10 by design). NaN where ACOLITE
 produced no value. Resumable: an existing, valid <index>.npy is skipped.
 
-Run with the verified probe venv (system GDAL 3.8.4, numpy<2). NOT the project .venv.
+Run it in a separate environment that has ACOLITE's dependencies (data/acolite_stage/acolite/environment.yml:
+GDAL's Python bindings, netCDF4, pyproj, ...) plus rasterio, which crop_rows uses (the paper's run used the
+system GDAL 3.8.4 with numpy<2). The project .venv has rasterio but not GDAL's bindings, netCDF4 or pyproj
+(ENVIRONMENT_SETUP.md §4).
 """
 import os, sys, json, time, glob, shutil, urllib.request, urllib.error, urllib.parse
 import numpy as np
 import multiprocessing as mp
 
-REPO   = "/home/hctsai1006/cct/band-as-modality-hsi"
+REPO   = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # this file is in experiments/
 ACOLITE = os.path.join(REPO, "data/acolite_stage/acolite")
-SCRATCH = "/tmp/claude-38627/-home-hctsai1006-cct-band-as-modality-hsi/5292c0a1-68c9-46da-991a-93739c9c8ad4/scratchpad/acolite_batch"
 # WORK holds transient full-tile .SAFE (~346 MB) + full-tile L2R (~5 GB/scene, 11 bands x 10980^2
-# float32) -- MUST be on the big /home mount (13 PB), never /tmp. Deleted per scene after cropping.
+# float32) -- it MUST be on a large disk, never a small /tmp. Deleted per scene after cropping.
 STAGE   = os.path.join(REPO, "data/acolite_stage")
 WORK    = os.path.join(STAGE, "work")        # transient per-scene .SAFE + acolite_out (deleted after crop)
 CROPS   = os.path.join(STAGE, "crops")       # persistent output: <index>.npy (~11 MB each, ~11 GB total)
-LOGDIR  = os.path.join(SCRATCH, "logs")
+LOGDIR  = os.path.join(STAGE, "logs")
 for d in (WORK, CROPS, LOGDIR): os.makedirs(d, exist_ok=True)
 
 GCS_OBJ = "https://storage.googleapis.com/gcp-public-data-sentinel-2/o"  # unused; kept for ref

@@ -99,7 +99,7 @@ shifts of the same checkerboard, NOT independent scene replicates: seeds 0-4 sha
 test-set IoU of 0.448 (adjacent seeds 0.632) against 0.333 for two genuinely independent half-splits,
 so the spread UNDERSTATES sampling uncertainty and no confidence interval is quoted from it. Training
 minimises unweighted cross-entropy while the headline metric is macro mIoU, so large classes dominate
-the objective. See docs/guide/03_physical_simulation.md.
+the objective.
 
 Outputs (../paper/), where [_tag] is the experiment variant (_paired / _matched / _rededge) and
 [_smoke] marks a --smoke run, which is NEVER a deliverable:

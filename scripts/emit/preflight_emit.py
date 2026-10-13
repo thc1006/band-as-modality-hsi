@@ -4,7 +4,8 @@
 
 For each granule: cloud/cirrus/dilated/water flag %, the REAL scene usable fraction (valid pixels
 / all pixels under the CLOUD-ONLY screen -- band 0 only, because the official Dilated/Cirrus flags
-over-trigger on haze; see docs/review/OFFICIAL_ISSUES_TO_REPORT.md), sampled NDVI (median + IQR),
+remove far more pixels than opaque cloud on these granules, for reasons not established; see
+MASK_POLICY), sampled NDVI (median + IQR),
 and mean per-band uncertainty. Emits a provenance header (granule IDs + policy + timestamp) so the
 printed table is reproducible. Extraction is cached for the run.
 

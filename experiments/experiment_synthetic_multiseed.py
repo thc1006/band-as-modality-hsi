@@ -10,7 +10,7 @@ illustration. The paper's actual missing-band claims live in phases 2, 3 and 8, 
 
 WHAT THE THIRD CURVE IS — READ THIS BEFORE QUOTING IT. It is the group-dropout MLP evaluated with a
 CONDITIONAL-GAUSSIAN imputer fitted to the training covariance. It was labelled "Proposed (SGMAE
-imputation + attn)" in the figure, the CSV column, the LaTeX macros and docs/status/STATUS_REPORT.md
+imputation + attn)" in the figure, the CSV column, the LaTeX macros and the development status report
 ("proposed=91"). There is no autoencoder, no mask token, no reconstruction loss and no attention
 anywhere in this file; only two MLPs are trained, and the second and third curves come from the SAME
 model — visible in the old deliverable, where `band_dropout` and `proposed` are identical at 0

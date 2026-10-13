@@ -45,5 +45,5 @@ designs:
 # own disjoint_block_split(block=10, guard=1, offset=seed). Kept for provenance/intent.
 eval:
   seeds: 5
-  split: disjoint_block_guarded  # NEVER random per-pixel (leakage) — see docs/guide/01_datasets.md
+  split: disjoint_block_guarded  # NEVER random per-pixel (spatial-adjacency leakage)
   metrics: [miou, oa, aa, kappa, audc]

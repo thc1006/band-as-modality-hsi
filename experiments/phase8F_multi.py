@@ -361,9 +361,12 @@ def extract(gdir, n_px, seed=0, mask_flags=("cloud",), return_stats=False,
     emit_tools.quality_mask), given as NAMES resolved through the file's own mask_bands (raw indices
     still accepted, then checked against the label at that index). Default ("cloud",) = opaque Cloud
     flag ONLY. The official tutorial default is Cloud+Cirrus+Spacecraft+Dilated, which we support for
-    a robustness check but do NOT use as primary: Cirrus/Dilated OVER-TRIGGER on haze/aerosol (India:
-    Dilated=100%, Cirrus=63% vs true opaque Cloud 27%) and wipe hazy scenes. Haze is a REAL condition
-    that raises EMIT uncertainty AND reconstruction difficulty, so we keep it (removing only
+    a robustness check but do NOT use as primary: on these granules Cirrus/Dilated flag far more than
+    the opaque Cloud flag (India: Dilated=100%, Cirrus=63% vs Cloud 27%) and wipe whole scenes. Why is
+    not established -- haze, bright-surface false positives, real thin cirrus and the dilation buffer
+    are all candidates -- so it is a hypothesis, not a finding, that these flags over-trigger on haze.
+    If it is haze, that is a REAL condition that raises EMIT uncertainty AND reconstruction
+    difficulty, which is why the primary screen keeps these pixels (removing only
     surface-invisible opaque cloud).
 
     return_coords additionally returns each sampled pixel's (row, col) in the granule grid, which is

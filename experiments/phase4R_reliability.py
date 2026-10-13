@@ -3,11 +3,11 @@
 """
 Phase 4R (★honest ace) — reliability / abstention under missing bands.
 
-Everyone TOLERATES missing bands; to our knowledge — after the literature search documented in
-docs/review/ (SEnSeI, HyperspectralMAE, DOFA, Panopticon all target tolerance, not abstention) — no
-prior work quantifies WHEN NOT TO TRUST the prediction under missing bands. "To our knowledge" and a
-citable search, not a bare "the first": novelty is a claim about the literature and this file cannot
-evidence one. What it produces, for HSI PER-PIXEL classification (each pixel's spectrum is classified
+Everyone TOLERATES missing bands; to our knowledge — after a literature search (SEnSeI,
+HyperspectralMAE, DOFA, Panopticon all target tolerance, not abstention) — no
+prior work quantifies WHEN NOT TO TRUST the prediction under missing bands. "To our knowledge" after a
+search, not a bare "the first": novelty is a claim about the literature and this file cannot evidence
+one. What it produces, for HSI PER-PIXEL classification (each pixel's spectrum is classified
 independently — no spatial convolution or neighbourhood context, so "segmentation" would oversell it):
   - risk-coverage curves at increasing #missing groups (abstention recovers low risk)
   - AURC / AUGRC and misclassification-detection AUROC vs #missing groups
@@ -17,7 +17,7 @@ independently — no spatial convolution or neighbourhood context, so "segmentat
     risk P(wrong | accepted). The two estimands are kept clearly distinct, and neither is a
     guarantee HERE: see reliability_at_m for why this scene only approximates exchangeability.
     The rigorous certificate is phase8R (ROI-level split on real Sentinel-2).
-using temperature-scaled max-softmax confidence. See docs/guide/EXP_PHASE4R_PLAN.md.
+using temperature-scaled max-softmax confidence.
 
 Compares the Proposed model against the strongest baseline B2 (band-group dropout MLP).
 Reuses Phase 2 training (import from phase2_degradation).

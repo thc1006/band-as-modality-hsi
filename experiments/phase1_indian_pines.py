@@ -9,7 +9,7 @@ This is the "pipeline runs correctly on real data, no leakage" exit gate before 
 
 Anti-leakage: uses a DISJOINT block-checkerboard split (bandsim.io.disjoint_block_split),
 NOT random per-pixel sampling — random sampling from one scene leaks via spatial adjacency
-(reviewers know this; see docs/guide/01_datasets.md). block=10 keeps all 16 classes in both
+(reviewers know this). block=10 keeps all 16 classes in both
 splits on Indian Pines. VERIFIED by execution (tests/test_experiment_guards.py, seeds 0-4):
 train and test pixel sets never intersect, and with the default guard=1 not a single test pixel
 is even 8-CONNECTED (diagonals included) to a train pixel or to the train REGION — the guard
@@ -22,7 +22,7 @@ the 16 classes have a mean test support under 30 px (Grass-pasture-mowed 3.8, Oa
 seeds. Their per-class IoU/accuracy are noise; `results_phase1_perclass.csv` therefore carries a
 `test_support_px` row and main() prints an explicit warning listing them.
 
-Data (place under data/indian_pines/, ~6 MB, see docs/guide/01_datasets.md):
+Data (place under data/indian_pines/, ~6 MB; sources in ENVIRONMENT_SETUP.md §4):
   Indian_pines_corrected.mat   (145x145x200, uint16)
   Indian_pines_gt.mat          (145x145, 16 classes + background=0)
 
@@ -60,7 +60,7 @@ def P(rel):
 DATA_DIR = os.path.join(os.path.dirname(_HERE), "data", "indian_pines")
 NUM_CLASSES = 16  # excluding background (0)
 # Standard AVIRIS Indian Pines class taxonomy in label order (GT label i+1 <-> CLASS_NAMES[i]);
-# the canonical 16-class names used throughout the HSI literature (see docs/guide/01_datasets.md).
+# the canonical 16-class names used throughout the HSI literature.
 CLASS_NAMES = [
     "Alfalfa", "Corn-notill", "Corn-mintill", "Corn",
     "Grass-pasture", "Grass-trees", "Grass-pasture-mowed", "Hay-windrowed",

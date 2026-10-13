@@ -5,7 +5,6 @@ Gaussian placeholder near 1.375 um, NOT a real ice-cloud (Mie / T-matrix / Baum-
 model. It is EXCLUDED from any physics-claiming result (esp. the D5 reliability paper): for real
 cirrus use the operational Sentinel-2 L1C B10 (1.375 um) cirrus band and the real L1C->L2A
 transition instead. Kept only for the legacy Phase-4 robustness ablation.
-See docs/review/PAPER_DESIGN.md §5 (physics hardening).
 
 Physics:  rho_obs(lam) = rho_surface(lam) * exp(-tau * k(lam)) + rho_cirrus_path(lam; tau)
 

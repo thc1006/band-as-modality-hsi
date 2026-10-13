@@ -1,4 +1,4 @@
-"""Design D (instrument noise/striping) physics-sanity unit tests (roadmap docs/guide/03 §3).
+"""Design D (instrument noise/striping) physics-sanity unit tests.
 
 Guards: per-band SNR curve in [50,500] with VNIR>SWIR; empirical per-band noise std matches
 sigma_b = signal/SNR_b; striping produces dead (=0) columns and near-unity live-column gain.

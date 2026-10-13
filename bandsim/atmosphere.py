@@ -13,14 +13,13 @@ Water-vapour (~940, 1130 nm), O2-A and CO2 windows physically suppress specific 
 under high column water vapour, narrow bands (S2 B9, parts of SWIR) lose signal.
 
 IMPLEMENTATION NOTES
-- Requires Py6S + the 6S Fortran binary. On Linux/dell:  conda install -c conda-forge sixs py6s
-  (Windows is painful — that's a reason to develop on dell). See ENVIRONMENT_SETUP.md §3.
+- run_6s_transmittance() needs Py6S + the 6S Fortran binary, neither of which is in the locked
+  environment (build and install steps: ENVIRONMENT_SETUP.md §3). Only the two precompute
+  scripts call it; everything else only reads the tables they wrote (mostly through
+  load_cached_transmittance(), which checks the wavelength axis).
 - CACHE transmittance spectra per atmosphere (they are independent of the cube).
 - VALIDITY LIMIT: 6S is invalid inside strong absorption cores — treat those bands as a
-  HARD MASK rather than trusting 6S magnitudes there (see docs/guide/03_physical_simulation.md).
-
-TODO(Phase 3): implement run_6s_transmittance(); until then load_cached_transmittance()
-lets you develop the rest of the pipeline from a precomputed .npz.
+  HARD MASK rather than trusting 6S magnitudes there.
 """
 from __future__ import annotations
 import numpy as np
@@ -37,9 +36,9 @@ def run_6s_transmittance(wavelengths_nm, cwv_g_cm2, aod550, geometry=None,
                          ozone_cm_atm=0.35, aero=None, n_threads=8):
     """Return total gaseous atmospheric transmittance T(lam) in [0,1] via Py6S / 6S RTM.
 
-    Requires Py6S + the 6S Fortran binary (conda-forge sixs). The main venv does NOT have
-    these — run this from the `sixs` conda env (see ENVIRONMENT_SETUP.md §3) to PRECOMPUTE a
-    transmittance table, then read it back in the main pipeline via load_cached_transmittance.
+    Requires Py6S + the 6S Fortran binary, which the locked environment does not include (build
+    and install steps: ENVIRONMENT_SETUP.md §3). Use it to PRECOMPUTE a transmittance table, then
+    read that back in the main pipeline via load_cached_transmittance.
 
     We return the total GASEOUS transmittance (water vapour + O2/O3/CO2), which is what
     physically suppresses specific bands. Caller should additionally HARD-MASK the strong
@@ -95,8 +94,8 @@ def load_cached_transmittance(npz_path, key, n_bands=None, expected_wavelengths_
     with no `wl_nm` at all is rejected rather than trusted.
 
     `require_generation_mode` closes a second identity gap the axis check cannot. A table produced by
-    INTERPOLATING an older one onto this axis (the approach in
-    archive/superseded_experiments/resample_6s_table.py) has the right length,
+    INTERPOLATING an older one onto this axis (the approach of a since-retired resampling script)
+    has the right length,
     the right `wl_nm` and the right axis hash, so it passes every check above -- while its values near
     narrow absorption edges are not what 6S would return there. Pass "direct_6s" when a result depends
     on the transmittance being computed rather than resampled, and an interpolated (or unlabelled)

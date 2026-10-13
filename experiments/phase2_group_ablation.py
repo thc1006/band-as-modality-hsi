@@ -3,7 +3,7 @@
 """
 Phase 2 robustness check — does the core conclusion survive different group counts?
 
-The Phase 2 plan (EXP_PHASE2_PLAN.md, self-critique Q4) committed to verifying the missing-band
+The Phase 2 plan (a development note, self-critique Q4) committed to verifying the missing-band
 conclusion is not an artefact of the G=10 grouping. Here we sweep G in {5,10,20}.
 
 WHAT IS COMPARED. Every method Phase 2 trains: b1, b2, b3, b4, b6, proposed. The list used to be
@@ -537,7 +537,7 @@ def main():
     # `--seeds 0 --groups 5 10 --epochs 12` pointed at the CANONICAL filename — so the integrity
     # harness itself overwrote the deliverable with a 1-seed 12-epoch 2-group run. The evidence was
     # sitting in paper/: n_seeds=1, every *_std 0.0, no G=20 row at all and no provenance sidecar,
-    # under a STATUS_REPORT line quoting three G values and three numbers the file does not contain.
+    # under a status-report line quoting three G values and three numbers the file does not contain.
     out_tag = ""
     if args.smoke:
         args.seeds = [0]; args.epochs = 12; args.trials = 4; args.groups = [5, 10]

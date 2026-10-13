@@ -124,7 +124,7 @@ def test_pipeline_threads_the_axis_into_the_guard(tmp_path):
 def test_shipped_table_is_on_the_aviris_axis():
     """The repaired data/srf_cache/T_6s_grid.npz must load under the guard it now ships with.
 
-    Skipped only when the table is genuinely absent (it is gitignored); a PRESENT table that fails
+    Skipped only when the table is genuinely absent (it ships with the repository); a PRESENT table that fails
     the axis check is a hard failure, never a skip."""
     table = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                          "data", "srf_cache", "T_6s_grid.npz")

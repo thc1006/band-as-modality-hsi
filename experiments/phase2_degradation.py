@@ -6,7 +6,7 @@ Phase 2 (★core) — Design A missing-band DEGRADATION CURVE on real Indian Pin
 Reproduces the paper's signature claim on real HSI: dropping whole spectral GROUPS
 ("band-as-modality" = a group is a modality), the proposed grouped cross-band attention
 (with SGMAE group-masked pretraining + band-group dropout) degrades more gracefully than
-channel-stack baselines. See docs/guide/EXP_PHASE2_PLAN.md for the plan / self-critique.
+channel-stack baselines.
 
 Methods compared:
   B1  MLP + test-time band zeroing (no defense, lower bound)

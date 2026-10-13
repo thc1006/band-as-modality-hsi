@@ -1,4 +1,4 @@
-"""Design B (6S atmosphere) physics-sanity unit tests (roadmap docs/guide/03 §3). pytest tests/ -v
+"""Design B (6S atmosphere) physics-sanity unit tests. pytest tests/ -v
 
 Guards: transmittance in [0,1]; water-vapour bands' transmittance decreases monotonically
 with column water vapour (CWV); hard-mask zeroes exactly the strong absorption cores.

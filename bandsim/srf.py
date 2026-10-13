@@ -10,7 +10,7 @@ which is a linear operator  rho_sensor = rho_hsi @ W.T  with the resampling matr
 
 "Missing bands" then arise physically because different sensors have different band
 sets (e.g. Landsat-8/9 OLI lacks Sentinel-2's red-edge B5/B6/B7 and narrow water-vapour
-B9). See docs/guide/03_physical_simulation.md.
+B9).
 
 This module is fully functional given (a) the cube's wavelength axis and (b) a dict of
 band SRFs sampled on that axis.

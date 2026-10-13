@@ -176,7 +176,7 @@ def main():
             report("H6c 6S table sits on the REAL (gapped) AVIRIS axis", 0,
                    "table stores NO wl_nm axis -- its wavelength alignment cannot be verified at all")
     else:
-        report("H6 6S table (needs sixs env)", 2, "table absent on this machine — skipped, not a failure")
+        report("H6 6S table (data/srf_cache/T_6s_grid.npz)", 2, "table absent on this machine — skipped, not a failure")
 
     # ---------------------------------------------------------------- H7 temperature scaling reduces NLL on REAL logits
     with torch.no_grad():

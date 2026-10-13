@@ -3,8 +3,8 @@
 Each test pins a defect that produced a wrong number, or a wrong CLAIM, without crashing:
 
   * the third curve was labelled "Proposed (SGMAE imputation + attn)" in the figure, the CSV column,
-    the LaTeX macros and STATUS_REPORT — while only two MLPs are trained and it shares its model
-    with the second curve;
+    the LaTeX macros and the development status report — while only two MLPs are trained and it
+    shares its model with the second curve;
   * the three configs were scored on three DIFFERENT random mask sets, so the comparison was not
     paired, on a problem where the choice of missing feature alone moves mIoU by 64 points;
   * 12 masks were sampled with replacement, covering ~65% of the 12 single-feature cases;

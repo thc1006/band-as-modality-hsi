@@ -171,7 +171,7 @@ informative), so the conclusions hold; the "temperature-invariant" wording in th
 
 ## Reproduce
 ```
-.venv/bin/python experiments/precompute_6s_dataset.py --dataset salinas   # + pavia; IP LUT is shipped
+.venv/bin/python experiments/precompute_6s_dataset.py --dataset salinas --out data/srf_cache/T_6s_grid_salinas_regen.npz   # all three LUTs ship; regenerate only to audit
 .venv/bin/python experiments/phase8H_hsi6s_shift.py --dataset indian_pines                 # uniform (control)
 .venv/bin/python experiments/phase8H_hsi6s_shift.py --dataset indian_pines --spatial-cwv   # spatial (realistic)
 .venv/bin/python experiments/phase8G_emit_shift.py  --seeds 0..9 --model band              # EMIT arch-independence

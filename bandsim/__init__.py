@@ -26,7 +26,9 @@ hw            device / threads / seeds / determinism                            
 parallel      task-level parallelism across GPUs / cores                              WORKING
 config_runner / pipeline   YAML-driven simulation orchestration                       WORKING
 
-See docs/guide/03_physical_simulation.md for the physics and docs/guide/00_ROADMAP.md for the plan.
+Each module's docstring states its physics and its limits. paper/RESULT_MANIFEST.md maps the paper's main
+numbers to the scripts, logs and CSVs that produced them, and lists where the paper's text and the committed
+outputs disagree.
 """
 
 __version__ = "0.1.0"

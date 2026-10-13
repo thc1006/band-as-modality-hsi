@@ -1,8 +1,7 @@
 """Reliability / selective-prediction metrics for missing-band abstention (Phase 4R).
 
-The paper's honest-ace contribution: quantify WHEN NOT TO TRUST a prediction under missing
-bands. Nobody has drawn risk-coverage / misclassification-detection AUROC as a function of
-#missing bands for HSI segmentation (see docs/guide/EXP_PHASE4R_PLAN.md).
+Quantifies WHEN NOT TO TRUST a prediction under missing bands: risk-coverage and
+misclassification-detection AUROC as a function of the number of missing bands.
 
 Metrics
 -------

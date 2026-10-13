@@ -1,7 +1,7 @@
 """HSI cube loading + wavelength axes for the benchmark datasets.
 
 Indian Pines / Pavia / Salinas ship as MATLAB .mat files (data cube + ground-truth labels).
-Download links & licences: docs/guide/01_datasets.md. Place under data/<dataset>/.
+Download sources, licences and the expected layout under data/<dataset>/: ENVIRONMENT_SETUP.md §4.
 """
 from __future__ import annotations
 import numpy as np
@@ -40,8 +40,7 @@ def axis_sha256(wavelengths_nm):
 
     Hashing the VALUES (not a .npy file, whose header carries version/shape framing) makes the digest
     reproducible from any in-memory array, so a cached artefact can record WHICH axis it was built on
-    and a reader can check identity without shipping the axis itself. See data/metadata/ for the
-    stored axis artefact and its sidecar."""
+    and a reader can check identity without shipping the axis itself."""
     import hashlib
     return hashlib.sha256(np.ascontiguousarray(wavelengths_nm, dtype="<f8").tobytes()).hexdigest()
 
@@ -71,8 +70,8 @@ def disjoint_region_split(gt, train_frac=0.5, axis=1, ignore_label=0):
     """Spatially DISJOINT train/test split (avoids pixel-adjacency leakage).
 
     Splits the labelled map along `axis` (default: left/right halves). Returns boolean
-    masks (train_mask, test_mask) over labelled pixels only. See docs/guide/01_datasets.md:
-    random per-pixel sampling from one scene leaks — reviewers know this.
+    masks (train_mask, test_mask) over labelled pixels only. Random per-pixel sampling from one
+    scene leaks through spatial adjacency — reviewers know this.
     """
     gt = np.asarray(gt)
     cut = int(gt.shape[axis] * train_frac)
@@ -91,7 +90,6 @@ def disjoint_block_split(gt, block=10, ignore_label=0, guard=0, offset=0):
     checkerboard pattern. This keeps train and test in *disjoint spatial regions* while —
     unlike a single left/right half-split — keeping every class present in BOTH splits
     (needed for AA/kappa/mIoU on Indian Pines, whose small classes cluster in one corner).
-    See docs/guide/01_datasets.md.
 
     guard>0 removes TEST pixels within `guard` pixels of any train pixel (a buffer / guard
     band), eliminating the block-seam adjacency leakage: a plain block split still places

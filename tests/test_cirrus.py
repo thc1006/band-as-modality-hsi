@@ -1,4 +1,4 @@
-"""Design C (thin cirrus) physics-sanity unit tests (roadmap docs/guide/03 §3). pytest tests/ -v
+"""Design C (thin cirrus) physics-sanity unit tests. pytest tests/ -v
 
 Guards: tau=0 is the identity; SWIR reflectance attenuates monotonically as tau grows;
 the extinction shape has a bump near the 1.375 um cirrus band.

@@ -1,5 +1,5 @@
 # Design A+B: synthesize a sensor's bands from an HSI cube under a 6S GASEOUS-transmittance
-# stress-test: rho' = rho * T_gas(CWV) then SRF integration (docs/guide/03). This is a first-order
+# stress-test: rho' = rho * T_gas(CWV) then SRF integration. This is a first-order
 # gas-suppression robustness model, NOT a full radiative-transfer TOA observation model (no aerosol
 # scattering / path radiance / geometry). The paper's real atmosphere evidence is CloudSEN12 L1C->L2A.
 #

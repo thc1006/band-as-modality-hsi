@@ -12,7 +12,8 @@ dist/
 .venv/
 .venv*/
 
-# Datasets & large binary caches (see docs/planning/01_datasets.md; ~66 GB CloudSEN12 etc.)
+# Datasets & large binary caches (sources and layout: ENVIRONMENT_SETUP.md §4; CloudSEN12 alone is
+# tens of GB)
 data/
 *.npz
 

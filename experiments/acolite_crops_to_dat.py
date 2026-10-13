@@ -2,8 +2,9 @@
 """Aggregate the per-patch ACOLITE surface-reflectance crops into CloudSEN12 .dat files, so the
 existing phase8 loader can read ACOLITE-L2A as a new product with the SAME pixel sampling as L1C/L2A.
 
-Crops (scratchpad/.../crops/<index>.npy) are (11, 509, 509) float32 reflectance in ACOLITE band order
-[B1,B2,B3,B4,B5,B6,B7,B8,B8A,B11,B12] (ACOLITE emits no surface reflectance for B09/B10). We write one
+Crops (data/acolite_stage/crops/<index>.npy, written by acolite_batch.py) are (11, 509, 509) float32
+reflectance in ACOLITE band order [B1,B2,B3,B4,B5,B6,B7,B8,B8A,B11,B12] (ACOLITE emits no surface
+reflectance for B09/B10). We write one
 ACOLITE_<band>.dat per band into data/cloudsen12/test/, matching the on-disk convention of the L1C/L2A
 .dat exactly: little-endian int16, (N_patches, 512, 512), reflectance*10000, real 509x509 content at
 rows/cols [1:510] (VALID_OFF=1), zero padding elsewhere. Leaked/absent patches (the 4 train/test
@@ -12,7 +13,7 @@ overlap products dropped by the leak-guard) are written as all-zero and are drop
 import os, glob, csv
 import numpy as np
 
-REPO = "/home/hctsai1006/cct/band-as-modality-hsi"
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))     # this file is in experiments/
 CROPS = os.path.join(REPO, "data/acolite_stage/crops")
 OUT = os.path.join(REPO, "data/cloudsen12/test")
 ACO_BANDS = ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"]

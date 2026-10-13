@@ -1864,8 +1864,8 @@ def render_tex(prop, args, validity):
 
     Rendered rather than streamed so that nothing which can raise happens between writing the
     CSV and writing this: the bundle in paper/ used to be able to end up part this run and part
-    the last one. Macro NAMES are kept stable for the paper (the ICAIMS one is frozen under
-    archive/icaims2026_submission/); only the VALUES are made honest.
+    the last one. Macro NAMES are kept stable for the paper (the ICAIMS one is frozen in the
+    development repository's archive, not shipped here); only the VALUES are made honest.
 
     \\propMacs is PER-SAMPLE MACs and 'n/a' (not 0) when fvcore cannot COMPLETELY count the model
     — the case here, since it cannot count scaled_dot_product_attention. The superseded artefact

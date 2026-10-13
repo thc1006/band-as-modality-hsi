@@ -40,7 +40,7 @@ contribution is APPLYING + CERTIFYING it over PHYSICAL spectral degradation for 
 segmentation, anchored by the real L1C->L2A transition. Discrete operational states let us use
 the simplest valid instance — per-state (Mondrian) recalibration.
 
-Guards honored (see docs/review/PHASE_B_ADVERSARIAL_REVIEW.md, d5-methodology-guards memory):
+Methodology guards honored:
   - Guard 1: the atmospheric anchor is the REAL L2A product, not a 6S-on-L1C stress test.
   - Guard 2: calibration/evaluation are split by ROI (location) within the TEST ROIs (which are
     roi-disjoint from train) — NOT at pixel level, and NOT merely by patch index — so conformal

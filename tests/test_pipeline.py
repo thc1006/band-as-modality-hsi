@@ -1,13 +1,13 @@
 """Orchestrator (pipeline.simulate) composition tests — guards the config-driven B->C->A->D chain
 and the fail-closed YAML front-end, not the individual designs (those have their own tests).
-Roadmap docs/guide/03 §3.
 
-NOTHING HERE SKIPS. The 6S table is gitignored, so every test that needs a transmittance LUT builds
-a synthetic one in tmp_path instead of gating on the real file. The previous version guarded its
-atmosphere tests with `skipif(not os.path.exists(_TABLE))`, which meant Design B was silently
-untested on any machine without the precomputed table — including CI — while the suite still
-reported green. `_synthetic_table` gives Design B a LUT unconditionally; the one test that asserts
-something about the SHIPPED table is the only one allowed to skip, and only when it is truly absent.
+ALMOST NOTHING HERE SKIPS. The 6S table used to be untracked (it ships now, force-added past the data/
+ignore rule; ENVIRONMENT_SETUP.md §3), so every test that needs a transmittance LUT builds a synthetic
+one in tmp_path instead of gating on the real file. The previous version guarded its atmosphere tests with
+`skipif(not os.path.exists(_TABLE))`, which meant Design B was silently untested on any machine
+without the precomputed table — including CI — while the suite still reported green.
+`_synthetic_table` gives Design B a LUT unconditionally; the two tests that assert something about
+the SHIPPED table are the only ones allowed to skip, and only when it is truly absent.
 
 Wavelength-axis identity of the LUT (wrong axis / reversed / same-length-but-different) is covered
 in depth by tests/test_transmittance_axis_guard.py; this file keeps one end-to-end axis rejection so
@@ -212,7 +212,7 @@ def test_config_driven_sim_a_runs_without_table():
 def test_shipped_yaml_specs_run_end_to_end():
     """The shipped specs drive the simulator (load_spec -> build_cfg -> simulate).
 
-    Skips only if the real 6S table is genuinely absent (it is gitignored); a PRESENT table that
+    Skips only if the real 6S table is genuinely absent (it ships with the repository); a PRESENT table that
     fails is a hard failure, never a skip."""
     from bandsim.config_runner import load_spec, run_spec
     if not os.path.exists(_TABLE):
