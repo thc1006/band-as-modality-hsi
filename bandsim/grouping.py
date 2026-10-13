@@ -67,29 +67,60 @@ def validate_partition(groups, n_bands, *, require_full_cover=True):
                          f"(missing {sorted(set(range(n_bands)) - seen)})")
 
 
+def _own_span(groups):
+    """1 + the largest band index, if `groups` is a valid partition of exactly that many bands; else None.
+
+    The index COUNT is checked before validate_partition, which builds set(range(n)): a partition of n
+    bands holds exactly n indices, so a stray huge index (a wrapped uint64 -1 is ~1.8e19) is rejected
+    here at once instead of allocating a set of that size."""
+    try:
+        n = 1 + max(int(np.asarray(idx).max()) for idx in groups)
+        if sum(np.asarray(idx).size for idx in groups) != n:
+            return None
+        validate_partition(groups, n)
+    except (ValueError, TypeError, OverflowError):        # OverflowError: int(inf) of a float group
+        return None
+    return n
+
+
 def group_center_wavelengths(wavelengths_nm, groups):
     """Mean wavelength (nm) per group — used as the group token's positional identity.
 
-    The axis LENGTH is checked against the span of the grouping. A wavelength axis LONGER than the
-    grouped cube indexes fine and returns plausible-looking centres that are silently WRONG — the
-    exact failure you get by handing the nominal 220-band AVIRIS axis (`bandsim.io._AVIRIS_220`) to
-    a grouping built on the 200-band 'corrected' cube, which sits one line away from `AVIRIS_WL_NM`
-    in this package. That mistake mislabels every group centre and corrupts the wavelength PE with
-    no error anywhere. (A SHORTER axis already raised IndexError, so only the long side was silent.)
+    The grouping must partition exactly the axis' bands (validate_partition with full cover), so the
+    axis LENGTH is checked against the span of the grouping. Before that check existed, a wavelength
+    axis LONGER than the grouped cube indexed fine and returned plausible-looking centres that were
+    silently WRONG — the exact failure you get by handing the nominal 220-band AVIRIS axis
+    (`bandsim.io._AVIRIS_220`) to a grouping built on the 200-band 'corrected' cube, which sits one
+    line away from `AVIRIS_WL_NM` in this package; it mislabels every group centre and corrupts the
+    wavelength PE with no error anywhere. When the grouping is itself a valid partition of a different
+    number of bands, the error names that mismatch instead of a generic "does not partition".
     Non-finite wavelengths are rejected for the same reason: a NaN in the axis produces a NaN group
     centre, which propagates into the PE and yields NaN logits with no traceback.
     """
     wl = np.asarray(wavelengths_nm, float)
-    validate_partition(groups, int(wl.size))          # negative/overlap/duplicate/gap/empty (r2 §8.1)
+    # Materialise first: validate_partition iterates the groups, so a generator or map() would arrive
+    # exhausted at the centre computation below and silently yield an empty array.
+    groups = [np.asarray(idx) for idx in groups]
+    if not groups:
+        raise ValueError("no groups given — there is no group centre to compute")
+    try:
+        validate_partition(groups, int(wl.size))      # negative/overlap/duplicate/gap/empty (r2 §8.1)
+    except ValueError:
+        spanned = _own_span(groups)
+        if spanned is not None and spanned > wl.size:
+            raise ValueError(
+                f"wavelength axis has {wl.size} bands but the grouping spans {spanned} bands — pass "
+                f"the axis of the cube you grouped.") from None
+        if spanned is not None and spanned < wl.size:
+            raise ValueError(
+                f"wavelength axis has {wl.size} bands but the grouping spans {spanned} bands (axis "
+                f"bands {spanned}..{wl.size - 1} are in no group) — either the axis is longer than "
+                f"the cube you grouped (e.g. the nominal 220-band AVIRIS axis with a grouping of the "
+                f"200-band 'corrected' cube) or the grouping is missing its last bands.") from None
+        raise
     if not np.isfinite(wl).all():
         raise ValueError(f"wavelengths_nm must be finite (got {int((~np.isfinite(wl)).sum())} "
                          f"non-finite entries) — a NaN centre silently propagates into the group PE")
-    spanned = int(max(int(np.asarray(idx).max()) for idx in groups)) + 1
-    if wl.size != spanned:
-        raise ValueError(
-            f"wavelength axis has {wl.size} bands but the grouping spans {spanned} bands — "
-            f"a longer axis silently yields WRONG group centres (e.g. the nominal 220-band AVIRIS "
-            f"axis used with the 200-band 'corrected' cube). Pass the axis of the cube you grouped.")
     return np.array([wl[np.asarray(idx)].mean() for idx in groups])
 
 

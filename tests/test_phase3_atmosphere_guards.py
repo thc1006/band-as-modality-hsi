@@ -544,15 +544,17 @@ def test_cube_physical_quantity_is_recorded_as_unverified():
 
 
 def _fake_agg():
-    """Two seeds of plausible aggregates, shaped exactly as main() builds them."""
+    """Two seeds of plausible aggregates, shaped exactly as main() builds them (b1, the plain MLP
+    without group dropout, included since main() records it for the dropout-share columns)."""
     def block(p, b, nm=None):
-        return {"proposed": p, "b2": b, "proposed_nomask": nm or p,
+        return {"proposed": p, "b2": b, "proposed_nomask": nm or p, "b1": [x - 5.0 for x in b],
                 "proposed_uncorrected": [x / 10 for x in p], "b2_uncorrected": [x / 10 for x in b]}
     agg = {"clean": block([64.0, 66.0], [47.0, 49.0]), 0.5: block([54.0, 56.0], [40.0, 42.0]),
            2.0: block([39.0, 41.0], [32.0, 34.0]),
            4.0: block([34.0, 36.0], [22.0, 24.0], nm=[30.0, 32.0])}
     agg["clean"]["proposed_full"] = [71.0, 73.0]
     agg["clean"]["b2_full"] = [66.0, 68.0]
+    agg["clean"]["b1_full"] = [60.0, 62.0]
     return agg
 
 
@@ -594,6 +596,37 @@ def test_summary_rows_paired_diff_is_the_mean_of_per_seed_differences():
     # clean: proposed [64,66], b2 [47,49] -> diffs [17,17] -> 17.00
     assert clean[hdr.index("paired_diff_mean")] == "17.00"
     assert clean[hdr.index("n_seeds")] == 2
+
+
+def test_summary_rows_dropout_share_columns_follow_their_documented_formulas():
+    """dropout_main_effect = b2 - b1, proposed_minus_b1 = proposed - b1, share = their ratio in %,
+    from the condition's own seeds (the ceiling row from the *_full lists). Expected values worked by
+    hand from the fixture, not read back from the writer; a zero denominator reports '-', not inf."""
+    rows = P3.summary_rows(_fake_agg(), {}, {}, ["clean"] + list(P3.CWVS), 2)
+    hdr = rows[0]
+    by = {r[0]: [r[hdr.index(c)] for c in ("b1_miou_mean", "b1_miou_std_sample", "dropout_main_effect_mean",
+                                            "proposed_minus_b1_mean", "dropout_share_pct")] for r in rows[1:]}
+    # ceiling: proposed_full 72, b2_full 67, b1_full 61 -> 6 / 11 -> 54.5 %
+    assert by["benchmark200_full"] == ["61.00", "1.41", "6.00", "11.00", "54.5"]
+    # clean: proposed 65, b2 48, b1 43 (sample sd of [42, 44] = 1.41) -> 5 / 22 -> 22.7 %
+    assert by["clean"] == ["43.00", "1.41", "5.00", "22.00", "22.7"]
+    # cwv4.0: proposed 35, b2 23, b1 18 -> 5 / 17 -> 29.4 %
+    assert by["cwv4.0"] == ["18.00", "1.41", "5.00", "17.00", "29.4"]
+    agg = _fake_agg()
+    agg[2.0]["b1"] = list(agg[2.0]["proposed"])                   # proposed - b1 == 0
+    agg[0.5]["b1"] = [x + 2.0 for x in agg[0.5]["proposed"]]      # proposed BELOW b1: a negative gap
+    rows2 = {r[0]: r for r in P3.summary_rows(agg, {}, {}, ["clean"] + list(P3.CWVS), 2)[1:]}
+    assert rows2["cwv2.0"][hdr.index("proposed_minus_b1_mean")] == "0.00"
+    assert rows2["cwv2.0"][hdr.index("dropout_share_pct")] == "-"
+    # cwv0.5: proposed 55, b2 41, b1 57 -> effect -16, gap -2 -> 800.0 % (reported, not blanked)
+    assert rows2["cwv0.5"][hdr.index("proposed_minus_b1_mean")] == "-2.00"
+    assert rows2["cwv0.5"][hdr.index("dropout_share_pct")] == "800.0"
+    # and a NEGATIVE share keeps its sign: proposed 35, b2 23, b1 25 -> effect -2, gap +10 -> -20.0 %
+    agg3 = _fake_agg()
+    agg3[4.0]["b1"] = [24.0, 26.0]
+    row4 = next(r for r in P3.summary_rows(agg3, {}, {}, ["clean"] + list(P3.CWVS), 2)[1:] if r[0] == "cwv4.0")
+    assert row4[hdr.index("dropout_main_effect_mean")] == "-2.00"
+    assert row4[hdr.index("dropout_share_pct")] == "-20.0"
 
 
 def test_summary_rows_expose_the_mask_ablation_column():
@@ -1083,13 +1116,14 @@ def test_summary_std_columns_are_sample_sd(tmp_path):
     every error bar in the paper's figure while the header keeps promising otherwise."""
     agg = {"clean": {"proposed": [10.0, 20.0], "b2": [10.0, 20.0], "proposed_nomask": [10.0, 20.0],
                      "proposed_uncorrected": [1.0, 2.0], "b2_uncorrected": [1.0, 2.0],
-                     "proposed_full": [10.0, 20.0], "b2_full": [10.0, 20.0]}}
+                     "proposed_full": [10.0, 20.0], "b2_full": [10.0, 20.0],
+                     "b1": [10.0, 20.0], "b1_full": [10.0, 20.0]}}
     rows = P3.summary_rows(agg, {}, {}, ["clean"], 2)
     hdr = rows[0]
     # EVERY std column on EVERY row -- the ceiling row builds its own, from a different array, so
     # checking only the clean row leaves half the writer unguarded (and a mutation there survived).
     for row in rows[1:]:
-        for col_name in ("proposed_miou_std_sample", "b2_miou_std_sample"):
+        for col_name in ("proposed_miou_std_sample", "b2_miou_std_sample", "b1_miou_std_sample"):
             got = float(row[hdr.index(col_name)])
             # abs=0.01 because the CSV writes 2 decimals; the population formula would give 5.00,
             # which is far outside this tolerance, so the check still separates the two estimators.

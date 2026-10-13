@@ -321,6 +321,58 @@ def test_group_center_wavelengths_rejects_a_non_finite_axis():
         group_center_wavelengths(np.array([400.0, np.nan, 500.0, 600.0]), contiguous_groups(4, 2))
 
 
+def test_group_center_wavelengths_names_a_grouping_that_stops_short_of_the_axis():
+    """A grouping of 9 bands on a 10-band axis may be a too-long axis OR a grouping missing its last
+    band; the message must not assert only the first."""
+    with pytest.raises(ValueError, match=r"spans 9 bands \(axis bands 9\.\.9 are in no group\).*missing its last"):
+        group_center_wavelengths(np.linspace(400, 2500, 10), [np.arange(0, 5), np.arange(5, 9)])
+    with pytest.raises(ValueError, match="spans 12 bands") as e:        # the other direction
+        group_center_wavelengths(np.linspace(400, 2500, 10), contiguous_groups(12, 3))
+    assert "220-band" not in str(e.value), "the long-axis example does not fit a too-short axis"
+
+
+def test_group_center_wavelengths_fails_fast_on_a_huge_band_index():
+    """The span diagnosis that names a mismatched axis (`_own_span`) must reject a stray huge index (e.g.
+    a wrapped uint64 -1) at once, not after building a set of that many band ids: without its index-count
+    check it took 18 s and 3 GB at 3e7 (a wrapped -1, ~1.8e19, would never finish). 3e7 keeps a
+    regression of this test bounded instead of exhausting memory."""
+    import time
+    groups = [np.arange(10), np.array([3 * 10 ** 7], dtype=np.uint64)]
+    t0 = time.perf_counter()
+    with pytest.raises(ValueError, match="out of"):
+        group_center_wavelengths(np.linspace(400, 2500, 10), groups)
+    assert time.perf_counter() - t0 < 1.0
+
+
+def test_group_center_wavelengths_takes_an_iterator_and_refuses_no_groups():
+    """A generator (or map()) of groups must give the same centres as the list -- validation used to
+    consume it, so the span check after it failed with "max() iterable argument is empty" -- and an empty
+    grouping must raise a message that says so."""
+    wl, groups = np.linspace(400, 2500, 10), contiguous_groups(10, 3)
+    want = group_center_wavelengths(wl, groups)
+    assert want.shape == (3,)
+    assert np.array_equal(group_center_wavelengths(wl, (g for g in groups)), want)
+    assert np.array_equal(group_center_wavelengths(wl, map(list, groups)), want)
+    with pytest.raises(ValueError, match="no groups"):
+        group_center_wavelengths(np.array([]), [])
+
+
+@pytest.mark.parametrize("groups,match", [
+    ([None, np.arange(1, 10)], "non-empty 1-D"),                    # a None group: ValueError, not TypeError
+    ([np.array([], dtype=int), np.arange(10)], "non-empty 1-D"),     # empty group: its own message
+    ([np.array([-1, 1, 2])], r"out of \[0,10\)"),                     # negative index: the real defect named,
+])                                                                   # not a misleading span message
+def test_group_center_wavelengths_reports_the_actual_defect(groups, match):
+    with pytest.raises(ValueError, match=match):
+        group_center_wavelengths(np.linspace(400, 2500, 10), groups)
+
+
+def test_group_center_wavelengths_float_inf_group_raises_value_error():
+    """A float group is rejected as non-integer, with a ValueError, even when it holds inf."""
+    with pytest.raises(ValueError, match="must be integers"):
+        group_center_wavelengths(np.linspace(400, 2500, 4), [np.array([0.0, np.inf]), np.array([2, 3])])
+
+
 @pytest.mark.parametrize("n_groups", [10.9, 2.5, True])
 def test_contiguous_groups_rejects_non_integer_counts(n_groups):
     """int(10.9) silently built 10 groups; contiguous_groups(200, True) silently built 1 — which is

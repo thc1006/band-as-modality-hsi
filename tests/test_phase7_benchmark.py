@@ -70,20 +70,36 @@ def _attn_model(n_bands=40, n_groups=5, n_classes=3):
 # ========================================================================================
 # 1. repeats happen, and dispersion is reported
 # ========================================================================================
-def test_bench_latency_pools_replicates_from_every_repeat(cpu_dev):
+def test_bench_latency_pools_replicates_from_every_repeat(cpu_dev, monkeypatch):
     """The whole point of migrating off a hand-rolled `time.time()` loop: one measurement pass
-    cannot produce a dispersion. Ask for several repeats and every one must contribute samples."""
+    cannot produce a dispersion. Ask for several repeats and every one must contribute samples.
+
+    Counted at the source: a spy on the timer records how many replicates each repeat produced, and
+    the pooled count must be their sum. (This used to compare the pooled counts of a 4-repeat and a
+    1-repeat run, but each repeat's replicate count is adaptive -- timing-dependent -- so under load
+    four quick repeats could pool fewer than one slow one and the test failed without any bug.)"""
+    import torch.utils.benchmark as tub
+    produced = []
+
+    class SpyTimer(tub.Timer):
+        def adaptive_autorange(self, *a, **k):
+            meas = super().adaptive_autorange(*a, **k)
+            produced.append(len(meas.times))
+            return meas
+    monkeypatch.setattr(tub, "Timer", SpyTimer)          # bench_latency imports Timer at call time
     m, x = _Tiny(), torch.randn(4, 8)
     one = p7.bench_latency(m, (x,), cpu_dev, num_threads=1, repeats=1, warmup=2,
                            min_run_time=0.01, max_run_time=0.15, target_rel_iqr=0.05)
+    assert one["repeats"] == 1 and one["n_measurements"] == 1 and len(produced) == 1
+    assert one["n"] == produced[0]
+    produced.clear()
     many = p7.bench_latency(m, (x,), cpu_dev, num_threads=1, repeats=4, warmup=2,
                             min_run_time=0.01, max_run_time=0.15, target_rel_iqr=0.05)
-    assert one["repeats"] == 1 and many["repeats"] == 4
-    assert one["n_measurements"] == 1 and many["n_measurements"] == 4
-    # More repeats must mean strictly more pooled replicates -- otherwise `--repeats` is decorative.
-    assert many["n"] > one["n"], (
-        f"4 repeats pooled {many['n']} replicates but 1 repeat pooled {one['n']}: the extra "
-        f"repeats did not contribute samples")
+    assert many["repeats"] == 4 and many["n_measurements"] == 4 and len(produced) == 4
+    assert min(produced) >= 1
+    # Every repeat's replicates pooled -- otherwise `--repeats` is decorative.
+    assert many["n"] == sum(produced), (
+        f"the 4 repeats produced {produced} replicates but {many['n']} were pooled")
 
 
 def test_bench_latency_reports_dispersion_not_just_a_number(cpu_dev):

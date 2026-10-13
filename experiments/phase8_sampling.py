@@ -129,10 +129,11 @@ def main():
     ap.add_argument("--smoke", action="store_true")
     args = ap.parse_args()
 
+    sfx = args.out_tag
     if args.smoke:
         args.seeds, args.epochs, args.px_train, args.px_test, args.patches_train, args.patches_test \
             = [0, 1], 2, 60, 60, 40, 25
-        args.out_tag = (args.out_tag or "") + "_smoke"
+        sfx = (args.out_tag or "") + "_smoke"       # a smoke run never writes the real deliverables
 
     hw.setup(deterministic=True, prefer=args.device)
     print("HW:", hw.info())
@@ -209,12 +210,12 @@ def main():
     summary = {n: paired(rows, a, b, args.max_missing) for n, (a, b) in contrasts.items()}
 
     P = lambda n: Path(__file__).resolve().parents[1] / "paper" / n  # noqa: E731
-    raw_out = P(f"results_phase8_sampling_raw{args.out_tag}.csv")
+    raw_out = P(f"results_phase8_sampling_raw{sfx}.csv")
     with raw_out.open("w", newline="") as f:
         w = csv.writer(f); w.writerow(["kind", "seed", "missing_groups", "miou"])
         for r in rows:
             w.writerow(r)
-    sum_out = P(f"results_phase8_sampling{args.out_tag}.csv")
+    sum_out = P(f"results_phase8_sampling{sfx}.csv")
     with sum_out.open("w", newline="") as f:
         w = csv.writer(f); w.writerow(["contrast", "missing_groups", "delta_miou", "ci_lo", "ci_hi"])
         for n, vals in summary.items():

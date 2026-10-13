@@ -13,7 +13,12 @@ So the reference below is written from the DEFINITION in Angelopoulos, Bates, Fi
     Rhat_n(lambda) = mean over calibration UNITS of L_i(lambda)
     lambda_hat = inf{ lambda : (n/(n+1)) * Rhat_n(lambda) + B/(n+1) <= alpha }
 
-and the two implementations must agree to the bit on random and adversarial inputs.
+and the two implementations must agree, to 1e-12, on the random draws below -- including tied and
+rounded confidences, and both branches of the threshold grid (every distinct score, or quantiles of
+them past n_grid). One known exception is pinned by its own test: when the statistic lands EXACTLY on
+alpha (equal-size units with alpha*(n+1) an integer), production's float mean can exceed alpha by an
+ulp and reject that threshold, taking the next grid step. That direction is the safe one, and the
+test checks it never goes the other way.
 
 The invariants matter as much as the agreement, because they pin the ESTIMAND rather than the
 arithmetic: which unit is exchangeable, which denominator each number uses, and that a threshold is
@@ -36,7 +41,17 @@ def crc_reference(calib_correct, calib_conf, eval_correct, eval_conf, alpha=0.10
     cg = list(calib_group) if calib_group is not None else None
     eg = list(eval_group) if eval_group is not None else None
 
-    grid = list(np.linspace(min(ck), max(ck), n_grid)) + [float("inf")]
+    # Candidate thresholds (H-7): every distinct calibration confidence -- with `>=` acceptance the
+    # calibration loss changes only at those values, so the statistic is constant between them and
+    # this grid holds every value it takes -- or, past n_grid distinct values, n_grid quantiles of
+    # them. Then +inf, the only threshold that abstains on every point. (A linspace over [min, max],
+    # this reference's grid before H-7, can step over real boundaries.)
+    distinct = sorted(set(ck))
+    if len(distinct) <= n_grid:
+        grid = distinct + [float("inf")]
+    else:
+        quantiles = np.quantile(np.array(distinct), np.linspace(0.0, 1.0, n_grid))
+        grid = sorted(set(float(q) for q in quantiles)) + [float("inf")]
 
     def mean_loss(correct, conf, group, lam):
         """Rhat(lambda): per-unit mean loss, then the mean over units."""
@@ -99,6 +114,54 @@ def test_production_matches_the_reference(seed, grouped):
         assert got[k] == pytest.approx(want[k], rel=1e-12, abs=1e-12), k
     for k in ("n_calib_units", "n_eval_units", "feasible"):
         assert got[k] == want[k], k
+
+
+@pytest.mark.parametrize("seed", range(6))
+@pytest.mark.parametrize("grouped", [False, True])
+@pytest.mark.parametrize("n_cal,decimals", [(300, 2), (2000, 3)])
+def test_production_matches_the_reference_on_tied_confidences(seed, grouped, n_cal, decimals):
+    """Rounded confidences put many calibration points on one score. (300, 2) keeps at most 101
+    distinct scores, so the grid is every score; (2000, 3) has several hundred, so the grid is their
+    quantiles -- of the DISTINCT scores, which with ties is not the same as quantiles of the raw ones.
+    Units are drawn at random, so they differ in size (the exact-boundary case is the next test)."""
+    rng = np.random.default_rng(1000 + seed)
+    cc = rng.random(n_cal) < 0.8
+    ec = rng.random(400) < 0.8
+    ck = np.round(np.clip(rng.beta(5, 2, n_cal) * np.where(cc, 1.0, 0.75), 0, 1), decimals)
+    ek = np.round(np.clip(rng.beta(5, 2, 400) * np.where(ec, 1.0, 0.75), 0, 1), decimals)
+    assert (np.unique(ck).size <= 256) == (n_cal == 300), "the case no longer reaches its grid branch"
+    kw = dict(calib_group=rng.integers(0, 25, n_cal), eval_group=rng.integers(0, 25, 400)) if grouped else {}
+    for alpha in (0.05, 0.10, 0.20):
+        got = conformal_risk_control(cc, ck, ec, ek, alpha=alpha, **kw)
+        want = crc_reference(cc, ck, ec, ek, alpha=alpha, **kw)
+        for k in ("threshold", "calib_crc_bound", "eval_group_joint_risk", "eval_group_coverage"):
+            assert got[k] == pytest.approx(want[k], rel=1e-12, abs=1e-12) or got[k] == want[k], (alpha, k)
+        for k in ("n_calib_units", "n_eval_units", "feasible"):
+            assert got[k] == want[k], (alpha, k)
+
+
+def test_on_an_exact_float_boundary_production_is_never_less_conservative_than_the_reference():
+    """49 calibration units of 10 pixels at alpha = 0.10, so alpha*(n+1) = 5 and the statistic can sit
+    exactly ON alpha. Python's sum (the reference) is compensated and numpy's mean is not, so there
+    production can compute alpha + 1 ulp, reject the threshold and take the next grid step: measured,
+    a stricter threshold in most of these draws. Pinned here because the direction is what matters --
+    a threshold BELOW the reference's would certify a statistic the exact arithmetic says exceeds
+    alpha. (If production's comparison is ever made exact, the stricter count drops to zero and this
+    test should become an equality test.)"""
+    stricter = 0
+    for seed in range(40):
+        rng = np.random.default_rng(seed)
+        cc = rng.random(490) < 0.8
+        ck = np.clip(rng.beta(5, 2, 490) * np.where(cc, 1.0, 0.75), 0, 1)
+        cg = np.repeat(np.arange(49), 10)
+        rng.shuffle(cg)
+        ec, ek, eg = rng.random(300) < 0.8, rng.random(300), rng.integers(0, 30, 300)
+        got = conformal_risk_control(cc, ck, ec, ek, alpha=0.10, calib_group=cg, eval_group=eg)
+        want = crc_reference(cc, ck, ec, ek, alpha=0.10, calib_group=cg, eval_group=eg)
+        assert got["threshold"] >= want["threshold"], seed
+        assert got["feasible"] == want["feasible"], seed
+        stricter += got["threshold"] > want["threshold"]
+    assert stricter > 0, "the boundary case no longer arises here; the docstring's claim needs rechecking"
 
 
 @pytest.mark.parametrize("alpha", [0.01, 0.05, 0.10, 0.25, 0.50])
