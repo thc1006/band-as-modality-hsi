@@ -6,7 +6,7 @@
 #
 # Reproduce the locked env with uv:
 #   uv venv --python 3.12 .venv
-#   uv pip sync --python .venv/bin/python requirements-lock.txt \
+#   uv pip sync --torch-backend cu124 --python .venv/bin/python requirements-lock.txt \
 #       --index-url https://download.pytorch.org/whl/cu124 \
 #       --extra-index-url https://pypi.org/simple
 # (torch MUST come from the cu124 index — V100 needs sm_70 + host driver 535 minor-compat.)
@@ -20,7 +20,7 @@ name = "bandsim"
 version = "0.1.0"
 description = "Physics-grounded band-loss simulation testbed for band-as-modality HSI/MSI segmentation"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"                               # scipy>=1.18 (below) requires Python >= 3.12
 license = "MIT"
 authors = [
     { name = "Chia-Tung Chung" },
@@ -60,3 +60,25 @@ explicit = true
 [tool.uv.sources]
 torch = { index = "pytorch-cu124" }
 torchvision = { index = "pytorch-cu124" }
+
+# --- uv guard: keep every `uv pip install` / `uv pip compile` run in this repo on the locked
+# torch stack. Without it, an ad-hoc install of anything that depends on torch re-resolves the
+# stack (it once bumped torch 2.6->2.13 / numpy 2.1->2.5). On a host whose global uv config pins a
+# different torch (the 4x P100 box pins 2.14.1+cu126) the two pins conflict and uv stops with an
+# error instead of silently swapping torch/cuDNN under the paper's numbers. The constraints do NOT
+# apply to `uv pip sync`, which installs requirements-lock.txt exactly as written (verified: a lock
+# edited to another numpy still syncs) -- but [tool.uv.pip] torch-backend DOES apply to `uv pip sync`
+# run from inside this repo (project config), so there the sync works even without the explicit
+# `--torch-backend cu124` that the documented command passes anyway (needed from any other
+# directory). To add a package: pin it in requirements-lock.txt, then re-run the sync command
+# documented there.
+[tool.uv]
+constraint-dependencies = [
+  "torch==2.6.0+cu124",
+  "torchvision==0.21.0+cu124",
+  "triton==3.2.0",
+  "numpy==2.1.0",
+]
+
+[tool.uv.pip]
+torch-backend = "cu124"

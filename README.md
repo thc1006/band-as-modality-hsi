@@ -26,7 +26,7 @@
 ├── archive/            早期封存(provenance):早期報告、單檔版 experiment.py、v1 路線圖、研究傾印
 ├── data/               資料集(gitignored;Indian Pines/Pavia/Salinas/CloudSEN12,見 docs/guide/01_datasets.md)
 ├── pyproject.toml      打包 + uv 設定(cu124 torch 索引)
-├── requirements-lock.txt   完全鎖定的環境(85 套件;torch 2.6.0+cu124 for V100/sm_70)
+├── requirements-lock.txt   完全鎖定的環境(88 套件;torch 2.6.0+cu124,含 sm_60/sm_70:P100/V100)
 ├── reproduce.sh        一鍵複現(缺 .venv 自動用 uv bootstrap)
 └── README / LICENSE / LICENSES/ / REUSE.toml / CITATION.cff / ENVIRONMENT_SETUP.md
 ```
@@ -34,7 +34,7 @@
 > **環境重建(uv 管理、版本鎖死)**:
 > ```bash
 > uv venv --python 3.12 .venv
-> uv pip sync --python .venv/bin/python requirements-lock.txt \
+> uv pip sync --torch-backend cu124 --python .venv/bin/python requirements-lock.txt \
 >     --index-url https://download.pytorch.org/whl/cu124 --extra-index-url https://pypi.org/simple
 > ```
 > 詳見 [`ENVIRONMENT_SETUP.md`](ENVIRONMENT_SETUP.md)(含容器 libcuda 坑與 uv 禁忌)。
@@ -72,7 +72,7 @@
 # 1) 安裝 uv(若尚未安裝),用 lock 建立版本鎖死的隔離環境
 curl -LsSf https://astral.sh/uv/install.sh | sh
 uv venv --python 3.12 .venv
-uv pip sync --python .venv/bin/python requirements-lock.txt \
+uv pip sync --torch-backend cu124 --python .venv/bin/python requirements-lock.txt \
     --index-url https://download.pytorch.org/whl/cu124 --extra-index-url https://pypi.org/simple
 source .venv/bin/activate                 # 自動載入 scripts/gpu_env.sh(libcuda 修正)
 

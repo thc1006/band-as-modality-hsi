@@ -20,9 +20,9 @@
 # 0) 安裝 uv (若尚未安裝)
 curl -LsSf https://astral.sh/uv/install.sh | sh          # 或 pip install uv
 
-# 1) 用 uv 從 lock 建立「隔離 + 版本鎖死」環境 (torch 由 cu124 索引取得)
+# 1) 用 uv 從 lock 建立「隔離 + 版本鎖死」環境 (torch 由 cu124 索引取得;--torch-backend 需 uv >= 0.6.9)
 uv venv --python 3.12 .venv
-uv pip sync --python .venv/bin/python requirements-lock.txt \
+uv pip sync --torch-backend cu124 --python .venv/bin/python requirements-lock.txt \
     --index-url https://download.pytorch.org/whl/cu124 --extra-index-url https://pypi.org/simple
 source .venv/bin/activate                                # 自動載入 scripts/gpu_env.sh (libcuda 修正)
 
@@ -57,7 +57,7 @@ bash reproduce.sh
 
 ## 1. 核心環境
 
-**用 §0 的 uv 流程即可** —— 所有相依已鎖定於 `requirements-lock.txt`(torch 2.6.0+cu124、numpy/scipy/scikit-learn/matplotlib/pandas/pyyaml/pytest、pyspectral、fvcore、tacoreader/rasterio 等,共 85 套件)。
+**用 §0 的 uv 流程即可** —— 所有相依已鎖定於 `requirements-lock.txt`(torch 2.6.0+cu124、numpy/scipy/scikit-learn/matplotlib/pandas/pyyaml/pytest、pyspectral、fvcore、tacoreader/rasterio 等,共 88 套件)。
 抽象相依宣告於 `pyproject.toml`。**不要用 conda 或 bare `pip/uv pip install`**——版本必須鎖死(見 §0 的 uv 禁忌:曾把 torch 升到不相容版而弄壞 V100 驅動)。
 
 ## 2. Design A（SRF 卷積）所需

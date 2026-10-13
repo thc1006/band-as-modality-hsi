@@ -6,12 +6,33 @@
 #     (it once bumped torch 2.6->2.13 / numpy 2.1->2.5, breaking the V100 driver).
 #     To reproduce EXACTLY:
 #       uv venv --python 3.12 .venv
-#       uv pip sync --python .venv/bin/python requirements-lock.txt \
+#       uv pip sync --torch-backend cu124 --python .venv/bin/python requirements-lock.txt \
 #           --index-url https://download.pytorch.org/whl/cu124 \
 #           --extra-index-url https://pypi.org/simple
 #     To ADD a package: add a pinned line here, then re-run the sync above.
-#     torch/triton/nvidia-*-cu12 MUST come from the cu124 index (V100 needs sm_70;
-#     the host NVIDIA driver is 535 -> cu124 works via minor-version compat).
+#     torch, torchvision and triton come from the cu124 index (its torch build carries the sm_70
+#     and sm_60 kernels; the host NVIDIA driver is 535 -> cu124 works via minor-version compat).
+#     The nvidia-*-cu12 runtime wheels resolve from PyPI: the same files the cu124 index serves
+#     (identical sha256 for nccl, cublas and cudnn, checked 2026-10-13).
+#     `--torch-backend cu124` is REQUIRED on every Linux x86-64 host (the only platform this lock
+#     resolves on: torch 2.6.0+cu124 ships only Linux x86-64 and Windows wheels, triton 3.2.0 and
+#     nvidia-nccl-cu12 2.21.5 only Linux x86-64 ones) when the command runs outside this repository
+#     with uv's default index strategy (verified 2026-10-13 with uv 0.13.0, an empty uv config and a
+#     fresh cache): uv gives --extra-index-url (PyPI) priority over --index-url and by default takes
+#     a package only from the FIRST index that has it, so without the flag torch resolves against
+#     PyPI, which has no 2.6.0+cu124, and the sync fails ("no version of torch==2.6.0+cu124"). The
+#     flag sends the torch stack to the cu124 index, and also overrides a torch-backend set in a
+#     user-level uv config (the 4x P100 box sets cu126 globally). Inside the repository
+#     pyproject.toml's [tool.uv.pip] torch-backend supplies the same setting; the flag keeps the
+#     command independent of where it is run. cu124 ships sm_60 SASS, so this exact environment also
+#     runs on Pascal (P100, verified 2026-10-13).
+#     setuptools was added 2026-10-13: torch declares it on Python >= 3.12 and
+#     torch.utils.benchmark (phase7) imports it, but the original freeze omitted it.
+#     Packaging only — no numeric effect. `safetensors` is deliberately absent, exactly as in
+#     the environment that produced the paper numbers: timm 1.0.28 DECLARES it as a dependency
+#     (so `uv pip check` reports it missing) but imports it inside try/except
+#     (timm/models/_hub.py, _helpers.py) and needs it only to read .safetensors checkpoints;
+#     no code path here loads one (phase8E fetches DOFA's .pth and loads it with torch.load).
 # ==============================================================================
 affine==2.4.0
 annotated-types==0.7.0
@@ -83,6 +104,7 @@ requests==2.34.2
 scikit-image==0.26.0
 scikit-learn==1.9.0
 scipy==1.18.0
+setuptools==83.0.0
 six==1.17.0
 sympy==1.13.1
 tabulate==0.10.0

@@ -32,7 +32,7 @@ if [ ! -x .venv/bin/python ]; then
   echo "[env] .venv not found — bootstrapping with uv from requirements-lock.txt ..."
   command -v uv >/dev/null || { echo "  install uv: curl -LsSf https://astral.sh/uv/install.sh | sh"; exit 1; }
   uv venv --python 3.12 .venv
-  uv pip sync --python .venv/bin/python requirements-lock.txt \
+  uv pip sync --torch-backend cu124 --python .venv/bin/python requirements-lock.txt \
       --index-url https://download.pytorch.org/whl/cu124 --extra-index-url https://pypi.org/simple
 fi
 source .venv/bin/activate 2>/dev/null || true
