@@ -14,7 +14,22 @@ Two defects, both found on 2026-07-20 while preparing the post-fix re-run campai
      'andsim/x.py'. That silently mis-classified one file per call — always the first — so a single
      code edit sitting at the top of the list reported a clean tree.
 """
+import os
+import re
+import subprocess
+
+import pytest
+
 import bandsim.provenance as P
+
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def _in_git_checkout():
+    """Decided independently of the module under test, so a provenance bug cannot pass as a skip."""
+    r = subprocess.run(["git", "-C", _ROOT, "rev-parse", "--is-inside-work-tree"],
+                       capture_output=True, text=True)
+    return r.returncode == 0 and r.stdout.strip() == "true"
 
 
 # (porcelain line, is it a code path?)
@@ -58,7 +73,10 @@ def test_rename_reports_the_destination():
 def test_writing_only_outputs_does_not_mark_the_code_dirty():
     """The campaign property: a run that writes paper/ and touches no source must still stamp
     dirty=False, or every result after the first is marked unreproducible for no reason."""
+    if not _in_git_checkout():             # a source archive (e.g. GitHub's ZIP) has no repository state
+        pytest.skip("not a git checkout")
     g = P.git_state()
+    assert re.fullmatch(r"[0-9a-f]{40}", g.get("commit") or ""), f"no commit read in a checkout: {g.get('commit')!r}"
     assert set(g) >= {"commit", "branch", "dirty", "dirty_files", "outputs_dirty"}
     assert g["dirty_files"] == len(g["dirty_code_paths"]) or g["dirty_files"] > 20, \
         "dirty_files must count the code paths it reports (the list is capped at 20)"

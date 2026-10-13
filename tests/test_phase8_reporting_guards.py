@@ -542,9 +542,9 @@ def test_dead_band_guard_does_not_false_positive_on_real_data():
 
 
 @needs_data
-def test_label_histogram_covers_every_valid_pixel_and_stays_in_domain():
+def test_label_histogram_covers_every_valid_pixel_and_stays_in_domain(tmp_path):
     import pandas as pd
-    hist = P8.label_histogram("test")
+    hist = P8.label_histogram("test", cache_dir=str(tmp_path))     # never written into the dataset
     n = len(pd.read_csv(os.path.join(P8.DATA, "test", "metadata.csv")))
     assert hist.shape == (n, 256)
     assert int(hist.sum()) == n * P8.VALID_SIDE ** 2, \
@@ -555,22 +555,23 @@ def test_label_histogram_covers_every_valid_pixel_and_stays_in_domain():
 
 
 @needs_data
-def test_label_histogram_cache_agrees_with_a_forced_rescan():
-    a = P8.label_histogram("test")
-    b = P8.label_histogram("test")                       # served from cache
-    c = P8.label_histogram("test", force=True)           # rescanned from the memmap
+def test_label_histogram_cache_agrees_with_a_forced_rescan(tmp_path):
+    # The cache goes to tmp_path: the test must not write into the dataset directory.
+    a = P8.label_histogram("test", cache_dir=str(tmp_path))
+    assert (tmp_path / "label_hist_test.npz").exists()
+    b = P8.label_histogram("test", cache_dir=str(tmp_path))                 # served from that cache
+    c = P8.label_histogram("test", force=True, cache_dir=str(tmp_path))     # rescanned from the memmap
     assert np.array_equal(a, b) and np.array_equal(a, c)
-    assert os.path.exists(os.path.join(P8.DATA, ".cache", "label_hist_test.npz"))
 
 
 @needs_data
-def test_uniform_pixel_sampling_reproduces_the_class_balance_of_the_patches_it_read():
+def test_uniform_pixel_sampling_reproduces_the_class_balance_of_the_patches_it_read(tmp_path):
     """The paper's exposure is "300 of 259,081 pixels per patch". Because every patch is the same
     size and each is sampled the same number of times, the design is self-weighting and the sample
     share is an unbiased estimate of the population share. Shown on real labels, not asserted.
     """
     ids = np.arange(0, 975, 5)                           # 195 patches, ~1 per ROI
-    pop = P8.label_histogram("test")[ids].sum(0)[:P8.NUM_CLASSES].astype(float)
+    pop = P8.label_histogram("test", cache_dir=str(tmp_path))[ids].sum(0)[:P8.NUM_CLASSES].astype(float)
     pop = pop / pop.sum() * 100
     _, y = P8.load_split("test", "L1C", pixels_per_patch=300, patch_ids=ids)
     samp = np.bincount(y, minlength=P8.NUM_CLASSES) / y.size * 100

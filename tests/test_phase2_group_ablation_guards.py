@@ -350,10 +350,13 @@ def test_every_paper_artefact_is_named_after_the_sweep_and_the_smoke_flag():
 def test_the_integrity_harness_no_longer_targets_the_canonical_deliverable():
     """The harness ran `--seeds 0 --groups 5 10 --epochs 12` and expected the UNSUFFIXED file, so
     running it overwrote the sweep it exists to protect with a 1-seed two-group run."""
-    src = open(os.path.join(_ROOT, "experiments", "integrity_check.py")).read()
-    entry = [ln for ln in src.splitlines() if "phase2_group_ablation.py" in ln]
+    # Read the invocations the harness RUNS (its PHASES table), not every source line that names the
+    # script -- the harness also lists it among the phases it skips when Indian Pines is absent.
+    import integrity_check as IC
+    entry = [argv for _, argv, _ in IC.PHASES if argv.split()[0] == "phase2_group_ablation.py"]
     assert entry, "the harness must still cover this phase"
-    assert all("--smoke" in ln for ln in entry), "it must invoke the suffix-protected path"
+    assert all("--smoke" in argv.split() for argv in entry), "it must invoke the suffix-protected path"
+    src = open(os.path.join(_ROOT, "experiments", "integrity_check.py")).read()
     assert "\"results_phase2_group_ablation.csv\"" not in src, (
         "expecting the canonical name makes the harness write to it")
 

@@ -1202,6 +1202,9 @@ def test_the_common_class_set_is_stable_across_the_seed_lists_phase3_ships():
     """The class set depends on WHICH seeds run, which would be a new (if smaller) drift. Measured:
     it is 14 of 16 for both the 3-seed and the 5-seed list, so the estimand does not move between
     the two configurations this phase actually uses."""
+    for name in ("Indian_pines_corrected.mat", "Indian_pines_gt.mat"):        # load_data reads both
+        if not os.path.exists(os.path.join(_ROOT, "data", "indian_pines", name)):
+            pytest.skip("Indian Pines data not present")
     from phase2_degradation import load_data as _ld, common_class_set
     _, gt = _ld()
     a, _ = common_class_set(gt, 10, [0, 1, 2], guard=1, num_classes=16)

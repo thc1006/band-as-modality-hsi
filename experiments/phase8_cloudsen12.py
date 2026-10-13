@@ -389,7 +389,7 @@ def scene_component_ids(split):
     return np.array([comp_of_roi[r] for r in rois], dtype=object)
 
 
-def label_histogram(split, force=False):
+def label_histogram(split, force=False, cache_dir=None):
     """PER-PATCH label counts over the whole split's valid 509x509 region: (n_patches, 256). Cached.
 
     load_split can only vouch for the ~0.1% of pixels it SAMPLED: its label-domain check runs on
@@ -408,6 +408,8 @@ def label_histogram(split, force=False):
     Cached under data/cloudsen12/.cache because it reads ~255 MB (test) to ~2.2 GB (train) of
     memmap. The cache key carries the label file's size and mtime plus the crop geometry, so a
     re-exported dataset or a changed VALID_OFF invalidates it rather than serving a stale answer.
+    `cache_dir` overrides that location (tests use a temporary directory, so they never write into
+    the dataset).
     """
     import pandas as pd
     root = os.path.join(DATA, split)
@@ -415,7 +417,8 @@ def label_histogram(split, force=False):
     st = os.stat(lab_path)
     key = {"bytes": st.st_size, "mtime_ns": st.st_mtime_ns,
            "valid_side": VALID_SIDE, "valid_off": VALID_OFF, "layout": "per_patch"}
-    cache = os.path.join(DATA, ".cache", f"label_hist_{split}.npz")
+    cache_dir = cache_dir or os.path.join(DATA, ".cache")
+    cache = os.path.join(cache_dir, f"label_hist_{split}.npz")
     if not force and os.path.exists(cache):
         try:
             with np.load(cache) as z:
@@ -430,7 +433,7 @@ def label_histogram(split, force=False):
     for p in range(n):                             # crop first: the 0-valued PADDING is not "clear"
         hist[p] = np.bincount(np.asarray(lab[p][o:o + V, o:o + V]).ravel(), minlength=256)
     try:
-        os.makedirs(os.path.join(DATA, ".cache"), exist_ok=True)
+        os.makedirs(cache_dir, exist_ok=True)
         # Atomic like every other artefact here. np.savez writes in place, so two runs racing on a
         # cold cache can leave a truncated .npz that a later run reads as authoritative — and a
         # silently wrong POPULATION is worse than no population at all.

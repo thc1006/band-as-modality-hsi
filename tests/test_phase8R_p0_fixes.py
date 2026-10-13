@@ -144,6 +144,8 @@ def test_scene_components_merge_shared_scenes():
     """ROIs that share ANY Sentinel-2 s2_id must land in one component; on CloudSEN12 test this is
     195 ROIs -> 184 components (the review's count), not 195."""
     import phase8R_reliability as P8R
+    if not os.path.exists(os.path.join(P8R.P8.DATA, "test", "metadata.csv")):
+        pytest.skip("CloudSEN12 data not present")
     comp = P8R.scene_component_ids("test")
     roi = P8R.test_roi_ids("test")
     assert np.unique(roi).size == 195

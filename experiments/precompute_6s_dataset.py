@@ -7,7 +7,8 @@ phase8H_hsi6s_shift.py can run the 6S dry->humid reliability shift on datasets b
 Same primitive + schema as precompute_6s_table.py (run_6s_transmittance, keyed by CWV), just a different
 wavelength axis. Needs Py6S + the 6S binary (`sixs` on PATH). CPU-only; safe to run alongside GPU jobs.
 
-  python experiments/precompute_6s_dataset.py --dataset salinas
+  python experiments/precompute_6s_dataset.py --dataset salinas --out data/srf_cache/T_6s_grid_salinas_regen.npz
+(the Pavia and Salinas tables ship with the repository; overwriting one needs --force)
 """
 import argparse
 import json
@@ -33,9 +34,17 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dataset", required=True, choices=list(AXES))
     ap.add_argument("--aod", type=float, default=0.1)   # inert for gaseous T; passed only to satisfy the 6S API
+    ap.add_argument("--out", default=None, help="where to write it (default data/srf_cache/T_6s_grid_<dataset>.npz)")
+    ap.add_argument("--force", action="store_true", help="overwrite an existing file at the output path")
     args = ap.parse_args()
     wl = AXES[args.dataset]
-    out = os.path.join(os.path.dirname(_HERE), "data", "srf_cache", f"T_6s_grid_{args.dataset}.npz")
+    out = args.out or os.path.join(os.path.dirname(_HERE), "data", "srf_cache", f"T_6s_grid_{args.dataset}.npz")
+    if not out.endswith(".npz"):
+        out += ".npz"                         # np.savez_compressed appends it: check the file it will write
+    if os.path.exists(out) and not args.force:
+        # Pavia's and Salinas' tables ship with the repository; regenerating one in place would replace the
+        # table the committed phase8H results used (and change its sha256 through generated_utc).
+        raise SystemExit(f"{out} exists; write the regenerated table elsewhere with --out, or pass --force.")
     cwvs = DEFAULT_GRID["cwv_g_cm2"]
     meta = dict(generation_mode="direct_6s", schema_version=2, output_quantity="transmittance_global_gas",
                 cwv_grid_g_cm2=list(cwvs), aod550_nominal=args.aod, axis_name=f"{args.dataset}_wl",

@@ -60,7 +60,7 @@ PHASES = [
     # Was `--seeds 0 --groups 5 10 --epochs 12` pointed at the CANONICAL results_phase2_group_
     # ablation.csv, i.e. the harness OVERWROTE the deliverable it exists to protect: what sat in
     # paper/ afterwards was a 1-seed 12-epoch two-group run (n_seeds=1, every SD 0.00, no G=20 row,
-    # no provenance sidecar) under a STATUS_REPORT line quoting G in {5,10,20} = 53.4/57.2/57.1 —
+    # no provenance sidecar) under a status-report line quoting G in {5,10,20} = 53.4/57.2/57.1 —
     # three numbers that file does not contain. The script now has --smoke like its neighbours, so
     # tests/test_smoke_isolation.py covers it automatically from here on.
     #
@@ -166,7 +166,7 @@ def main():
               + glob.glob(os.path.join(PAPER, "figs", "*.pdf"))):
         backup[p] = open(p, "rb").read()
     # phases that need the precomputed 6S table are SKIPPED (not failed) when it is absent,
-    # so the harness stays green on machines without the sixs env (e.g. this GPU container).
+    # so the harness stays green where it is missing (it ships with the repository; ENVIRONMENT_SETUP.md §3).
     have_6s = os.path.exists(os.path.join(ROOT, "data", "srf_cache", "T_6s_grid.npz"))
     needs_6s = {"phase3_atmosphere.py", "phase5_ab_flagship.py"}
     # Same treatment for the real-data phases: SKIP loudly when the dataset is absent rather than
@@ -177,11 +177,28 @@ def main():
                 "phase8E_dofa.py"}
     import glob as _g
     have_emit = bool(_g.glob(os.path.join(ROOT, "data", "emit*", "*RFL*.nc")))
-    needs_emit = {"phase8F_emit.py", "phase8F_multi.py", "phase8G_emit_reliability.py"}
+    needs_emit = {"phase8F_multi.py"}
+    # phase8F_emit and phase8G read a pixel extract of ONE granule, data/emit/emit_sample.npz, not the
+    # granules themselves -- and no script in this repository builds it. A machine with the granules but
+    # without the extract (e.g. the 4x P100 box) crashed both here, and set -e stopped reproduce.sh.
+    # They are gated on the extract alone: it is the only EMIT input they read.
+    have_emit_sample = os.path.exists(os.path.join(ROOT, "data", "emit", "emit_sample.npz"))
+    needs_emit_sample = {"phase8F_emit.py", "phase8G_emit_reliability.py"}
+    # And for the Indian Pines cube, which every HSI phase below reads (phase3/phase5 too, on top of
+    # the 6S table). Without this a clone that has only CloudSEN12 failed here, and reproduce.sh's
+    # `set -e` then stopped before the tier that data could run.
+    have_ip = all(os.path.exists(os.path.join(ROOT, "data", "indian_pines", f))
+                  for f in ("Indian_pines_corrected.mat", "Indian_pines_gt.mat"))
+    needs_ip = {"phase1_indian_pines.py", "phase2_degradation.py", "phase2_cross_sensor.py",
+                "phase2_group_ablation.py", "phase3_atmosphere.py", "phase4_ablation.py",
+                "phase4R_reliability.py", "phase5_ab_flagship.py", "phase7_efficiency.py"}
     try:
         results = []
         for label, argv, outputs in PHASES:
             script = argv.split()[0]
+            if script in needs_ip and not have_ip:
+                print(f"[SKIP] {label:22s} needs Indian Pines (data/indian_pines/*.mat) — absent")
+                continue
             if script in needs_6s and not have_6s:
                 print(f"[SKIP] {label:22s} needs 6S table (data/srf_cache/T_6s_grid.npz) — absent")
                 continue
@@ -190,6 +207,9 @@ def main():
                 continue
             if script in needs_emit and not have_emit:
                 print(f"[SKIP] {label:22s} needs EMIT granules (data/emit*/*RFL*.nc) — absent")
+                continue
+            if script in needs_emit_sample and not have_emit_sample:
+                print(f"[SKIP] {label:22s} needs the EMIT extract data/emit/emit_sample.npz — absent")
                 continue
             ok, msg = run_phase(label, argv, outputs)
             results.append(ok)

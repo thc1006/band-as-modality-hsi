@@ -26,6 +26,7 @@ _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, _ROOT)
 sys.path.insert(0, os.path.join(_ROOT, "experiments"))
 import phase4_ablation as P4                                                    # noqa: E402
+import phase2_degradation as P2                                                 # noqa: E402
 
 D2 = "D2_dead_cols"
 D1B = "D1b_noise_then_gain"
@@ -53,6 +54,11 @@ class _StubNet(torch.nn.Module):
 
 def _run(out, seeds):
     """main() with the training stubbed out and every path redirected into `out`."""
+    # main() reads the real Indian Pines cube (only the training is stubbed); a clone without the
+    # dataset must skip these tests, not error at fixture setup.
+    for name in ("Indian_pines_corrected.mat", "Indian_pines_gt.mat"):
+        if not os.path.exists(os.path.join(P2.DATA_DIR, name)):
+            pytest.skip("Indian Pines data not present")
     os.makedirs(out / "figs", exist_ok=True)
     mp = pytest.MonkeyPatch()
     nb = len(P4.AVIRIS_WL_NM)

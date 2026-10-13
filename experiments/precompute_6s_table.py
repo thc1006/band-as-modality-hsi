@@ -4,13 +4,14 @@
 Precompute 6S atmospheric transmittance table for Phase 3 (Design B).
 
 Runs the 6S radiative-transfer model (via Py6S) over the CWV/AOD parameter grid and saves
-the per-wavelength total gaseous transmittance to an .npz. The main pipeline (main venv, no
-Py6S) then reads this table via bandsim.atmosphere.load_cached_transmittance — this is the
-guide's "compute 6S on a capable env, read the table elsewhere" pattern (ENVIRONMENT_SETUP §3).
+the per-wavelength total gaseous transmittance to an .npz. The rest of the pipeline (which does
+not need Py6S) only reads this table, mostly via bandsim.atmosphere.load_cached_transmittance. The
+repository ships the table the paper's runs used, so this script is needed only to regenerate or
+audit it.
 
-RUN THIS WITH THE sixs CONDA ENV (which has Py6S + the 6S binary on PATH):
-  export PATH=$HOME/miniforge3/envs/sixs/bin:$PATH
-  $HOME/miniforge3/envs/sixs/bin/python experiments/precompute_6s_table.py
+Needs Py6S installed in the project venv (--no-deps) and the 6S binary on PATH as `sixs`; neither
+is in the lock (ENVIRONMENT_SETUP.md §3). It will not overwrite an existing table unless --force:
+  .venv/bin/python experiments/precompute_6s_table.py --out data/srf_cache/T_6s_grid_regen.npz
 
 Output: data/srf_cache/T_6s_grid.npz   keys "cwv{c}" -> T(lam) (200,), plus "wl_nm" and "_provenance".
 
@@ -18,6 +19,7 @@ AOD note: 6S `transmittance_global_gas` is the GASEOUS transmittance and is aero
 AOD is NOT a grid axis here (empirically aod0.1==aod0.4 to machine precision). The table is keyed by
 CWV alone; a single nominal AOD is passed to 6S only to satisfy its API.
 """
+import argparse
 import os
 import sys
 import json
@@ -70,6 +72,20 @@ OZONE_CM_ATM = 0.35      # 6S geometry/atmosphere is fixed; recorded in the tabl
 
 
 def main():
+    ap = argparse.ArgumentParser(description="Precompute the Indian Pines 6S gaseous-transmittance table.")
+    ap.add_argument("--out", default=OUT, help="where to write it (default: the shipped table, which the "
+                    "paper's phase3/phase5/phase9 runs used -- their sidecars record its sha256)")
+    ap.add_argument("--force", action="store_true", help="overwrite an existing file at --out")
+    args = ap.parse_args()
+    if not args.out.endswith(".npz"):
+        args.out += ".npz"                    # np.savez_compressed appends it: check the file it will write
+    if os.path.exists(args.out) and not args.force:
+        # The table now ships with the repository. Overwriting it in place would move every later phase3/5/9
+        # run off the table the paper used -- and the embedded generated_utc changes its sha256 even when
+        # the values agree -- so a regeneration for an audit goes to another file unless asked otherwise.
+        raise SystemExit(f"{args.out} exists. To audit it, write the regenerated table elsewhere "
+                         f"(--out data/srf_cache/T_6s_grid_regen.npz) and compare the cwv* arrays; "
+                         f"--force replaces it.")
     wl = AVIRIS_WL_NM
     cwvs = DEFAULT_GRID["cwv_g_cm2"]
     # keys keyed by CWV only (float-normalised so 2 and 2.0 collide, matching config_runner)
@@ -124,8 +140,8 @@ def main():
         key = f"cwv{float(cwv)}"
         tables[key] = T
         print(f"{key}: T range [{T.min():.3f}, {T.max():.3f}] mean {T.mean():.3f}  ({time.time()-t0:.1f}s)")
-    np.savez_compressed(OUT, **tables)
-    print(f"\nwrote {OUT} with {len([k for k in tables if k.startswith('cwv')])} CWV grid points (AOD inert, not a key axis)")
+    np.savez_compressed(args.out, **tables)
+    print(f"\nwrote {args.out} with {len([k for k in tables if k.startswith('cwv')])} CWV grid points (AOD inert, not a key axis)")
 
 
 if __name__ == "__main__":
