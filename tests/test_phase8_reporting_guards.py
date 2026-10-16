@@ -27,6 +27,7 @@ CPU-only and training-free by construction: the models used are freshly construc
 fitted, and the main() test stubs out both the loader and the job runner.
 """
 import csv
+import hashlib
 import json
 import math
 import os
@@ -555,14 +556,78 @@ def test_label_histogram_covers_every_valid_pixel_and_stays_in_domain(tmp_path):
     assert (hist.sum(0)[:P8.NUM_CLASSES] > 0).all()
 
 
-@needs_data
-def test_label_histogram_cache_agrees_with_a_forced_rescan(tmp_path):
-    # The cache goes to tmp_path: the test must not write into the dataset directory.
-    a = P8.label_histogram("test", cache_dir=str(tmp_path))
-    assert (tmp_path / "label_hist_test.npz").exists()
-    b = P8.label_histogram("test", cache_dir=str(tmp_path))                 # served from that cache
-    c = P8.label_histogram("test", force=True, cache_dir=str(tmp_path))     # rescanned from the memmap
-    assert np.array_equal(a, b) and np.array_equal(a, c)
+@pytest.mark.parametrize("dataset_cache_exists", [False, True])
+def test_label_histogram_writes_only_its_cache_dir_and_force_rescans(tmp_path, monkeypatch,
+                                                                     dataset_cache_exists):
+    """With cache_dir given, label_histogram writes nothing but that cache. tmp_path -- the working
+    directory, holding the dataset, its .cache (absent, or present and empty) and the cache directory --
+    is compared before and after, apart from the cache directory and file: every file by content, size
+    and mtime and every directory, tmp_path included, by its mtime, all first set to an old time so that
+    a change shows however coarse the filesystem's timestamps. A valid cache is served; force=True
+    rescans even over a valid-looking but wrong one and rewrites the cache file with the right counts
+    and key, which the next call serves without reading the labels. A synthetic split (_tiny_split,
+    below), so this runs without the data; the test above reads the real label file, with a temporary
+    cache_dir, and the one below checks that a missing cache_dir is created."""
+    data = _tiny_split(tmp_path, n=2)
+    if dataset_cache_exists:
+        os.mkdir(os.path.join(data, ".cache"))
+    monkeypatch.setattr(P8, "DATA", data)
+    monkeypatch.chdir(tmp_path)                    # a stray relative write lands where snap() sees it
+    cdir = tmp_path / "cache"
+    cdir.mkdir()                                   # made here, so tmp_path's own mtime can be compared
+    cache = cdir / "label_hist_test.npz"
+    for r, ds, fs in os.walk(tmp_path):
+        for p in [r] + [os.path.join(r, n) for n in ds + fs]:
+            os.utime(p, ns=(0, 0))
+
+    def snap():
+        out = {".": os.stat(tmp_path).st_mtime_ns}
+        for r, ds, fs in os.walk(tmp_path):
+            for n in ds + fs:
+                p = os.path.join(r, n)
+                if n in ds:
+                    out[os.path.relpath(p, tmp_path)] = os.stat(p).st_mtime_ns
+                else:
+                    st = os.stat(p)
+                    with open(p, "rb") as f:
+                        digest = hashlib.sha256(f.read()).hexdigest()
+                    out[os.path.relpath(p, tmp_path)] = (st.st_size, st.st_mtime_ns, digest)
+        return out
+    before = snap()
+    ok = {"cache", os.path.join("cache", cache.name)}
+
+    def stray_writes():
+        """Paths under tmp_path ('.': tmp_path itself) changed, removed or created, other than the cache
+        directory and file."""
+        now = snap()
+        changed = {k for k in before if k not in ok and now.get(k, "removed") != before[k]}
+        return sorted(changed | (set(now) - set(before) - ok))
+
+    a = P8.label_histogram("test", cache_dir=str(cdir))
+    assert not stray_writes(), f"written outside the cache: {stray_writes()}"
+    assert cache.exists()
+    with np.load(cache) as z:
+        meta = z["meta"].copy()
+    np.savez_compressed(cache, hist=a + 1, meta=meta)                       # a valid key, wrong counts
+    assert np.array_equal(P8.label_histogram("test", cache_dir=str(cdir)), a + 1), \
+        "a valid cache is served"
+    assert np.array_equal(P8.label_histogram("test", force=True, cache_dir=str(cdir)), a), \
+        "force=True must rescan, not serve the cache"
+    with np.load(cache) as z:                      # the file itself, whatever reads the labels
+        assert np.array_equal(z["hist"], a) and z["meta"].item() == meta.item(), \
+            "the rescan must refresh the cache with the right counts and key"
+    monkeypatch.setattr(P8, "_memmap_checked",
+                        lambda *_a, **_k: pytest.fail("the refreshed cache was not served"))
+    assert np.array_equal(P8.label_histogram("test", cache_dir=str(cdir)), a)
+    assert not stray_writes(), f"written outside the cache: {stray_writes()}"
+
+
+def test_label_histogram_creates_a_missing_cache_dir(tmp_path, monkeypatch):
+    monkeypatch.setattr(P8, "DATA", _tiny_split(tmp_path, n=1))
+    cdir = tmp_path / "new" / "cache"
+    hist = P8.label_histogram("test", cache_dir=str(cdir))
+    with np.load(cdir / "label_hist_test.npz") as z:
+        assert np.array_equal(z["hist"], hist)
 
 
 @needs_data
